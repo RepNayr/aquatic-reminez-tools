@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- APP -->
+    <string name="app_name">Aquatic Reminez Tools</string>
+    <string name="app_version">Versi 1.0.0</string>
+    <string name="app_build_date">Build: 11-10-2026</string>
+    <string name="app_developer">Reep Malefitz - Pemula</string>
+    <string name="app_tagline">Pemula dibawah Pemula</string>
+
+    <!-- ONBOARDING -->
+    <string name="onboarding_skip">LEWATI</string>
+    <string name="onboarding_next">LANJUT</string>
+    <string name="onboarding_start">MULAI</string>
+    <string name="onboarding_back">KEMBALI</string>
+    <string name="onboarding_slide1_title">TERLINDUNGI</string>
+    <string name="onboarding_slide1_subtitle">SAFETY FIRST ALWAYS</string>
+    <string name="onboarding_slide2_title">100 TOOLS</string>
+    <string name="onboarding_slide2_subtitle">SEMUA JADI SATU</string>
+    <string name="onboarding_slide3_title">POWERFULL</string>
+    <string name="onboarding_slide3_subtitle">MELEBIHI BATAS</string>
+    <string name="onboarding_slide4_title">AQUATIC REMINEZ TOOLS</string>
+    <string name="onboarding_slide4_subtitle">OLEH REEP</string>
+
+    <!-- BOTTOM NAV -->
+    <string name="nav_home">Beranda</string>
+    <string name="nav_search">Pencarian</string>
+    <string name="nav_history">Riwayat</string>
+    <string name="nav_about">Tentang</string>
+    <string name="nav_settings">Pengaturan</string>
+
+    <!-- DRAWER -->
+    <string name="drawer_quick_access">AKSES CEPAT</string>
+    <string name="drawer_preferences">PREFERENSI</string>
+    <string name="drawer_more">LAINNYA</string>
+    <string name="drawer_logout">Keluar</string>
+    <string name="drawer_powered_by">Didukung oleh: ReeP</string>
+    <string name="drawer_copyright">© 2026 Aquatic Reminez Tools</string>
+
+    <!-- HOME -->
+    <string name="home_greeting">Halo, Developer 👋</string>
+    <string name="home_subtitle">100 tools siap dipake</string>
+    <string name="home_search_placeholder">Cari tool…</string>
+    <string name="home_quick_menu">QUICK MENU</string>
+    <string name="home_favorites">FAVORIT</string>
+    <string name="home_recent">TERBARU</string>
+    <string name="home_prayer_times">JADWAL SHOLAT</string>
+    <string name="home_market">PASAR</string>
+    <string name="home_info">INFO</string>
+
+    <!-- USER -->
+    <string name="user_name">ReeP</string>
+    <string name="user_created">Dibuat: 11-10-2026</string>
+
+    <!-- INFO ROW -->
+    <string name="info_ip">IP</string>
+    <string name="info_connected">Terkoneksi</string>
+    <string name="info_status">Status</string>
+    <string name="info_online">ONLINE</string>
+    <string name="info_offline">OFFLINE</string>
+    <string name="info_wifi">WiFi</string>
+    <string name="info_cellular">Seluler</string>
+    <string name="info_not_connected">Tidak Terhubung</string>
+
+    <!-- CATEGORIES -->
+    <string name="cat_utility">Utility</string>
+    <string name="cat_security_gen">Security &amp; Generate</string>
+    <string name="cat_file">File &amp; Sistem</string>
+    <string name="cat_network">Jaringan</string>
+    <string name="cat_media">Media</string>
+    <string name="cat_dev">Dev Tools</string>
+    <string name="cat_forensic">Forensik</string>
+    <string name="cat_security">Security</string>
+    <string name="cat_offensive">Offensive</string>
+    <string name="cat_defensive">Defensive</string>
+    <string name="cat_games">Game</string>
+
+    <!-- CATEGORY PAGE -->
+    <string name="cat_tools_available">%1$d tools tersedia</string>
+    <string name="cat_search_placeholder">Cari tool…</string>
+    <string name="cat_sort">Urutkan</string>
+    <string name="cat_filter_favorite">Filter Favorit</string>
+    <string name="cat_sort_az">A → Z</string>
+    <string name="cat_sort_za">Z → A</string>
+    <string name="cat_sort_most_used">Paling Sering</string>
+    <string name="cat_sort_newest">Terbaru</string>
+
+    <!-- TOOL PAGE -->
+    <string name="tool_info">Info</string>
+    <string name="tool_settings">Pengaturan</string>
+    <string name="tool_favorite_add">Tambah ke Favorit</string>
+    <string name="tool_favorite_remove">Hapus dari Favorit</string>
+    <string name="tool_share">Bagikan</string>
+
+    <!-- SETTINGS -->
+    <string name="settings_title">PENGATURAN</string>
+    <string name="settings_hero_title">AQUATIC REMINEZ TOOLS</string>
+    <string name="settings_hero_subtitle">PANEL PENGATURAN</string>
+    <string name="settings_hero_powered">Didukung oleh: ReeP</string>
+    <string name="settings_hero_status">100 tools tersedia</string>
+    <string name="settings_appearance">TAMPILAN</string>
+    <string name="settings_language">BAHASA</string>
+    <string name="settings_notification">NOTIFIKASI</string>
+    <string name="settings_security">KEAMANAN</string>
+    <string name="settings_data">DATA</string>
+    <string name="settings_about_section">TENTANG</string>
+    <string name="settings_other">LAINNYA</string>
+    <string name="settings_theme">Tema</string>
+    <string name="settings_theme_dark">Gelap</string>
+    <string name="settings_theme_light">Terang</string>
+    <string name="settings_theme_auto">Otomatis</string>
+    <string name="settings_accent_color">Warna Aksen</string>
+    <string name="settings_font_size">Ukuran Font</string>
+    <string name="settings_font_small">Kecil</string>
+    <string name="settings_font_medium">Sedang</string>
+    <string name="settings_font_large">Besar</string>
+    <string name="settings_animation">Animasi</string>
+    <string name="settings_wallpaper">Wallpaper</string>
+    <string name="settings_language_label">Bahasa</string>
+    <string name="settings_language_id">Indonesia</string>
+    <string name="settings_language_en">English (US)</string>
+    <string name="settings_notif_prayer">Notifikasi Jadwal Sholat</string>
+    <string name="settings_notif_market">Notifikasi Pasar</string>
+    <string name="settings_vibration">Getar</string>
+    <string name="settings_sound">Suara</string>
+    <string name="settings_lock_app">Kunci App</string>
+    <string name="settings_fingerprint">Fingerprint</string>
+    <string name="settings_privacy_mode">Mode Privasi</string>
+    <string name="settings_block_screenshot">Blokir Screenshot</string>
+    <string name="settings_clear_cache">Hapus Cache</string>
+    <string name="settings_clear_history">Hapus Riwayat</string>
+    <string name="settings_clear_favorites">Hapus Favorit</string>
+    <string name="settings_backup_data">Backup Data</string>
+    <string name="settings_restore_data">Restore Data</string>
+    <string name="settings_reset_settings">Reset Pengaturan</string>
+    <string name="settings_version">Versi App</string>
+    <string name="settings_build">Build</string>
+    <string name="settings_check_update">Cek Update</string>
+    <string name="settings_privacy_policy">Kebijakan Privasi</string>
+    <string name="settings_terms">Syarat &amp; Ketentuan</string>
+    <string name="settings_license">Lisensi Open Source</string>
+    <string name="settings_rate_app">Beri Rating</string>
+    <string name="settings_share_app">Bagikan App</string>
+    <string name="settings_report_bug">Laporkan Bug</string>
+    <string name="settings_send_feedback">Kirim Saran</string>
+    <string name="settings_support_dev">Dukung Developer</string>
+    <string name="settings_about_dev">Tentang Developer</string>
+    <string name="settings_contact_us">Hubungi Kami</string>
+    <string name="settings_game_sound">Suara Game</string>
+    <string name="settings_game_vibration">Getar Game</string>
+    <string name="settings_game_control">Kontrol Game</string>
+    <string name="settings_reset_highscore">Reset Highscore</string>
+    <string name="settings_reset_achievement">Reset Achievement</string>
+
+    <!-- ABOUT -->
+    <string name="about_title">TENTANG</string>
+    <string name="about_what_is">📖 Apa itu Aquatic Reminez Tools?</string>
+    <string name="about_desc">Aquatic Reminez Tools adalah kumpulan 100 tools serbaguna yang dirancang untuk mempermudah pekerjaan digital kamu sehari-hari.\n\nDari utility dasar sampai tools keamanan, dan game ada di satu aplikasi. Tidak perlu menggunakan banyak aplikasi, karena di aplikasi ini sudah menyiapkan semuanya untuk mempermudah aktivitas anda.</string>
+    <string name="about_features">⚡ Fitur Unggulan</string>
+    <string name="about_features_list">• 100 tools dalam 11 kategori\n• Ringan &amp; cepat\n• Privacy first - data kamu aman\n• Offline friendly\n• Dark theme - nyaman di mata</string>
+    <string name="about_developer">👨‍💻 Developer</string>
+    <string name="about_legal">📜 Legal</string>
+    <string name="about_legal_desc">App ini dibuat untuk tujuan edukasi dan produktivitas.</string>
+
+    <!-- SEARCH / HISTORY -->
+    <string name="search_title">PENCARIAN</string>
+    <string name="search_placeholder">Cari tool…</string>
+    <string name="search_no_result">Tool tidak ditemukan</string>
+    <string name="history_title">RIWAYAT</string>
+    <string name="history_empty">Belum ada riwayat</string>
+    <string name="history_clear_all">Hapus Semua Riwayat</string>
+
+    <!-- GENERIC -->
+    <string name="ok">OK</string>
+    <string name="cancel">Batal</string>
+    <string name="yes">Ya</string>
+    <string name="no">Tidak</string>
+    <string name="save">Simpan</string>
+    <string name="delete">Hapus</string>
+    <string name="edit">Edit</string>
+    <string name="close">Tutup</string>
+    <string name="back">Kembali</string>
+    <string name="next">Lanjut</string>
+    <string name="loading">Memuat…</string>
+    <string name="processing">Memproses…</string>
+    <string name="success">Berhasil</string>
+    <string name="error">Error</string>
+    <string name="retry">Coba Lagi</string>
+    <string name="copy">Salin</string>
+    <string name="copied">Disalin ke clipboard</string>
+    <string name="share">Bagikan</string>
+    <string name="download">Unduh</string>
+    <string name="upload">Unggah</string>
+    <string name="apply">Terapkan</string>
+    <string name="reset">Reset</string>
+    <string name="confirm">Konfirmasi</string>
+    <string name="warning">Peringatan</string>
+    <string name="exit_app">Keluar App?</string>
+    <string name="exit_confirm">Yakin mau keluar?</string>
+
+    <!-- GAMES -->
+    <string name="games_title">GAME</string>
+    <string name="game_score">Skor</string>
+    <string name="game_highscore">Skor Tertinggi</string>
+    <string name="game_level">Level</string>
+    <string name="game_win">Menang</string>
+    <string name="game_lose">Kalah</string>
+    <string name="game_draw">Seri</string>
+    <string name="game_play_again">Main Lagi</string>
+    <string name="game_exit">Keluar Game</string>
+    <string name="game_pause">Jeda</string>
+    <string name="game_resume">Lanjut</string>
+    <string name="game_restart">Ulang</string>
+    <string name="game_final_score">Skor Akhir</string>
+
+    <!-- TEST -->
+    <string name="test_font_times_new_roman">Tes Font Times New Roman</string>
+
+    <!-- ONBOARDING EXTRA -->
+    <string name="onboarding_slide1_label">SLIDE 1</string>
+    <string name="onboarding_slide1_japanese">安全を守り</string>
+    <string name="onboarding_slide1_desc">Keamanan tingkat tinggi\nSetiap langkahmu terjaga\nSelalu tenang!</string>
+
+    <string name="onboarding_slide2_label">SLIDE 2</string>
+    <string name="onboarding_slide2_japanese">すべてのツール</string>
+    <string name="onboarding_slide2_desc">Utility, Security, Network, Media\nSemua jadi satu di genggaman\nTanpa ribet, tanpa batas!</string>
+
+    <string name="onboarding_slide3_label">SLIDE 3</string>
+    <string name="onboarding_slide3_japanese">無限の力</string>
+    <string name="onboarding_slide3_desc">Offensive &amp; Defensive\nKuasa penuh di tanganmu\nGunakan dengan bijak!</string>
+
+    <string name="onboarding_slide4_label">SLIDE 4</string>
+    <string name="onboarding_slide4_japanese">開発者より</string>
+    <string name="onboarding_slide4_desc">Dikembangkan oleh Reep Malefitz\nPemula dibawah Pemula\n\nVersi 1.0.0\nBuild 2026</string>
+
+    <string name="mute_button">Aktif/Matikan Suara</string>
+    <string name="sound_on">Suara Aktif</string>
+    <string name="sound_off">Suara Mati</string>
+
+</resources>
