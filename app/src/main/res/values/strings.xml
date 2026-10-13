@@ -47,6 +47,7 @@
     <string name="home_prayer_times">PRAYER TIMES</string>
     <string name="home_market">MARKET</string>
     <string name="home_info">INFO</string>
+    <string name="home_tools_count">%1$d tools</string>
 
     <!-- USER -->
     <string name="user_name">ReeP</string>
@@ -166,6 +167,8 @@
     <string name="search_title">SEARCH</string>
     <string name="search_placeholder">Search tool…</string>
     <string name="search_no_result">No tools found</string>
+    <string name="search_hint_example">Try searching "calculator" or "video"</string>
+    <string name="search_tools_found">%1$d tools found</string>
     <string name="history_title">HISTORY</string>
     <string name="history_empty">No history yet</string>
     <string name="history_clear_all">Clear All History</string>
@@ -236,5 +239,77 @@
     <string name="mute_button">Toggle Sound</string>
     <string name="sound_on">Sound On</string>
     <string name="sound_off">Sound Off</string>
+
+    <string name="menu">Menu</string>
+    <string name="notifications">Notifications</string>
+
+    <string name="time">Time</string>
+    <string name="battery">Battery</string>
+
+    <!-- DRAWER EXTRA -->
+    <string name="drawer_social">SOCIAL</string>
+    <string name="drawer_features">FEATURES</string>
+    <string name="drawer_favorites">Favorites</string>
+    <string name="drawer_categories">Categories</string>
+    <string name="drawer_tiktok">TikTok</string>
+    <string name="drawer_instagram">Instagram</string>
+    <string name="drawer_storage">Storage</string>
+    <string name="drawer_create_password">Create Password</string>
+    <string name="drawer_change_password">Change Password</string>
+    <string name="drawer_delete_password">Delete Password</string>
+    <string name="drawer_tiktok_url">https://tiktok.com/@defires6510</string>
+    <string name="drawer_instagram_url">https://instagram.com/@repp_sapiens</string>
+
+    <!-- STORAGE -->
+    <string name="storage_title">Storage</string>
+    <string name="storage_tab_all">All</string>
+    <string name="storage_tab_image">Image</string>
+    <string name="storage_tab_video">Video</string>
+    <string name="storage_tab_audio">Audio</string>
+    <string name="storage_tab_doc">Doc</string>
+    <string name="storage_empty_title">No Files Yet</string>
+    <string name="storage_empty_desc">Files you save from tools will appear here</string>
+    <string name="storage_delete_confirm">Delete this file?</string>
+    <string name="storage_delete_multiple">Delete %1$d files?</string>
+    <string name="storage_rename_title">Rename File</string>
+    <string name="storage_rename_hint">New name</string>
+    <string name="storage_renamed">File renamed</string>
+    <string name="storage_deleted">File deleted</string>
+    <string name="storage_action_share">Share</string>
+    <string name="storage_action_rename">Rename</string>
+    <string name="storage_action_delete">Delete</string>
+    <string name="storage_action_info">Info</string>
+    <string name="storage_action_open">Open</string>
+    <string name="storage_items_selected">%1$d selected</string>
+    <string name="storage_share_multiple">Share files?</string>
+
+    <!-- PASSWORD / APP LOCK -->
+    <string name="pin_setup_title">Create PIN</string>
+    <string name="pin_setup_subtitle">Enter a 6-digit PIN</string>
+    <string name="pin_setup_confirm_subtitle">Confirm your PIN</string>
+    <string name="pin_verify_title">Enter PIN</string>
+    <string name="pin_verify_subtitle">Enter your PIN to unlock</string>
+    <string name="pin_change_title">Change PIN</string>
+    <string name="pin_change_old">Enter old PIN</string>
+    <string name="pin_change_new">Enter new PIN</string>
+    <string name="pin_change_confirm">Confirm new PIN</string>
+    <string name="pin_error_wrong">Wrong PIN</string>
+    <string name="pin_error_mismatch">PIN does not match</string>
+    <string name="pin_error_length">PIN must be 6 digits</string>
+    <string name="pin_forgot">Forgot PIN?</string>
+    <string name="pin_attempts_left">Attempts left: %1$d</string>
+    <string name="pin_locked_seconds">Try again in %1$d seconds</string>
+    <string name="security_question_title">Security Question</string>
+    <string name="security_question_subtitle">Answer the question below</string>
+    <string name="security_question_default">What is your name?</string>
+    <string name="security_question_hint">Your answer (lowercase only)</string>
+    <string name="security_question_error">Wrong answer</string>
+    <string name="security_question_save">Save</string>
+    <string name="security_question_verify">Verify</string>
+    <string name="reset_app_title">Reset App</string>
+    <string name="reset_app_message">This will delete ALL your data including saved files. Are you sure?</string>
+    <string name="reset_app_confirm">Reset App</string>
+    <string name="delete_pin_title">Delete Password?</string>
+    <string name="delete_pin_message">You will lose your PIN and security question</string>
 
 </resources>

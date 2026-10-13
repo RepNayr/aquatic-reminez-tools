@@ -6,7 +6,6 @@ import android.view.ViewGroup
 import android.view.animation.OvershootInterpolator
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.core.content.res.ResourcesCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.repp.aquaticremineztools.R
@@ -104,10 +103,6 @@ class OnboardingAdapter(
             )
         }
 
-        /**
-         * Cancel SEMUA animasi + reset ke state default.
-         * Khusus logo, reset lebih detail biar ga nyangkut.
-         */
         fun prepareForReuse() {
             viewsToAnimate.forEach { view ->
                 view.animate().cancel()
@@ -120,43 +115,18 @@ class OnboardingAdapter(
                 view.rotation = 0f
                 view.visibility = View.VISIBLE
             }
-
-            // Khusus logo: reset ekstra
-            ivLogo?.let { logo ->
-                logo.animate().cancel()
-                logo.clearAnimation()
-                logo.alpha = 1f
-                logo.scaleX = 1f
-                logo.scaleY = 1f
-                logo.translationY = 0f
-                logo.translationX = 0f
-            }
         }
 
         fun bind(slide: OnboardingSlide) {
-            val cyberBlastTypeface = try {
-                ResourcesCompat.getFont(itemView.context, R.font.cyber_blast)
-            } catch (_: Exception) {
-                null
-            }
-            if (cyberBlastTypeface != null) {
-                tvTitle?.typeface = cyberBlastTypeface
-                tvSubtitle?.typeface = cyberBlastTypeface
-            }
-
             ivLogo?.setImageResource(R.drawable.logo_app)
             tvLabel?.setText(slide.labelRes)
             tvJapanese?.setText(slide.japaneseRes)
             tvTitle?.setText(slide.titleRes)
             tvSubtitle?.setText(slide.subtitleRes)
             tvDescription?.setText(slide.descriptionRes)
-
             resetToInvisible()
         }
 
-        /**
-         * Set INVISIBLE — termasuk logo.
-         */
         fun resetToInvisible() {
             viewsToAnimate.forEach { view ->
                 view.animate().cancel()
@@ -168,22 +138,8 @@ class OnboardingAdapter(
                 view.scaleY = 0.85f
                 view.rotation = 0f
             }
-
-            // Logo WAJIB invisible
-            ivLogo?.let {
-                it.animate().cancel()
-                it.clearAnimation()
-                it.alpha = 0f
-                it.scaleX = 0.85f
-                it.scaleY = 0.85f
-                it.translationY = 60f
-                it.translationX = 0f
-            }
         }
 
-        /**
-         * Set VISIBLE instant — termasuk logo.
-         */
         fun makeVisibleInstant() {
             viewsToAnimate.forEach { view ->
                 view.animate().cancel()
@@ -194,17 +150,6 @@ class OnboardingAdapter(
                 view.scaleX = 1f
                 view.scaleY = 1f
                 view.rotation = 0f
-            }
-
-            // Logo WAJIB visible instant
-            ivLogo?.let {
-                it.animate().cancel()
-                it.clearAnimation()
-                it.alpha = 1f
-                it.scaleX = 1f
-                it.scaleY = 1f
-                it.translationY = 0f
-                it.translationX = 0f
             }
         }
 

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fitsSystemWindows="true"
+    tools:context=".presentation.security.SecurityQuestionActivity">
+
+    <FrameLayout
+        android:id="@+id/btnBackSecQ"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_arrow_back"
+            android:contentDescription="@string/back"
+            app:tint="@color/accent_red" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/tvSecQTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="60dp"
+        android:layout_marginHorizontal="24dp"
+        android:fontFamily="@font/cyber_blast"
+        android:gravity="center"
+        android:letterSpacing="0.08"
+        android:text="@string/security_question_title"
+        android:textColor="@color/text_primary"
+        android:textSize="28sp"
+        app:layout_constraintTop_toBottomOf="@id/btnBackSecQ"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvSecQSubtitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="24dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:gravity="center"
+        android:text="@string/security_question_subtitle"
+        android:textColor="@color/text_secondary"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/tvSecQTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- QUESTION CARD -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvQuestion"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginHorizontal="24dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="@color/bg_card"
+        app:strokeColor="@color/accent_red"
+        app:strokeWidth="1dp"
+        app:layout_constraintTop_toBottomOf="@id/tvSecQSubtitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tvQuestionText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:padding="20dp"
+            android:text="Siapa namamu?"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp"
+            android:gravity="center" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- ANSWER INPUT -->
+    <EditText
+        android:id="@+id/etAnswer"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="24dp"
+        android:background="@drawable/bg_input_field"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:hint="@string/security_question_hint"
+        android:inputType="textNoSuggestions"
+        android:maxLines="1"
+        android:paddingHorizontal="16dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_muted"
+        android:textSize="15sp"
+        app:layout_constraintTop_toBottomOf="@id/cvQuestion"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvSecQError"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:layout_marginHorizontal="32dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:gravity="center"
+        android:text=""
+        android:textColor="@color/status_error"
+        android:textSize="13sp"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@id/etAnswer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- ACTION BUTTON -->
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/btnSecQAction"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginHorizontal="24dp"
+        android:background="@drawable/bg_btn_primary"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:letterSpacing="0.2"
+        android:text="@string/security_question_save"
+        android:textAllCaps="false"
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/tvSecQError"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- RESET APP BUTTON (muncul di mode recovery) -->
+    <TextView
+        android:id="@+id/btnResetApp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:padding="8dp"
+        android:text="@string/reset_app_confirm"
+        android:textColor="@color/status_error"
+        android:textSize="13sp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/btnSecQAction"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

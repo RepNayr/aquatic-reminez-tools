@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_primary"
+    android:fitsSystemWindows="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ========== PROFILE HEADER ========== -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_drawer_header"
+            android:paddingTop="48dp"
+            android:paddingBottom="24dp"
+            android:paddingHorizontal="20dp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/drawerLogoCard"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:layout_centerHorizontal="true"
+                app:cardCornerRadius="36dp"
+                app:cardElevation="8dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:strokeColor="@color/accent_red"
+                app:strokeWidth="2dp">
+
+                <ImageView
+                    android:id="@+id/ivDrawerLogo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/logo_app"
+                    android:contentDescription="@string/app_name" />
+            </androidx.cardview.widget.CardView>
+
+            <TextView
+                android:id="@+id/tvDrawerName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/drawerLogoCard"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/cyber_blast"
+                android:letterSpacing="0.05"
+                android:text="ReePNayr"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp" />
+
+            <TextView
+                android:id="@+id/tvDrawerCreated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tvDrawerName"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:text="Created: 11-10-2026"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp" />
+
+        </RelativeLayout>
+
+        <!-- ========== QUICK ACCESS ========== -->
+        <TextView
+            style="@style/DrawerSectionHeader"
+            android:text="@string/drawer_quick_access" />
+
+        <LinearLayout
+            android:id="@+id/menuHome"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_home"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/nav_home" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuSearch"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_search"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/nav_search" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuHistory"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_history"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/nav_history" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuFavorites"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_favorite"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_favorites" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuCategories"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_categories"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_categories" />
+        </LinearLayout>
+
+        <View style="@style/DrawerDivider" />
+
+        <!-- ========== SOCIAL ========== -->
+        <TextView
+            style="@style/DrawerSectionHeader"
+            android:text="@string/drawer_social" />
+
+        <LinearLayout
+            android:id="@+id/menuTiktok"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_tiktok"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_tiktok" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuInstagram"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_instagram"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_instagram" />
+        </LinearLayout>
+
+        <View style="@style/DrawerDivider" />
+
+        <!-- ========== FEATURES ========== -->
+        <TextView
+            style="@style/DrawerSectionHeader"
+            android:text="@string/drawer_features" />
+
+        <LinearLayout
+            android:id="@+id/menuGames"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_games"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/cat_games" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuStorage"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_storage"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_storage" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/menuPassword"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_lock"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                android:id="@+id/tvPasswordLabel"
+                style="@style/DrawerMenuText"
+                android:text="@string/drawer_create_password" />
+        </LinearLayout>
+
+        <View style="@style/DrawerDivider" />
+
+        <!-- ========== SETTINGS ========== -->
+        <TextView
+            style="@style/DrawerSectionHeader"
+            android:text="@string/settings_title" />
+
+        <LinearLayout
+            android:id="@+id/menuSettings"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_settings"
+                app:tint="@color/accent_red" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/settings_title" />
+        </LinearLayout>
+
+        <!-- ========== FOOTER ========== -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:background="@color/divider" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:gravity="center"
+            android:text="@string/drawer_powered_by"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:gravity="center"
+            android:text="@string/drawer_copyright"
+            android:textColor="@color/text_muted"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
+</androidx.core.widget.NestedScrollView>

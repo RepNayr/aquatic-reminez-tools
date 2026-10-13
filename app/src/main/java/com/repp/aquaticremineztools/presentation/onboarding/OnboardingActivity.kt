@@ -22,8 +22,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.viewpager2.widget.ViewPager2
 import com.repp.aquaticremineztools.BuildConfig
-import com.repp.aquaticremineztools.MainActivity
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import kotlin.math.abs
 
 class OnboardingActivity : AppCompatActivity() {
@@ -51,7 +51,6 @@ class OnboardingActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // DEV MODE: auto-reset onboarding flag
         if (BuildConfig.DEBUG) {
             getSharedPreferences("app_prefs", MODE_PRIVATE).edit {
                 putBoolean("onboarding_done", false)
@@ -184,7 +183,6 @@ class OnboardingActivity : AppCompatActivity() {
             },
         )
 
-        // Slide 1: animasi cascade pas app pertama kebuka
         viewPager.postDelayed({
             lastHandledPosition = 0
             adapter.animateCascade(viewPager, 0)
@@ -192,13 +190,9 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun updateSlideUI(position: Int) {
-        // BACK: muncul di slide 2-4, hidden di slide 1
         btnBack.visibility = if (position > 0) View.VISIBLE else View.GONE
-
-        // SKIP: muncul di SEMUA slide (termasuk slide 4)
         btnSkip.visibility = View.VISIBLE
 
-        // NEXT/START
         if (position == totalSlides - 1) {
             btnNext.text = getString(R.string.onboarding_start)
         } else {
@@ -283,14 +277,8 @@ class OnboardingActivity : AppCompatActivity() {
             if (current > 0) {
                 transitionMode = TransitionMode.BACK
                 updateSlideUI(current - 1)
-
-                // Bersihin semua state slide dulu (termasuk logo)
                 adapter.clearAllSlideStates(viewPager)
-
-                // Tampilkan slide target instant
                 adapter.showSlideInstant(viewPager, current - 1)
-
-                // Baru geser
                 viewPager.setCurrentItemSmooth(current - 1, 500L)
             }
         }
@@ -331,7 +319,7 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     private fun goToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
+        startActivity(Intent(this, HomeActivity::class.java))
         finish()
     }
 
@@ -351,7 +339,6 @@ class OnboardingActivity : AppCompatActivity() {
     }
 }
 
-// ========== EXTENSION FUNCTION (di luar class) ==========
 private fun ViewPager2.setCurrentItemSmooth(
     item: Int,
     duration: Long = 500L,

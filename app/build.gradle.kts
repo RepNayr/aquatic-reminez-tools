@@ -45,16 +45,13 @@ android {
         buildConfig = true
     }
 
-    androidResources {
-        noCompress += "mp4"
-    }
-
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 
+    // ⚠️ HANYA 1 KALI (yang duplikat udah dihapus)
     androidResources {
         noCompress += "mp4"
     }
@@ -128,6 +125,11 @@ dependencies {
     implementation(libs.shimmer)
     implementation(libs.lottie)
     implementation(libs.gif.drawable)
+
+    // ⬇️ TAMBAHAN BARU: Google Play Services Location (GPS)
+    implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    implementation(libs.androidx.security.crypto)
 
     // TESTING
     testImplementation(libs.junit)

@@ -47,6 +47,7 @@
     <string name="home_prayer_times">JADWAL SHOLAT</string>
     <string name="home_market">PASAR</string>
     <string name="home_info">INFO</string>
+    <string name="home_tools_count">%1$d tools</string>
 
     <!-- USER -->
     <string name="user_name">ReeP</string>
@@ -166,6 +167,8 @@
     <string name="search_title">PENCARIAN</string>
     <string name="search_placeholder">Cari tool…</string>
     <string name="search_no_result">Tool tidak ditemukan</string>
+    <string name="search_hint_example">Coba cari "calculator" atau "video"</string>
+    <string name="search_tools_found">%1$d tools ditemukan</string>
     <string name="history_title">RIWAYAT</string>
     <string name="history_empty">Belum ada riwayat</string>
     <string name="history_clear_all">Hapus Semua Riwayat</string>
@@ -236,5 +239,77 @@
     <string name="mute_button">Aktif/Matikan Suara</string>
     <string name="sound_on">Suara Aktif</string>
     <string name="sound_off">Suara Mati</string>
+
+    <string name="menu">Menu</string>
+    <string name="notifications">Notifikasi</string>
+
+    <string name="time">Waktu</string>
+    <string name="battery">Baterai</string>
+
+    <!-- DRAWER EXTRA -->
+    <string name="drawer_social">SOSMED</string>
+    <string name="drawer_features">FITUR</string>
+    <string name="drawer_favorites">Favorit</string>
+    <string name="drawer_categories">Kategori</string>
+    <string name="drawer_tiktok">TikTok</string>
+    <string name="drawer_instagram">Instagram</string>
+    <string name="drawer_storage">Penyimpanan</string>
+    <string name="drawer_create_password">Buat Password</string>
+    <string name="drawer_change_password">Ganti Password</string>
+    <string name="drawer_delete_password">Hapus Password</string>
+    <string name="drawer_tiktok_url">https://tiktok.com/@defires6510</string>
+    <string name="drawer_instagram_url">https://instagram.com/@repp_sapiens</string>
+
+    <!-- STORAGE -->
+    <string name="storage_title">Penyimpanan</string>
+    <string name="storage_tab_all">Semua</string>
+    <string name="storage_tab_image">Gambar</string>
+    <string name="storage_tab_video">Video</string>
+    <string name="storage_tab_audio">Audio</string>
+    <string name="storage_tab_doc">Dokumen</string>
+    <string name="storage_empty_title">Belum Ada File</string>
+    <string name="storage_empty_desc">File yang kamu simpan dari tools akan muncul di sini</string>
+    <string name="storage_delete_confirm">Hapus file ini?</string>
+    <string name="storage_delete_multiple">Hapus %1$d file?</string>
+    <string name="storage_rename_title">Ganti Nama File</string>
+    <string name="storage_rename_hint">Nama baru</string>
+    <string name="storage_renamed">File berhasil diganti nama</string>
+    <string name="storage_deleted">File berhasil dihapus</string>
+    <string name="storage_action_share">Bagikan</string>
+    <string name="storage_action_rename">Ganti Nama</string>
+    <string name="storage_action_delete">Hapus</string>
+    <string name="storage_action_info">Info</string>
+    <string name="storage_action_open">Buka</string>
+    <string name="storage_items_selected">%1$d dipilih</string>
+    <string name="storage_share_multiple">Bagikan file?</string>
+
+    <!-- PASSWORD / APP LOCK -->
+    <string name="pin_setup_title">Buat PIN</string>
+    <string name="pin_setup_subtitle">Masukkan PIN 6 digit</string>
+    <string name="pin_setup_confirm_subtitle">Konfirmasi PIN kamu</string>
+    <string name="pin_verify_title">Masukkan PIN</string>
+    <string name="pin_verify_subtitle">Masukkan PIN untuk buka</string>
+    <string name="pin_change_title">Ganti PIN</string>
+    <string name="pin_change_old">Masukkan PIN lama</string>
+    <string name="pin_change_new">Masukkan PIN baru</string>
+    <string name="pin_change_confirm">Konfirmasi PIN baru</string>
+    <string name="pin_error_wrong">PIN salah</string>
+    <string name="pin_error_mismatch">PIN tidak sama</string>
+    <string name="pin_error_length">PIN harus 6 digit</string>
+    <string name="pin_forgot">Lupa PIN?</string>
+    <string name="pin_attempts_left">Sisa kesempatan: %1$d</string>
+    <string name="pin_locked_seconds">Coba lagi dalam %1$d detik</string>
+    <string name="security_question_title">Pertanyaan Keamanan</string>
+    <string name="security_question_subtitle">Jawab pertanyaan di bawah</string>
+    <string name="security_question_default">Siapa namamu?</string>
+    <string name="security_question_hint">Jawaban kamu (wajib huruf kecil)</string>
+    <string name="security_question_error">Jawaban salah</string>
+    <string name="security_question_save">Simpan</string>
+    <string name="security_question_verify">Verifikasi</string>
+    <string name="reset_app_title">Reset App</string>
+    <string name="reset_app_message">Ini akan menghapus SEMUA data kamu termasuk file yang tersimpan. Yakin?</string>
+    <string name="reset_app_confirm">Reset App</string>
+    <string name="delete_pin_title">Hapus Password?</string>
+    <string name="delete_pin_message">Kamu akan kehilangan PIN dan pertanyaan keamanan</string>
 
 </resources>
