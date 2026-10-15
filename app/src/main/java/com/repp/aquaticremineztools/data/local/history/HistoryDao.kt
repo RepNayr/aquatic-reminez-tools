@@ -26,8 +26,11 @@ interface HistoryDao {
     @Query("DELETE FROM history")
     suspend fun deleteAll()
 
-    @Query("DELETE FROM history WHERE timestamp < :cutoffTimestamp AND (status IS NULL OR status != 'RUNNING')")
+    @Query("DELETE FROM history WHERE timestamp < :cutoffTimestamp")
     suspend fun deleteOlderThan(cutoffTimestamp: Long)
+
+    @Query("SELECT * FROM history WHERE status = 'RUNNING'")
+    suspend fun getRunningExecutions(): List<HistoryEntity>
 
     @Query("SELECT * FROM history ORDER BY timestamp DESC")
     fun getAllHistoryFlow(): Flow<List<HistoryEntity>>

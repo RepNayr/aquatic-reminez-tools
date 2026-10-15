@@ -29,9 +29,9 @@ import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import com.repp.aquaticremineztools.data.local.history.HistoryRepository
-import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import com.repp.aquaticremineztools.core.util.ActivityTransition
 import eightbitlab.com.blurview.BlurTarget
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.Stack
 
 class HistoryActivity : AppCompatActivity() {
 
@@ -110,6 +111,10 @@ class HistoryActivity : AppCompatActivity() {
     private var filterOptions = HistoryFilterOptions()
     private var sortOrderNewestFirst = true
 
+    // Undo / Redo Stacks
+    private val undoStack = Stack<List<HistoryEntity>>()
+    private val redoStack = Stack<List<HistoryEntity>>()
+
     private lateinit var timelineAdapter: HistoryTimelineAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -132,7 +137,6 @@ class HistoryActivity : AppCompatActivity() {
         setupRecyclerView()
 
         lifecycleScope.launch {
-            repository.seedInitialDataIfEmpty()
             repository.cleanupOldRecords()
             loadHistoryData()
         }
@@ -202,9 +206,17 @@ class HistoryActivity : AppCompatActivity() {
         btnMoreOptions.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
             popup.menu.add(0, 1, 0, "Delete All History")
+            if (!undoStack.isEmpty()) {
+                popup.menu.add(0, 2, 0, "Undo Delete")
+            }
+            if (!redoStack.isEmpty()) {
+                popup.menu.add(0, 3, 0, "Redo Delete")
+            }
             popup.setOnMenuItemClickListener { item ->
-                if (item.itemId == 1) {
-                    confirmDeleteAll()
+                when (item.itemId) {
+                    1 -> confirmDeleteAll()
+                    2 -> performUndo()
+                    3 -> performRedo()
                 }
                 true
             }
@@ -277,19 +289,39 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
+    private fun performUndo() {
+        if (undoStack.isEmpty()) return
+        val itemsToRestore = undoStack.pop()
+        lifecycleScope.launch {
+            itemsToRestore.forEach { repository.insert(it) }
+            redoStack.push(itemsToRestore)
+            Toast.makeText(this@HistoryActivity, "Action undone", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun performRedo() {
+        if (redoStack.isEmpty()) return
+        val itemsToReDelete = redoStack.pop()
+        lifecycleScope.launch {
+            repository.deleteByIds(itemsToReDelete.map { it.id })
+            undoStack.push(itemsToReDelete)
+            Toast.makeText(this@HistoryActivity, "Action redone", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun setupBottomNav() {
         selectNavTab(2)
 
         tabHome.setOnClickListener {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            }
-            startActivity(intent)
-            finish()
+            ActivityTransition.finishSmooth(this)
         }
 
         tabSearch.setOnClickListener {
-            startActivity(Intent(this, SearchActivity::class.java))
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+            finish()
         }
 
         tabHistory.setOnClickListener {
@@ -324,12 +356,14 @@ class HistoryActivity : AppCompatActivity() {
             if (i == index) {
                 lp?.weight = 1.4f
                 container.layoutParams = lp
+                container.requestLayout()
                 pill.setBackgroundResource(R.drawable.bg_nav_active_pill)
                 text.visibility = View.VISIBLE
                 icon.setColorFilter(primaryColor)
             } else {
                 lp?.weight = 0.9f
                 container.layoutParams = lp
+                container.requestLayout()
                 pill.setBackgroundColor(android.graphics.Color.TRANSPARENT)
                 text.visibility = View.GONE
                 icon.setColorFilter(secondaryColor)
@@ -339,16 +373,16 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun setupDrawerMenuClicks() {
         findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-            }
-            startActivity(intent)
-            finish()
+            ActivityTransition.finishSmooth(this)
         }
 
         findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
             closeDrawer()
-            startActivity(Intent(this, SearchActivity::class.java))
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+            finish()
         }
 
         findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
@@ -367,7 +401,7 @@ class HistoryActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
             closeDrawer()
-            startActivity(Intent(this, StorageActivity::class.java))
+            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
@@ -398,6 +432,8 @@ class HistoryActivity : AppCompatActivity() {
                     entity = entity,
                     onDelete = { toDel ->
                         lifecycleScope.launch {
+                            undoStack.push(listOf(toDel))
+                            redoStack.clear()
                             repository.delete(toDel)
                             Toast.makeText(this@HistoryActivity, "Activity deleted", Toast.LENGTH_SHORT).show()
                         }
@@ -433,6 +469,8 @@ class HistoryActivity : AppCompatActivity() {
                             Toast.makeText(this, "Cannot delete ongoing execution", Toast.LENGTH_SHORT).show()
                         } else {
                             lifecycleScope.launch {
+                                undoStack.push(listOf(entity))
+                                redoStack.clear()
                                 repository.delete(entity)
                                 Toast.makeText(this@HistoryActivity, "Deleted", Toast.LENGTH_SHORT).show()
                             }
@@ -630,6 +668,9 @@ class HistoryActivity : AppCompatActivity() {
             .setMessage("Are you sure you want to delete ${selectedIds.size} selected activity records?")
             .setPositiveButton("Delete") { _, _ ->
                 lifecycleScope.launch {
+                    val itemsToDelete = allHistory.filter { selectedIds.contains(it.id) }
+                    undoStack.push(itemsToDelete)
+                    redoStack.clear()
                     repository.deleteByIds(selectedIds.toList())
                     Toast.makeText(this@HistoryActivity, "${selectedIds.size} records deleted", Toast.LENGTH_SHORT).show()
                     exitSelectionMode()
@@ -645,6 +686,9 @@ class HistoryActivity : AppCompatActivity() {
             .setMessage("Are you sure you want to clear all history records? This action cannot be undone.")
             .setPositiveButton("Delete All") { _, _ ->
                 lifecycleScope.launch {
+                    val allCurrent = allHistory.toList()
+                    undoStack.push(allCurrent)
+                    redoStack.clear()
                     repository.deleteAll()
                     Toast.makeText(this@HistoryActivity, "All history cleared", Toast.LENGTH_SHORT).show()
                 }
@@ -661,6 +705,7 @@ class HistoryActivity : AppCompatActivity() {
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
             super.onBackPressed()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
     }
 

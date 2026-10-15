@@ -24,7 +24,7 @@ class HistoryFilterBottomSheet(
     private val onReset: () -> Unit
 ) : BottomSheetDialogFragment() {
 
-    private val categories = listOf("Utility", "Cyber Tools", "Media", "Dev Tools", "Security & General", "Security", "Forensic")
+    private val categories = listOf("Utility", "Security & Generate", "File & System", "Cyber Tools", "Media", "Dev Tools", "Forensic", "Security", "Games")
     private val types = listOf("OPENED", "EXECUTED")
     private val statuses = listOf("SUCCESS", "FAILED", "RUNNING", "CANCELLED", "INTERRUPTED")
     private val dateRanges = listOf("TODAY" to "Today", "LAST_7" to "Last 7 days", "LAST_30" to "Last 30 days")

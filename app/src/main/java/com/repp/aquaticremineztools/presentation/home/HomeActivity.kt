@@ -47,6 +47,8 @@ import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import com.repp.aquaticremineztools.presentation.history.HistoryActivity
+import com.repp.aquaticremineztools.core.util.ActivityTransition
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 import org.json.JSONObject
@@ -91,7 +93,6 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var cardIpBlur: BlurView
     private lateinit var cardConnectionBlur: BlurView
     private lateinit var cardPingBlur: BlurView
-    private lateinit var blurBottomNav: BlurView
 
     private lateinit var tvPasswordLabel: TextView
 
@@ -253,15 +254,18 @@ class HomeActivity : AppCompatActivity() {
 
         tabSearch.setOnClickListener {
             selectNavTab(1)
-            startActivity(Intent(this, SearchActivity::class.java))
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabHistory.setOnClickListener {
             selectNavTab(2)
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.history.HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            val intent = Intent(this, HistoryActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
-            startActivity(intent)
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabAbout.setOnClickListener {
@@ -294,12 +298,14 @@ class HomeActivity : AppCompatActivity() {
             if (i == index) {
                 lp?.weight = 1.4f
                 container.layoutParams = lp
+                container.requestLayout()
                 pill.setBackgroundResource(R.drawable.bg_nav_active_pill)
                 text.visibility = View.VISIBLE
                 icon.setColorFilter(primaryColor)
             } else {
                 lp?.weight = 0.9f
                 container.layoutParams = lp
+                container.requestLayout()
                 pill.setBackgroundColor(Color.TRANSPARENT)
                 text.visibility = View.GONE
                 icon.setColorFilter(secondaryColor)
@@ -314,15 +320,15 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuSearch).setOnClickListener {
             closeDrawer()
-            startActivity(Intent(this, SearchActivity::class.java))
+            ActivityTransition.startActivitySmooth(this, Intent(this, SearchActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.menuHistory).setOnClickListener {
             closeDrawer()
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.history.HistoryActivity::class.java).apply {
+            val intent = Intent(this, HistoryActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
             }
-            startActivity(intent)
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuFavorites).setOnClickListener {
@@ -350,7 +356,7 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuStorage).setOnClickListener {
             closeDrawer()
-            startActivity(Intent(this, StorageActivity::class.java))
+            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.menuPassword).setOnClickListener {
@@ -428,14 +434,12 @@ class HomeActivity : AppCompatActivity() {
         cardIpBlur = findViewById(R.id.cardIp)
         cardConnectionBlur = findViewById(R.id.cardConnection)
         cardPingBlur = findViewById(R.id.cardPing)
-        blurBottomNav = findViewById(R.id.blurBottomNav)
 
         val frameClearDrawable = window.decorView.background
 
         GlassBlurHelper.setupBlur(cardIpBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardConnectionBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPingBlur, homeBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurBottomNav, homeBlurTarget, frameClearDrawable)
     }
 
     // ============================

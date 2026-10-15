@@ -1,8 +1,10 @@
 package com.repp.aquaticremineztools.data.local.history
 
 import android.content.Context
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class HistoryRepository private constructor(context: Context) {
@@ -22,6 +24,14 @@ class HistoryRepository private constructor(context: Context) {
         }
 
         private const val RETENTION_MS = 30L * 24 * 60 * 60 * 1000
+    }
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            recoverStaleRunningExecutions()
+            cleanupOldRecords()
+            seedInitialDataIfEmpty()
+        }
     }
 
     fun getAllHistory(): Flow<List<HistoryEntity>> = dao.getAllHistoryFlow()
@@ -141,6 +151,19 @@ class HistoryRepository private constructor(context: Context) {
             )
 
             seedItems.forEach { dao.insert(it) }
+        }
+    }
+
+    private suspend fun recoverStaleRunningExecutions() = withContext(Dispatchers.IO) {
+        val runningItems = dao.getRunningExecutions()
+        val now = System.currentTimeMillis()
+        for (item in runningItems) {
+            val updated = item.copy(
+                status = "INTERRUPTED",
+                endTime = now,
+                resultSummary = "Execution interrupted unexpectedly (process terminated or app closed)."
+            )
+            dao.update(updated)
         }
     }
 }

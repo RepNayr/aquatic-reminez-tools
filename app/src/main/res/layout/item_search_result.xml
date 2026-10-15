@@ -1,37 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<eightbitlab.com.blurview.BlurView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/cardSearchItem"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/blurCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:cardBackgroundColor="@color/bg_card"
-    app:strokeColor="@color/border"
-    app:strokeWidth="1dp">
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_glass_card_clip">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_overlay"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_specular"
+        android:clickable="false"
+        android:focusable="false" />
 
     <LinearLayout
+        android:id="@+id/cardContent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackground">
 
-        <!-- EMOJI ICON -->
+        <!-- EMOJI ICON CONTAINER -->
         <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_icon_circle">
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/bg_quick_icon_circle">
 
             <TextView
                 android:id="@+id/tvToolEmoji"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
-                android:text="🧮"
-                android:textSize="22sp" />
+                tools:text="🧮"
+                android:textSize="20sp" />
         </FrameLayout>
 
         <!-- INFO -->
@@ -49,9 +62,9 @@
                 android:ellipsize="end"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:maxLines="1"
-                android:text="Calculator Scientific"
+                tools:text="Calculator Scientific"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
 
             <TextView
@@ -60,32 +73,32 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 android:fontFamily="@font/times_new_roman_regular"
-                android:text="Utility"
-                android:textColor="@color/accent_red"
-                android:textSize="11sp" />
+                tools:text="Utility"
+                android:textColor="@color/accent_primary"
+                android:textSize="10.5sp" />
 
             <TextView
                 android:id="@+id/tvToolDesc"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="3dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/times_new_roman_regular"
-                android:maxLines="1"
-                android:text="Advanced scientific calculator"
+                android:maxLines="2"
+                tools:text="Advanced scientific calculator with history and memory functions."
                 android:textColor="@color/text_muted"
                 android:textSize="11sp" />
         </LinearLayout>
 
         <!-- CHEVRON -->
         <ImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:layout_marginStart="8dp"
             android:src="@drawable/ic_chevron_right"
-            android:contentDescription="@string/next"
-            app:tint="@color/text_muted" />
+            android:contentDescription="@null"
+            app:tint="@color/text_secondary" />
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</eightbitlab.com.blurview.BlurView>
