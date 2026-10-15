@@ -206,6 +206,7 @@
     <string name="warning">Peringatan</string>
     <string name="exit_app">Keluar App?</string>
     <string name="exit_confirm">Yakin mau keluar?</string>
+    <string name="more_options">Opsi Lainnya</string>
 
     <!-- GAMES -->
     <string name="games_title">GAME</string>

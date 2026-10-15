@@ -206,6 +206,7 @@
     <string name="warning">Warning</string>
     <string name="exit_app">Exit App?</string>
     <string name="exit_confirm">Are you sure you want to exit?</string>
+    <string name="more_options">More Options</string>
 
     <!-- GAMES -->
     <string name="games_title">GAMES</string>

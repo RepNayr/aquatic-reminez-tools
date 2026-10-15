@@ -48,6 +48,12 @@
             android:screenOrientation="portrait" />
 
         <activity
+            android:name=".presentation.history.HistoryActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".presentation.search.SearchActivity"
             android:exported="false"
             android:screenOrientation="portrait"

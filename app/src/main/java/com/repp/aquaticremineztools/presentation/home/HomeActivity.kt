@@ -258,7 +258,10 @@ class HomeActivity : AppCompatActivity() {
 
         tabHistory.setOnClickListener {
             selectNavTab(2)
-            Toast.makeText(this, "History - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.history.HistoryActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
+            startActivity(intent)
         }
 
         tabAbout.setOnClickListener {
@@ -316,7 +319,10 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuHistory).setOnClickListener {
             closeDrawer()
-            Toast.makeText(this, "History - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.history.HistoryActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+            }
+            startActivity(intent)
         }
 
         findViewById<LinearLayout>(R.id.menuFavorites).setOnClickListener {

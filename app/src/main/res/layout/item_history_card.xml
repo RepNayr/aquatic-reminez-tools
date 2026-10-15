@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<eightbitlab.com.blurview.BlurView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/blurCard"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_glass_card_clip">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_overlay"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_specular"
+        android:clickable="false"
+        android:focusable="false" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardContent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:background="?attr/selectableItemBackground">
+
+        <!-- CHECKBOX (Selection Mode) -->
+        <CheckBox
+            android:id="@+id/cbSelect"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- TOOL ICON CONTAINER -->
+        <FrameLayout
+            android:id="@+id/iconContainer"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="@drawable/bg_quick_icon_circle"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/cbSelect">
+
+            <ImageView
+                android:id="@+id/ivToolIcon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_utility"
+                app:tint="@color/cat_network" />
+
+        </FrameLayout>
+
+        <!-- TOOL NAME -->
+        <TextView
+            android:id="@+id/tvToolName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="6dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Network Diagnostics"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toEndOf="@id/iconContainer"
+            app:layout_constraintEnd_toStartOf="@id/statusChip" />
+
+        <!-- STATUS / ACTIVITY CHIP -->
+        <LinearLayout
+            android:id="@+id/statusChip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:background="@drawable/bg_info_chip"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/btnOverflow">
+
+            <ImageView
+                android:id="@+id/ivStatusIcon"
+                android:layout_width="11dp"
+                android:layout_height="11dp"
+                android:src="@drawable/ic_status_success"
+                app:tint="@color/status_online" />
+
+            <TextView
+                android:id="@+id/tvStatusLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/status_online"
+                android:textSize="9.5sp"
+                android:textStyle="bold"
+                tools:text="Success" />
+        </LinearLayout>
+
+        <!-- OVERFLOW ACTION -->
+        <FrameLayout
+            android:id="@+id/btnOverflow"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/text_secondary" />
+
+        </FrameLayout>
+
+        <!-- CATEGORY & METADATA -->
+        <TextView
+            android:id="@+id/tvCategory"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_secondary"
+            android:textSize="10.5sp"
+            tools:text="Cyber Tools · Executed"
+            app:layout_constraintTop_toBottomOf="@id/tvToolName"
+            app:layout_constraintStart_toStartOf="@id/tvToolName"
+            app:layout_constraintEnd_toStartOf="@id/btnOverflow" />
+
+        <!-- RESULT SUMMARY -->
+        <TextView
+            android:id="@+id/tvSummary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Ping: 43ms · Packet Loss: 0% · Target 1.1.1.1 reachable."
+            app:layout_constraintTop_toBottomOf="@id/tvCategory"
+            app:layout_constraintStart_toStartOf="@id/tvToolName"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <!-- TIMESTAMP & DURATION -->
+        <TextView
+            android:id="@+id/tvTimeDuration"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            tools:text="14:32 · 4.2 sec"
+            app:layout_constraintTop_toBottomOf="@id/tvSummary"
+            app:layout_constraintStart_toStartOf="@id/tvToolName"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</eightbitlab.com.blurview.BlurView>
