@@ -5,9 +5,9 @@
     android:id="@+id/cardUser"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="8dp"
+    android:layout_marginTop="4dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="8dp"
+    app:cardElevation="4dp"
     app:cardBackgroundColor="@color/bg_card"
     app:strokeColor="@color/border"
     app:strokeWidth="1dp">
@@ -23,7 +23,7 @@
             app:resize_mode="zoom"
             app:use_controller="false"
             app:show_buffering="never"
-            app:surface_type="surface_view"
+            app:surface_type="texture_view"
             app:shutter_background_color="@android:color/transparent"
             app:layout_constraintDimensionRatio="16:9"
             app:layout_constraintTop_toTopOf="parent"
@@ -45,32 +45,32 @@
             android:id="@+id/timeContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp"
             android:background="@drawable/bg_info_chip"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
             app:layout_constraintTop_toTopOf="@id/videoUserCard"
             app:layout_constraintStart_toStartOf="@id/videoUserCard">
 
             <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:src="@drawable/ic_clock"
                 android:contentDescription="@string/time"
-                app:tint="@color/accent_red" />
+                app:tint="@color/accent_primary" />
 
             <TextView
                 android:id="@+id/tvTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="5dp"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:text="21:12"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
@@ -79,20 +79,20 @@
             android:id="@+id/batteryContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="6dp"
             android:background="@drawable/bg_info_chip"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
             app:layout_constraintTop_toTopOf="@id/videoUserCard"
             app:layout_constraintStart_toEndOf="@id/timeContainer">
 
             <ImageView
                 android:id="@+id/ivBatteryIcon"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="12dp"
+                android:layout_height="12dp"
                 android:src="@drawable/ic_battery_full"
                 android:contentDescription="@string/battery"
                 app:tint="@color/status_online" />
@@ -101,22 +101,47 @@
                 android:id="@+id/tvBattery"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="5dp"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:text="85%"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- MUTE BUTTON -->
+        <!-- DEVELOPER BADGE -->
+        <LinearLayout
+            android:id="@+id/devBadgeContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_info_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            app:layout_constraintTop_toTopOf="@id/videoUserCard"
+            app:layout_constraintEnd_toStartOf="@id/btnMuteCard">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:text="@string/developer_badge"
+                android:textColor="@color/text_primary"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- MUTE BUTTON (transparan, tanpa persegi) -->
         <FrameLayout
             android:id="@+id/btnMuteCard"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="12dp"
-            android:background="@drawable/bg_mute_button_card"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/bg_mute_transparent"
             android:clickable="true"
             android:focusable="true"
             app:layout_constraintTop_toTopOf="@id/videoUserCard"
@@ -124,25 +149,25 @@
 
             <ImageView
                 android:id="@+id/ivMuteCard"
-                android:layout_width="14dp"
-                android:layout_height="14dp"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_volume_on"
                 android:contentDescription="@string/sound_on"
-                app:tint="@color/accent_red" />
+                app:tint="@color/accent_primary" />
         </FrameLayout>
 
         <!-- LOGO -->
         <androidx.cardview.widget.CardView
             android:id="@+id/logoContainer"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="12dp"
-            android:layout_marginBottom="12dp"
-            app:cardCornerRadius="28dp"
+            android:layout_marginBottom="10dp"
+            app:cardCornerRadius="24dp"
             app:cardElevation="4dp"
             app:cardBackgroundColor="@color/bg_card"
-            app:strokeColor="@color/accent_red"
+            app:strokeColor="@color/accent_primary"
             app:strokeWidth="1.5dp"
             app:layout_constraintBottom_toBottomOf="@id/videoUserCard"
             app:layout_constraintStart_toStartOf="@id/videoUserCard">
@@ -156,13 +181,13 @@
                 android:contentDescription="@string/app_name" />
         </androidx.cardview.widget.CardView>
 
-        <!-- USER INFO -->
+        <!-- USER INFO (compact) -->
         <LinearLayout
             android:id="@+id/userInfoContainer"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="@id/logoContainer"
             app:layout_constraintTop_toTopOf="@id/logoContainer"
@@ -173,46 +198,47 @@
                 android:id="@+id/tvUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/cyber_blast"
-                android:letterSpacing="0.05"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:letterSpacing="0.03"
                 android:text="ReePNayr"
                 android:textColor="@color/text_primary"
-                android:textSize="18sp" />
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvCreatedDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:fontFamily="@font/times_new_roman_regular"
                 android:text="Created: 11-10-2026"
                 android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
 
             <TextView
                 android:id="@+id/tvTodayDate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="1dp"
                 android:fontFamily="@font/times_new_roman_regular"
-                android:text="Monday, October 13, 2026"
-                android:textColor="@color/accent_red"
-                android:textSize="11sp"
+                android:text="Tuesday, October 13, 2026"
+                android:textColor="@color/accent_primary"
+                android:textSize="10sp"
                 android:textStyle="bold" />
         </LinearLayout>
 
-        <!-- CUACA + LOKASI (TANPA TOMBOL REFRESH) -->
+        <!-- CUACA + LOKASI -->
         <LinearLayout
             android:id="@+id/weatherContainer"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:layout_marginBottom="12dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/bg_info_chip"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
             app:layout_constraintBottom_toBottomOf="@id/videoUserCard"
             app:layout_constraintEnd_toEndOf="@id/videoUserCard">
 
@@ -221,31 +247,31 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🌤️"
-                android:textSize="14sp" />
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/tvTemperature"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="3dp"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:text="--°C"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvLocation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:fontFamily="@font/times_new_roman_regular"
-                android:maxWidth="100dp"
-                android:maxLines="1"
+                android:layout_marginStart="5dp"
                 android:ellipsize="end"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:maxLines="1"
+                android:maxWidth="90dp"
                 android:text="--"
                 android:textColor="@color/text_secondary"
-                android:textSize="11sp" />
+                android:textSize="10sp" />
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

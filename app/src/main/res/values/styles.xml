@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Drawer Section Header -->
+    <!-- ========== DRAWER SECTION HEADER ========== -->
     <style name="DrawerSectionHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
@@ -11,12 +11,12 @@
         <item name="android:layout_marginEnd">20dp</item>
         <item name="android:fontFamily">@font/times_new_roman_bold</item>
         <item name="android:letterSpacing">0.15</item>
-        <item name="android:textColor">@color/accent_red</item>
+        <item name="android:textColor">@color/accent_cyan</item>
         <item name="android:textSize">11sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
-    <!-- Drawer Menu Item -->
+    <!-- ========== DRAWER MENU ITEM ========== -->
     <style name="DrawerMenuItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">48dp</item>
@@ -29,13 +29,13 @@
         <item name="android:background">?attr/selectableItemBackground</item>
     </style>
 
-    <!-- Drawer Menu Icon -->
+    <!-- ========== DRAWER MENU ICON ========== -->
     <style name="DrawerMenuIcon">
         <item name="android:layout_width">22dp</item>
         <item name="android:layout_height">22dp</item>
     </style>
 
-    <!-- Drawer Menu Text -->
+    <!-- ========== DRAWER MENU TEXT ========== -->
     <style name="DrawerMenuText">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
@@ -46,7 +46,7 @@
         <item name="android:textSize">14sp</item>
     </style>
 
-    <!-- Drawer Divider -->
+    <!-- ========== DRAWER DIVIDER ========== -->
     <style name="DrawerDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
@@ -57,7 +57,7 @@
         <item name="android:background">@color/divider</item>
     </style>
 
-    <!-- Storage Tab -->
+    <!-- ========== STORAGE TAB ========== -->
     <style name="StorageTab">
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">36dp</item>

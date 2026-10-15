@@ -3,6 +3,7 @@ package com.repp.aquaticremineztools.presentation.home
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
@@ -17,7 +18,7 @@ class QuickCategoryAdapter(
 
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardRoot: MaterialCardView = itemView.findViewById(R.id.cardCategory)
-        val tvEmoji: TextView = itemView.findViewById(R.id.tvEmoji)
+        val ivIcon: ImageView = itemView.findViewById(R.id.ivIcon)
         val tvName: TextView = itemView.findViewById(R.id.tvName)
         val tvCount: TextView = itemView.findViewById(R.id.tvCount)
     }
@@ -32,13 +33,18 @@ class QuickCategoryAdapter(
         val category = categories[position]
         val context = holder.itemView.context
 
-        holder.tvEmoji.text = category.emoji
+        holder.ivIcon.setImageResource(category.iconRes)
         holder.tvName.setText(category.nameRes)
         holder.tvCount.text = "${category.count} tools"
 
-        // Set stroke color sesuai kategori (warna aksen)
+        // Accent color
         val accentColor = ContextCompat.getColor(context, category.accentColor)
-        holder.cardRoot.strokeColor = accentColor
+
+        // Set stroke card to neutral border (not bright neon category color)
+        holder.cardRoot.strokeColor = ContextCompat.getColor(context, R.color.border)
+
+        // Tint icon with category accent color
+        holder.ivIcon.setColorFilter(accentColor)
 
         holder.cardRoot.setOnClickListener {
             onCategoryClick(category)

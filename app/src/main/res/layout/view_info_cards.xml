@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- CARD 1: IP ADDRESS -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardIp"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:background="@drawable/bg_info_card"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/cardConnection"
+        app:layout_constraintHorizontal_weight="1">
+
+        <ImageView
+            android:id="@+id/ivIpIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_network"
+            android:contentDescription="@string/info_ip_address"
+            app:tint="@color/accent_primary"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvIpLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.03"
+            android:text="@string/info_ip_address"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            app:layout_constraintTop_toBottomOf="@id/ivIpIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvIpValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:maxLines="1"
+            android:text="--"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- CARD 2: CONNECTION -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardConnection"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_info_card"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cardIp"
+        app:layout_constraintEnd_toStartOf="@id/cardPing"
+        app:layout_constraintHorizontal_weight="1">
+
+        <ImageView
+            android:id="@+id/ivConnectionIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_wifi"
+            android:contentDescription="@string/info_wifi"
+            app:tint="@color/accent_teal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvConnectionLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.03"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/info_wifi"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            app:layout_constraintTop_toBottomOf="@id/ivConnectionIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvConnectionValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:maxLines="1"
+            android:text="--"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- CARD 3: PING -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cardPing"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/bg_info_card"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/cardConnection"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="1">
+
+        <ImageView
+            android:id="@+id/ivPingIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:src="@drawable/ic_activity"
+            android:contentDescription="@string/info_ping_latency"
+            app:tint="@color/accent_violet"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPingLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.03"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:text="@string/info_ping_latency"
+            android:textColor="@color/text_secondary"
+            android:textSize="9sp"
+            app:layout_constraintTop_toBottomOf="@id/ivPingIcon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPingValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:maxLines="1"
+            android:text="-- ms"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

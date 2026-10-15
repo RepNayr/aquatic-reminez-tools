@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- LAYER 1: Gambar (samar, dari user) -->
+    <item>
+        <bitmap
+            android:src="@drawable/home_background_image"
+            android:gravity="fill"
+            android:alpha="0.08" />
+    </item>
+
+    <!-- LAYER 2: Overlay gradient (biar konten kebaca) -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#0A0C10"
+                android:centerColor="#CC0A0C10"
+                android:endColor="#E60A0C10"
+                android:type="linear" />
+        </shape>
+    </item>
+
+</layer-list>

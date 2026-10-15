@@ -53,15 +53,21 @@
     <string name="user_name">ReeP</string>
     <string name="user_created">Created: 11-10-2026</string>
 
-    <!-- INFO ROW -->
-    <string name="info_ip">IP</string>
-    <string name="info_connected">Connected</string>
+    <!-- INFO CARD LABELS (buat 3 kartu di Home) -->
+    <string name="info_ip_address">IP Address</string>
+    <string name="info_wifi">WI-FI</string>
+    <string name="info_data_cellular">DATA SELULER</string>
+    <string name="info_ping_latency">PING (Latency)</string>
+    <string name="info_not_connected">Not Connected</string>
+    <string name="info_unavailable">Unavailable</string>
+    <string name="info_timeout">Timeout</string>
+    <string name="info_loading">Loading…</string>
+
+    <!-- LEGACY INFO (kalo masih dipake di layout lain) -->
     <string name="info_status">Status</string>
     <string name="info_online">ONLINE</string>
     <string name="info_offline">OFFLINE</string>
-    <string name="info_wifi">WiFi</string>
     <string name="info_cellular">Cellular</string>
-    <string name="info_not_connected">Not Connected</string>
 
     <!-- CATEGORIES -->
     <string name="cat_utility">Utility</string>
@@ -311,5 +317,6 @@
     <string name="reset_app_confirm">Reset App</string>
     <string name="delete_pin_title">Delete Password?</string>
     <string name="delete_pin_message">You will lose your PIN and security question</string>
+    <string name="developer_badge">DEVELOPER</string>
 
 </resources>

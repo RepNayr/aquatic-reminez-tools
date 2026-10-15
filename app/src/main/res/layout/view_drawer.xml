@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- ========== PROFILE HEADER ========== -->
+        <!-- PROFILE HEADER -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -27,9 +27,9 @@
                 android:layout_height="72dp"
                 android:layout_centerHorizontal="true"
                 app:cardCornerRadius="36dp"
-                app:cardElevation="8dp"
+                app:cardElevation="6dp"
                 app:cardBackgroundColor="@color/bg_card"
-                app:strokeColor="@color/accent_red"
+                app:strokeColor="@color/accent_primary"
                 app:strokeWidth="2dp">
 
                 <ImageView
@@ -48,11 +48,12 @@
                 android:layout_below="@id/drawerLogoCard"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="12dp"
-                android:fontFamily="@font/cyber_blast"
+                android:fontFamily="@font/times_new_roman_bold"
                 android:letterSpacing="0.05"
                 android:text="ReePNayr"
                 android:textColor="@color/text_primary"
-                android:textSize="20sp" />
+                android:textSize="18sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/tvDrawerCreated"
@@ -68,7 +69,7 @@
 
         </RelativeLayout>
 
-        <!-- ========== QUICK ACCESS ========== -->
+        <!-- QUICK ACCESS -->
         <TextView
             style="@style/DrawerSectionHeader"
             android:text="@string/drawer_quick_access" />
@@ -80,7 +81,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_home"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/nav_home"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -94,7 +96,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_search"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/nav_search"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -108,7 +111,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_history"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/nav_history"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -122,7 +126,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_favorite"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_favorites"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -136,7 +141,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_categories"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_categories"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -145,7 +151,7 @@
 
         <View style="@style/DrawerDivider" />
 
-        <!-- ========== SOCIAL ========== -->
+        <!-- SOCIAL -->
         <TextView
             style="@style/DrawerSectionHeader"
             android:text="@string/drawer_social" />
@@ -157,7 +163,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_tiktok"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_tiktok"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -171,7 +178,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_instagram"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_instagram"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -180,7 +188,7 @@
 
         <View style="@style/DrawerDivider" />
 
-        <!-- ========== FEATURES ========== -->
+        <!-- FEATURES -->
         <TextView
             style="@style/DrawerSectionHeader"
             android:text="@string/drawer_features" />
@@ -192,7 +200,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_games"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/cat_games"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -206,7 +215,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_storage"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_storage"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
@@ -220,7 +230,8 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_lock"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/drawer_create_password"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 android:id="@+id/tvPasswordLabel"
@@ -230,7 +241,7 @@
 
         <View style="@style/DrawerDivider" />
 
-        <!-- ========== SETTINGS ========== -->
+        <!-- SETTINGS -->
         <TextView
             style="@style/DrawerSectionHeader"
             android:text="@string/settings_title" />
@@ -242,14 +253,15 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_settings"
-                app:tint="@color/accent_red" />
+                android:contentDescription="@string/settings_title"
+                app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
                 android:text="@string/settings_title" />
         </LinearLayout>
 
-        <!-- ========== FOOTER ========== -->
+        <!-- FOOTER -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

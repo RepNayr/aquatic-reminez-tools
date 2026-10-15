@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -17,6 +18,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -36,6 +38,7 @@ import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.core.network.InfoCardHelper
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.data.QuickCategory
@@ -75,7 +78,38 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvTemperature: TextView
     private lateinit var tvLocation: TextView
 
+    // Info Cards
+    private lateinit var tvIpValue: TextView
+    private lateinit var tvConnectionLabel: TextView
+    private lateinit var tvConnectionValue: TextView
+    private lateinit var tvPingValue: TextView
+
     private lateinit var tvPasswordLabel: TextView
+
+    // Bottom Nav Pill
+    private lateinit var tabHome: FrameLayout
+    private lateinit var tabSearch: FrameLayout
+    private lateinit var tabHistory: FrameLayout
+    private lateinit var tabAbout: FrameLayout
+    private lateinit var tabSettings: FrameLayout
+
+    private lateinit var pillHome: LinearLayout
+    private lateinit var pillSearch: LinearLayout
+    private lateinit var pillHistory: LinearLayout
+    private lateinit var pillAbout: LinearLayout
+    private lateinit var pillSettings: LinearLayout
+
+    private lateinit var iconHome: ImageView
+    private lateinit var iconSearch: ImageView
+    private lateinit var iconHistory: ImageView
+    private lateinit var iconAbout: ImageView
+    private lateinit var iconSettings: ImageView
+
+    private lateinit var textHome: TextView
+    private lateinit var textSearch: TextView
+    private lateinit var textHistory: TextView
+    private lateinit var textAbout: TextView
+    private lateinit var textSettings: TextView
 
     private var cardPlayer: ExoPlayer? = null
     private var isCardMuted = false
@@ -104,6 +138,14 @@ class HomeActivity : AppCompatActivity() {
     private var lastLocationFetch = 0L
     private val LOCATION_REFRESH_INTERVAL = 30_000L
 
+    private val pingHandler = Handler(Looper.getMainLooper())
+    private val pingRunnable = object : Runnable {
+        override fun run() {
+            updatePingValue()
+            pingHandler.postDelayed(this, 8_000L)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -115,15 +157,16 @@ class HomeActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_home)
 
-        // FORCE REFRESH saat app buka
         lastLocationFetch = 0L
 
         bindViews()
         setupClicks()
         setupDrawerMenuClicks()
+        setupBottomNav()
         setupVideo()
         setupMuteButton()
         setupQuickMenu()
+        setupInfoCards()
         startClock()
         registerBattery()
         requestLocationAndWeather()
@@ -149,7 +192,38 @@ class HomeActivity : AppCompatActivity() {
         tvTemperature = findViewById(R.id.tvTemperature)
         tvLocation = findViewById(R.id.tvLocation)
 
+        // Info Cards
+        tvIpValue = findViewById(R.id.tvIpValue)
+        tvConnectionLabel = findViewById(R.id.tvConnectionLabel)
+        tvConnectionValue = findViewById(R.id.tvConnectionValue)
+        tvPingValue = findViewById(R.id.tvPingValue)
+
         tvPasswordLabel = findViewById(R.id.tvPasswordLabel)
+
+        // Bottom Nav Pill
+        tabHome = findViewById(R.id.tabHome)
+        tabSearch = findViewById(R.id.tabSearch)
+        tabHistory = findViewById(R.id.tabHistory)
+        tabAbout = findViewById(R.id.tabAbout)
+        tabSettings = findViewById(R.id.tabSettings)
+
+        pillHome = findViewById(R.id.pillHome)
+        pillSearch = findViewById(R.id.pillSearch)
+        pillHistory = findViewById(R.id.pillHistory)
+        pillAbout = findViewById(R.id.pillAbout)
+        pillSettings = findViewById(R.id.pillSettings)
+
+        iconHome = findViewById(R.id.iconHome)
+        iconSearch = findViewById(R.id.iconSearch)
+        iconHistory = findViewById(R.id.iconHistory)
+        iconAbout = findViewById(R.id.iconAbout)
+        iconSettings = findViewById(R.id.iconSettings)
+
+        textHome = findViewById(R.id.textHome)
+        textSearch = findViewById(R.id.textSearch)
+        textHistory = findViewById(R.id.textHistory)
+        textAbout = findViewById(R.id.textAbout)
+        textSettings = findViewById(R.id.textSettings)
     }
 
     private fun setupClicks() {
@@ -158,6 +232,66 @@ class HomeActivity : AppCompatActivity() {
         }
         btnNotif.setOnClickListener { /* TODO */ }
         btnPower.setOnClickListener { finishAffinity() }
+    }
+
+    private fun setupBottomNav() {
+        selectNavTab(0)
+
+        tabHome.setOnClickListener {
+            selectNavTab(0)
+        }
+
+        tabSearch.setOnClickListener {
+            selectNavTab(1)
+            startActivity(Intent(this, SearchActivity::class.java))
+        }
+
+        tabHistory.setOnClickListener {
+            selectNavTab(2)
+            Toast.makeText(this, "History - Coming Soon", Toast.LENGTH_SHORT).show()
+        }
+
+        tabAbout.setOnClickListener {
+            selectNavTab(3)
+            Toast.makeText(this, "About - Coming Soon", Toast.LENGTH_SHORT).show()
+        }
+
+        tabSettings.setOnClickListener {
+            selectNavTab(4)
+            Toast.makeText(this, "Settings - Coming Soon", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun selectNavTab(index: Int) {
+        val tabContainers = listOf(tabHome, tabSearch, tabHistory, tabAbout, tabSettings)
+        val tabs = listOf(
+            Triple(pillHome, iconHome, textHome),
+            Triple(pillSearch, iconSearch, textSearch),
+            Triple(pillHistory, iconHistory, textHistory),
+            Triple(pillAbout, iconAbout, textAbout),
+            Triple(pillSettings, iconSettings, textSettings),
+        )
+
+        val primaryColor = ContextCompat.getColor(this, R.color.text_primary)
+        val secondaryColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        tabs.forEachIndexed { i, (pill, icon, text) ->
+            val container = tabContainers[i]
+            val lp = container.layoutParams as? LinearLayout.LayoutParams
+            if (i == index) {
+                lp?.weight = 1.4f
+                container.layoutParams = lp
+                pill.setBackgroundResource(R.drawable.bg_nav_active_pill)
+                text.visibility = View.VISIBLE
+                icon.setColorFilter(primaryColor)
+            } else {
+                lp?.weight = 0.9f
+                container.layoutParams = lp
+                pill.setBackgroundColor(Color.TRANSPARENT)
+                text.visibility = View.GONE
+                icon.setColorFilter(secondaryColor)
+            }
+        }
     }
 
     private fun setupDrawerMenuClicks() {
@@ -274,23 +408,65 @@ class HomeActivity : AppCompatActivity() {
     }
 
     // ============================
-    // QUICK MENU (Batch 6)
+    // QUICK MENU
     // ============================
     private fun setupQuickMenu() {
         val rvQuickMenu: RecyclerView = findViewById(R.id.rvQuickMenu)
         val categories = QuickCategory.getAll()
 
         val adapter = QuickCategoryAdapter(categories) { category ->
-            // TODO Batch 7: Buka Category Page
             Toast.makeText(
                 this,
-                "${category.emoji} ${getString(category.nameRes)}\nComing soon!",
+                "${getString(category.nameRes)}\nComing soon!",
                 Toast.LENGTH_SHORT,
             ).show()
         }
 
         rvQuickMenu.layoutManager = GridLayoutManager(this, 4)
         rvQuickMenu.adapter = adapter
+    }
+
+    // ============================
+    // INFO CARDS (IP, Connection, Ping)
+    // ============================
+    private fun setupInfoCards() {
+        updateIpAndConnection()
+        pingHandler.post(pingRunnable)
+    }
+
+    private fun updateIpAndConnection() {
+        executor.execute {
+            val ip = InfoCardHelper.getLocalIpAddress()
+            val conn = InfoCardHelper.getConnectionInfo(this)
+
+            runOnUiThread {
+                tvIpValue.text = if (ip.isEmpty() || ip == "Unavailable") {
+                    getString(R.string.info_unavailable)
+                } else {
+                    ip
+                }
+
+                // Update label + value
+                tvConnectionLabel.text = conn.type
+
+                tvConnectionValue.text = if (!conn.isConnected) {
+                    getString(R.string.info_not_connected)
+                } else if (conn.detail.isEmpty()) {
+                    "Connected"
+                } else {
+                    conn.detail
+                }
+            }
+        }
+    }
+
+    private fun updatePingValue() {
+        executor.execute {
+            val ping = InfoCardHelper.pingHost("1.1.1.1", 3000)
+            runOnUiThread {
+                tvPingValue.text = if (ping >= 0) "$ping ms" else getString(R.string.info_timeout)
+            }
+        }
     }
 
     // ============================
@@ -599,12 +775,15 @@ class HomeActivity : AppCompatActivity() {
         super.onResume()
         cardPlayer?.play()
         updatePasswordLabel()
+        selectNavTab(0)
 
         if (PinManager.hasPin(this) && AppLockManager.shouldLock(this)) {
             AppLockManager.redirectToVerify(this, PinVerifyActivity::class.java)
             finish()
             return
         }
+
+        updateIpAndConnection()
 
         val now = System.currentTimeMillis()
         if (now - lastLocationFetch > LOCATION_REFRESH_INTERVAL) {
@@ -621,6 +800,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         clockHandler.removeCallbacks(clockRunnable)
+        pingHandler.removeCallbacks(pingRunnable)
         try { unregisterReceiver(batteryReceiver) } catch (_: Exception) {}
         cardPlayer?.release()
         cardPlayer = null

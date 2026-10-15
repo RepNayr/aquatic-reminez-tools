@@ -1,62 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- BACKGROUND -->
-    <color name="bg_primary">#0A0000</color>
-    <color name="bg_secondary">#1A0A0A</color>
-    <color name="bg_tertiary">#2A0A0A</color>
-    <color name="bg_card">#1A0A0A</color>
+    <!-- ========== BACKGROUND (Charcoal) ========== -->
+    <color name="bg_primary">#0A0C10</color>
+    <color name="bg_secondary">#12151A</color>
+    <color name="bg_tertiary">#1A1D22</color>
+    <color name="bg_card">#1A1D22</color>
+    <color name="bg_card_elevated">#22262D</color>
     <color name="bg_overlay">#CC000000</color>
+    <color name="bg_glass">#331A1D22</color>
 
-    <!-- TEXT -->
-    <color name="text_primary">#FFFFFF</color>
-    <color name="text_secondary">#B0B0B0</color>
-    <color name="text_muted">#666666</color>
-    <color name="text_disabled">#4A4A4A</color>
+    <!-- ========== TEXT ========== -->
+    <color name="text_primary">#E8EAED</color>
+    <color name="text_secondary">#9AA0A6</color>
+    <color name="text_muted">#5F6368</color>
+    <color name="text_disabled">#3C4043</color>
 
-    <!-- ACCENT -->
+    <!-- ========== ACCENT — Abis Reference (charcoal dominant) ========== -->
+    <!-- Warna accent utama: abu terang (bukan cyan lagi) -->
+    <color name="accent_primary">#B8BCC2</color>
+    <color name="accent_primary_dark">#8A8E94</color>
+    <color name="accent_primary_glow">#D0D3D8</color>
+    <color name="accent_primary_transparent">#33B8BCC2</color>
+
+    <!-- Legacy cyan (untuk backward compatibility) -->
+    <color name="accent_cyan">#43D9E6</color>
+    <color name="accent_cyan_dark">#2CA5B0</color>
+    <color name="accent_cyan_glow">#43D9E6</color>
+    <color name="accent_cyan_transparent">#3343D9E6</color>
+
+    <!-- ========== ACCENT ALTERNATIVE ========== -->
+    <color name="accent_teal">#38BFA1</color>
+    <color name="accent_violet">#A78BFA</color>
+    <color name="accent_gold">#D6B46A</color>
+    <color name="accent_muted_red">#D9535D</color>
+    <color name="accent_blue">#60A5FA</color>
+    <color name="accent_yellow">#FACC15</color>
+
+    <!-- ========== LEGACY RED (Onboarding) ========== -->
     <color name="accent_red">#FF1A1A</color>
     <color name="accent_red_dark">#8B0000</color>
     <color name="accent_red_glow">#FF0000</color>
     <color name="accent_red_transparent">#33FF1A1A</color>
 
-    <!-- ACCENT ALTERNATIF -->
-    <color name="accent_blue">#3B82F6</color>
-    <color name="accent_yellow">#F59E0B</color>
-    <color name="accent_gray">#9CA3AF</color>
-    <color name="accent_green">#10B981</color>
-    <color name="accent_purple">#8B5CF6</color>
+    <!-- ========== STATUS ========== -->
+    <color name="status_online">#38BFA1</color>
+    <color name="status_offline">#D9535D</color>
+    <color name="status_warning">#D6B46A</color>
+    <color name="status_success">#38BFA1</color>
+    <color name="status_error">#D9535D</color>
 
-    <!-- STATUS -->
-    <color name="status_online">#00FF00</color>
-    <color name="status_offline">#FF1A1A</color>
-    <color name="status_warning">#FFAA00</color>
-    <color name="status_success">#10B981</color>
-    <color name="status_error">#EF4444</color>
+    <!-- ========== DIVIDER / BORDER ========== -->
+    <color name="divider">#22262D</color>
+    <color name="border">#2F333A</color>
+    <color name="border_accent">#B8BCC2</color>
 
-    <!-- DIVIDER -->
-    <color name="divider">#2A0A0A</color>
-    <color name="border">#3A1010</color>
-    <color name="border_accent">#FF1A1A</color>
+    <!-- ========== WARNA KATEGORI (per kategori berbeda) ========== -->
+    <color name="cat_utility">#38BFA1</color>
+    <color name="cat_security_gen">#A78BFA</color>
+    <color name="cat_file">#D6B46A</color>
+    <color name="cat_network">#43D9E6</color>
+    <color name="cat_media">#60A5FA</color>
+    <color name="cat_dev">#A78BFA</color>
+    <color name="cat_forensic">#D6B46A</color>
+    <color name="cat_security">#D9535D</color>
+    <color name="cat_offensive">#D9535D</color>
+    <color name="cat_defensive">#43D9E6</color>
+    <color name="cat_games">#A78BFA</color>
 
-    <!-- CATEGORIES -->
-    <color name="cat_utility">#3B82F6</color>
-    <color name="cat_security_gen">#F59E0B</color>
-    <color name="cat_file">#10B981</color>
-    <color name="cat_network">#06B6D4</color>
-    <color name="cat_media">#8B5CF6</color>
-    <color name="cat_dev">#F97316</color>
-    <color name="cat_forensic">#A16207</color>
-    <color name="cat_security">#EF4444</color>
-    <color name="cat_offensive">#991B1B</color>
-    <color name="cat_defensive">#1E40AF</color>
-    <color name="cat_games">#EC4899</color>
-
-    <!-- SYSTEM -->
+    <!-- ========== SYSTEM ========== -->
     <color name="black">#000000</color>
     <color name="white">#FFFFFF</color>
     <color name="transparent">#00000000</color>
     <color name="ripple_light">#33FFFFFF</color>
-    <color name="ripple_accent">#33FF1A1A</color>
+    <color name="ripple_accent">#33B8BCC2</color>
 
 </resources>

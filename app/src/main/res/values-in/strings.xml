@@ -53,15 +53,21 @@
     <string name="user_name">ReeP</string>
     <string name="user_created">Dibuat: 11-10-2026</string>
 
-    <!-- INFO ROW -->
-    <string name="info_ip">IP</string>
-    <string name="info_connected">Terkoneksi</string>
+    <!-- INFO CARD LABELS -->
+    <string name="info_ip_address">IP Address</string>
+    <string name="info_wifi">WI-FI</string>
+    <string name="info_data_cellular">DATA SELULER</string>
+    <string name="info_ping_latency">PING (Latency)</string>
+    <string name="info_not_connected">Tidak Terhubung</string>
+    <string name="info_unavailable">Tidak Tersedia</string>
+    <string name="info_timeout">Timeout</string>
+    <string name="info_loading">Memuat…</string>
+
+    <!-- LEGACY INFO -->
     <string name="info_status">Status</string>
     <string name="info_online">ONLINE</string>
     <string name="info_offline">OFFLINE</string>
-    <string name="info_wifi">WiFi</string>
     <string name="info_cellular">Seluler</string>
-    <string name="info_not_connected">Tidak Terhubung</string>
 
     <!-- CATEGORIES -->
     <string name="cat_utility">Utility</string>
@@ -311,5 +317,6 @@
     <string name="reset_app_confirm">Reset App</string>
     <string name="delete_pin_title">Hapus Password?</string>
     <string name="delete_pin_message">Kamu akan kehilangan PIN dan pertanyaan keamanan</string>
+    <string name="developer_badge">DEVELOPER</string>
 
 </resources>
