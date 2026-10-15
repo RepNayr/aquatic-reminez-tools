@@ -11,65 +11,87 @@
     android:focusable="true"
     app:cardCornerRadius="14dp"
     app:cardElevation="0dp"
-    app:cardBackgroundColor="#CC161920"
-    app:strokeColor="#2F333A"
-    app:strokeWidth="1dp">
+    app:cardBackgroundColor="@color/transparent"
+    app:strokeColor="@color/transparent"
+    app:strokeWidth="0dp">
 
-    <LinearLayout
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/blurCategory"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingVertical="4dp"
-        android:paddingHorizontal="2dp">
+        android:background="@drawable/bg_glass_card_clip">
 
-        <!-- ICON CONTAINER -->
-        <FrameLayout
-            android:id="@+id/iconContainer"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_quick_icon_circle">
-
-            <ImageView
-                android:id="@+id/ivIcon"
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:layout_gravity="center"
-                android:src="@drawable/ic_utility"
-                android:contentDescription="@string/cat_utility"
-                app:tint="@color/cat_utility" />
-
-        </FrameLayout>
-
-        <!-- NAME -->
-        <TextView
-            android:id="@+id/tvName"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:ellipsize="end"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:gravity="center"
-            android:maxLines="1"
-            android:paddingHorizontal="1dp"
-            android:textColor="@color/text_primary"
-            android:textSize="10sp"
-            android:textStyle="bold"
-            tools:text="Utility" />
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_glass_card_overlay"
+            android:clickable="false"
+            android:focusable="false" />
 
-        <!-- COUNT (Optional) -->
-        <TextView
-            android:id="@+id/tvCount"
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
-            android:fontFamily="@font/times_new_roman_regular"
-            android:gravity="center"
-            android:textColor="@color/text_muted"
-            android:textSize="9sp"
-            android:visibility="gone"
-            tools:text="8 tools" />
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_glass_card_specular"
+            android:clickable="false"
+            android:focusable="false" />
 
-    </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingVertical="4dp"
+            android:paddingHorizontal="2dp">
+
+            <!-- ICON CONTAINER -->
+            <FrameLayout
+                android:id="@+id/iconContainer"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/bg_quick_icon_circle">
+
+                <ImageView
+                    android:id="@+id/ivIcon"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_utility"
+                    android:contentDescription="@string/cat_utility"
+                    app:tint="@color/cat_utility" />
+
+            </FrameLayout>
+
+            <!-- NAME -->
+            <TextView
+                android:id="@+id/tvName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:gravity="center"
+                android:maxLines="1"
+                android:paddingHorizontal="1dp"
+                android:textColor="@color/text_primary"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                tools:text="Utility" />
+
+            <!-- COUNT (Optional) -->
+            <TextView
+                android:id="@+id/tvCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:gravity="center"
+                android:textColor="@color/text_muted"
+                android:textSize="9sp"
+                android:visibility="gone"
+                tools:text="8 tools" />
+
+        </LinearLayout>
+
+    </eightbitlab.com.blurview.BlurView>
 
 </com.repp.aquaticremineztools.presentation.home.SquareCardView>

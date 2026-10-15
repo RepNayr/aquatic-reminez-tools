@@ -1,5 +1,6 @@
 package com.repp.aquaticremineztools.presentation.home
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,23 +11,36 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.QuickCategory
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 
 class QuickCategoryAdapter(
     private val categories: List<QuickCategory>,
+    private val blurTarget: BlurTarget,
+    private val frameClearDrawable: Drawable? = null,
     private val onCategoryClick: (QuickCategory) -> Unit,
 ) : RecyclerView.Adapter<QuickCategoryAdapter.CategoryViewHolder>() {
 
-    class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class CategoryViewHolder(
+        itemView: View,
+        blurTarget: BlurTarget,
+        frameClearDrawable: Drawable?
+    ) : RecyclerView.ViewHolder(itemView) {
         val cardRoot: MaterialCardView = itemView.findViewById(R.id.cardCategory)
+        val blurCategory: BlurView = itemView.findViewById(R.id.blurCategory)
         val ivIcon: ImageView = itemView.findViewById(R.id.ivIcon)
         val tvName: TextView = itemView.findViewById(R.id.tvName)
         val tvCount: TextView = itemView.findViewById(R.id.tvCount)
+
+        init {
+            GlassBlurHelper.setupBlur(blurCategory, blurTarget, frameClearDrawable)
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_quick_category, parent, false)
-        return CategoryViewHolder(view)
+        return CategoryViewHolder(view, blurTarget, frameClearDrawable)
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
@@ -39,9 +53,6 @@ class QuickCategoryAdapter(
 
         // Accent color
         val accentColor = ContextCompat.getColor(context, category.accentColor)
-
-        // Set stroke card to neutral border (not bright neon category color)
-        holder.cardRoot.strokeColor = ContextCompat.getColor(context, R.color.border)
 
         // Tint icon with category accent color
         holder.ivIcon.setColorFilter(accentColor)

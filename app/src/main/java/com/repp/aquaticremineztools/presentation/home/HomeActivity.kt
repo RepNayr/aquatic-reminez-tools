@@ -47,6 +47,8 @@ import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
@@ -83,6 +85,13 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvConnectionLabel: TextView
     private lateinit var tvConnectionValue: TextView
     private lateinit var tvPingValue: TextView
+
+    // Glass Blur Views
+    private lateinit var homeBlurTarget: BlurTarget
+    private lateinit var cardIpBlur: BlurView
+    private lateinit var cardConnectionBlur: BlurView
+    private lateinit var cardPingBlur: BlurView
+    private lateinit var blurBottomNav: BlurView
 
     private lateinit var tvPasswordLabel: TextView
 
@@ -160,6 +169,7 @@ class HomeActivity : AppCompatActivity() {
         lastLocationFetch = 0L
 
         bindViews()
+        setupGlassCards()
         setupClicks()
         setupDrawerMenuClicks()
         setupBottomNav()
@@ -407,14 +417,30 @@ class HomeActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun setupGlassCards() {
+        homeBlurTarget = findViewById(R.id.homeBlurTarget)
+        cardIpBlur = findViewById(R.id.cardIp)
+        cardConnectionBlur = findViewById(R.id.cardConnection)
+        cardPingBlur = findViewById(R.id.cardPing)
+        blurBottomNav = findViewById(R.id.blurBottomNav)
+
+        val frameClearDrawable = window.decorView.background
+
+        GlassBlurHelper.setupBlur(cardIpBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(cardConnectionBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(cardPingBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurBottomNav, homeBlurTarget, frameClearDrawable)
+    }
+
     // ============================
     // QUICK MENU
     // ============================
     private fun setupQuickMenu() {
         val rvQuickMenu: RecyclerView = findViewById(R.id.rvQuickMenu)
         val categories = QuickCategory.getAll()
+        val frameClearDrawable = window.decorView.background
 
-        val adapter = QuickCategoryAdapter(categories) { category ->
+        val adapter = QuickCategoryAdapter(categories, homeBlurTarget, frameClearDrawable) { category ->
             Toast.makeText(
                 this,
                 "${getString(category.nameRes)}\nComing soon!",
@@ -575,6 +601,8 @@ class HomeActivity : AppCompatActivity() {
     private fun requestLocationAndWeather() {
         lastLocationFetch = System.currentTimeMillis()
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED ||
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
         ) {
             getLocationAndWeather()
@@ -587,6 +615,7 @@ class HomeActivity : AppCompatActivity() {
                 ),
                 LOCATION_PERMISSION_CODE,
             )
+            fetchLocationFromIp()
         }
     }
 
@@ -600,8 +629,7 @@ class HomeActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 getLocationAndWeather()
             } else {
-                tvTemperature.text = "--°C"
-                tvLocation.text = "Location Off"
+                fetchLocationFromIp()
             }
         }
     }
@@ -612,8 +640,8 @@ class HomeActivity : AppCompatActivity() {
             val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
             val providers = listOf(
-                LocationManager.GPS_PROVIDER,
                 LocationManager.NETWORK_PROVIDER,
+                LocationManager.GPS_PROVIDER,
                 LocationManager.PASSIVE_PROVIDER,
             )
 
@@ -622,50 +650,93 @@ class HomeActivity : AppCompatActivity() {
                 try {
                     val loc = lm.getLastKnownLocation(provider)
                     if (loc != null) {
-                        lastLocation = loc
-                        break
+                        if (lastLocation == null || loc.time > lastLocation.time) {
+                            lastLocation = loc
+                        }
                     }
                 } catch (_: Exception) { }
             }
 
-            val isFresh = lastLocation != null && (System.currentTimeMillis() - lastLocation.time < 120_000)
-
-            if (isFresh && lastLocation != null) {
+            if (lastLocation != null) {
                 val lat = lastLocation.latitude
                 val lon = lastLocation.longitude
 
                 executor.execute {
                     val cityName = getCityName(lat, lon)
-                    runOnUiThread { tvLocation.text = cityName }
+                    if (cityName != "Unknown" && cityName.isNotEmpty()) {
+                        runOnUiThread { tvLocation.text = cityName }
+                    } else {
+                        fetchLocationFromIp()
+                    }
                 }
                 fetchWeather(lat, lon)
             } else {
-                lm.requestSingleUpdate(
-                    LocationManager.GPS_PROVIDER,
-                    object : android.location.LocationListener {
-                        override fun onLocationChanged(location: Location) {
-                            val lat = location.latitude
-                            val lon = location.longitude
+                fetchLocationFromIp()
 
-                            executor.execute {
-                                val cityName = getCityName(lat, lon)
+                val listener = object : android.location.LocationListener {
+                    override fun onLocationChanged(location: Location) {
+                        val lat = location.latitude
+                        val lon = location.longitude
+
+                        executor.execute {
+                            val cityName = getCityName(lat, lon)
+                            if (cityName != "Unknown" && cityName.isNotEmpty()) {
                                 runOnUiThread { tvLocation.text = cityName }
                             }
-                            fetchWeather(lat, lon)
-                            lm.removeUpdates(this)
                         }
+                        fetchWeather(lat, lon)
+                        try { lm.removeUpdates(this) } catch (_: Exception) {}
+                    }
 
-                        override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-                        override fun onProviderEnabled(provider: String) {}
-                        override fun onProviderDisabled(provider: String) {}
-                    },
-                    Looper.getMainLooper(),
-                )
+                    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
+                    override fun onProviderEnabled(provider: String) {}
+                    override fun onProviderDisabled(provider: String) {}
+                }
+
+                try {
+                    if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                        lm.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, Looper.getMainLooper())
+                    } else if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                        lm.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, Looper.getMainLooper())
+                    }
+                } catch (_: Exception) {}
             }
         } catch (e: Exception) {
             Log.e("WEATHER_DEBUG", "Error lokasi: ${e.message}", e)
-            tvTemperature.text = "--°C"
-            tvLocation.text = "Unknown"
+            fetchLocationFromIp()
+        }
+    }
+
+    private fun fetchLocationFromIp() {
+        executor.execute {
+            try {
+                val url = URL("http://ip-api.com/json/")
+                val conn = url.openConnection() as HttpURLConnection
+                conn.connectTimeout = 5000
+                conn.readTimeout = 5000
+
+                val response = conn.inputStream.bufferedReader().use { it.readText() }
+                conn.disconnect()
+
+                val json = JSONObject(response)
+                if (json.optString("status") == "success") {
+                    val city = json.optString("city", "")
+                    val lat = json.optDouble("lat", 0.0)
+                    val lon = json.optDouble("lon", 0.0)
+
+                    val cleanedCity = cleanCityName(city)
+                    if (cleanedCity.isNotEmpty() && cleanedCity != "Unknown") {
+                        runOnUiThread {
+                            tvLocation.text = cleanedCity
+                        }
+                    }
+                    if (lat != 0.0 && lon != 0.0) {
+                        fetchWeather(lat, lon)
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("WEATHER_DEBUG", "IP location error: ${e.message}", e)
+            }
         }
     }
 

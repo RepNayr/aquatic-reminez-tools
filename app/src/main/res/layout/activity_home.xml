@@ -17,15 +17,22 @@
         android:background="@color/bg_primary"
         android:fitsSystemWindows="true">
 
-        <!-- BACKGROUND IMAGE LAYER -->
-        <ImageView
-            android:id="@+id/ivHomeBackground"
+        <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+        <eightbitlab.com.blurview.BlurTarget
+            android:id="@+id/homeBlurTarget"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@drawable/home_background_image"
-            android:alpha="0.38"
-            android:contentDescription="@null" />
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/ivHomeBackground"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/home_background_image"
+                android:alpha="0.38"
+                android:contentDescription="@null" />
+
+        </eightbitlab.com.blurview.BlurTarget>
 
         <!-- GRADIENT OVERLAY -->
         <View
@@ -138,7 +145,7 @@
             android:layout_height="match_parent"
             android:clipToPadding="false"
             android:fillViewport="true"
-            android:paddingBottom="90dp"
+            android:paddingBottom="70dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <LinearLayout
@@ -180,13 +187,13 @@
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
             android:paddingHorizontal="8dp"
-            android:paddingBottom="10dp">
+            android:paddingBottom="6dp">
 
             <include
                 android:id="@+id/bottomNavPillInclude"
                 layout="@layout/view_bottom_nav_pill"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="56dp" />
 
         </FrameLayout>
 

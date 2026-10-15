@@ -75,4 +75,10 @@
     <color name="ripple_light">#33FFFFFF</color>
     <color name="ripple_accent">#33B8BCC2</color>
 
+    <!-- ========== GLASSMORPHISM ========== -->
+    <color name="glass_card_tint">#550D0E12</color>
+    <color name="glass_nav_tint">#660A0B0E</color>
+    <color name="glass_border">#18FFFFFF</color>
+    <color name="glass_highlight">#0DFFFFFF</color>
+
 </resources>

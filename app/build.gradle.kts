@@ -125,6 +125,7 @@ dependencies {
     implementation(libs.shimmer)
     implementation(libs.lottie)
     implementation(libs.gif.drawable)
+    implementation(libs.blur.view)
 
     // ⬇️ TAMBAHAN BARU: Google Play Services Location (GPS)
     implementation("com.google.android.gms:play-services-location:21.2.0")

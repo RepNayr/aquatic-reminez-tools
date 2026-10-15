@@ -41,7 +41,11 @@ data class QuickCategory(
                     id = "network",
                     nameRes = R.string.cat_network,
                     iconRes = R.drawable.ic_network_cat,
-                    count = allTools.count { it.category == ToolData.Category.NETWORK },
+                    count = allTools.count {
+                        it.category == ToolData.Category.NETWORK ||
+                                it.category == ToolData.Category.OFFENSIVE ||
+                                it.category == ToolData.Category.DEFENSIVE
+                    },
                     accentColor = R.color.cat_network,
                 ),
                 QuickCategory(
@@ -71,20 +75,6 @@ data class QuickCategory(
                     iconRes = R.drawable.ic_security,
                     count = allTools.count { it.category == ToolData.Category.SECURITY },
                     accentColor = R.color.cat_security,
-                ),
-                QuickCategory(
-                    id = "offensive",
-                    nameRes = R.string.cat_offensive,
-                    iconRes = R.drawable.ic_offensive,
-                    count = allTools.count { it.category == ToolData.Category.OFFENSIVE },
-                    accentColor = R.color.cat_offensive,
-                ),
-                QuickCategory(
-                    id = "defensive",
-                    nameRes = R.string.cat_defensive,
-                    iconRes = R.drawable.ic_defensive,
-                    count = allTools.count { it.category == ToolData.Category.DEFENSIVE },
-                    accentColor = R.color.cat_defensive,
                 ),
             )
         }
