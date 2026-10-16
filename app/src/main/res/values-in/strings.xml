@@ -170,7 +170,7 @@
     <string name="about_legal_desc">App ini dibuat untuk tujuan edukasi dan produktivitas.</string>
 
     <!-- SEARCH / HISTORY -->
-    <string name="search_title">PENCARIAN</string>
+    <string name="search_title">Pencarian</string>
     <string name="search_placeholder">Cari tool…</string>
     <string name="search_no_result">Tool tidak ditemukan</string>
     <string name="search_hint_example">Coba cari "calculator" atau "video"</string>

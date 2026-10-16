@@ -57,7 +57,7 @@
             android:name=".presentation.search.SearchActivity"
             android:exported="false"
             android:screenOrientation="portrait"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".presentation.security.PinSetupActivity"

@@ -170,7 +170,7 @@
     <string name="about_legal_desc">This app is made for educational and productivity purposes.</string>
 
     <!-- SEARCH / HISTORY -->
-    <string name="search_title">SEARCH</string>
+    <string name="search_title">Search</string>
     <string name="search_placeholder">Search tool…</string>
     <string name="search_no_result">No tools found</string>
     <string name="search_hint_example">Try searching "calculator" or "video"</string>

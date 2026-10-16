@@ -29,6 +29,7 @@ import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import com.repp.aquaticremineztools.data.local.history.HistoryRepository
+import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
@@ -313,7 +314,10 @@ class HistoryActivity : AppCompatActivity() {
         selectNavTab(2)
 
         tabHome.setOnClickListener {
-            ActivityTransition.finishSmooth(this)
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabSearch.setOnClickListener {
@@ -321,11 +325,10 @@ class HistoryActivity : AppCompatActivity() {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
-            finish()
         }
 
         tabHistory.setOnClickListener {
-            // Already here
+            selectNavTab(2)
         }
 
         tabAbout.setOnClickListener {
@@ -373,7 +376,10 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun setupDrawerMenuClicks() {
         findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            ActivityTransition.finishSmooth(this)
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
@@ -382,7 +388,6 @@ class HistoryActivity : AppCompatActivity() {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
-            finish()
         }
 
         findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
@@ -695,6 +700,12 @@ class HistoryActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        selectNavTab(2)
     }
 
     @Suppress("DEPRECATION")

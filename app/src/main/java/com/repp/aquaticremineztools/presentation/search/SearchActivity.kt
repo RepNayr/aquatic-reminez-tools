@@ -26,14 +26,18 @@ import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.data.ToolData
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
+import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 
 class SearchActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var homeBlurTarget: BlurTarget
+    private lateinit var blurSearchBar: BlurView
     private lateinit var etSearch: EditText
     private lateinit var btnClearSearch: ImageView
     private lateinit var btnMenu: FrameLayout
@@ -69,8 +73,13 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var textAbout: TextView
     private lateinit var textSettings: TextView
 
-    private var selectedCategory: ToolData.Category? = null
+    private var selectedCategories: Set<ToolData.Category>? = null
     private var currentQuery = ""
+
+    private data class SearchCategoryChip(
+        val label: String,
+        val categories: Set<ToolData.Category>?
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -84,6 +93,7 @@ class SearchActivity : AppCompatActivity() {
         setContentView(R.layout.activity_search)
 
         bindViews()
+        setupGlassCards()
         setupBottomNav()
         setupDrawerMenuClicks()
         setupCategoryChips()
@@ -97,6 +107,7 @@ class SearchActivity : AppCompatActivity() {
     private fun bindViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
         homeBlurTarget = findViewById(R.id.homeBlurTarget)
+        blurSearchBar = findViewById(R.id.blurSearchBar)
         etSearch = findViewById(R.id.etSearch)
         btnClearSearch = findViewById(R.id.btnClearSearch)
         btnMenu = findViewById(R.id.btnMenu)
@@ -131,33 +142,47 @@ class SearchActivity : AppCompatActivity() {
         textSettings = findViewById(R.id.textSettings)
     }
 
+    private fun setupGlassCards() {
+        val frameClearDrawable = window.decorView.background
+        GlassBlurHelper.setupBlur(blurSearchBar, homeBlurTarget, frameClearDrawable)
+    }
+
     private fun setupCategoryChips() {
         val context = this
-        val allChip = Chip(context).apply {
-            text = "All Tools"
-            tag = null
-            isCheckable = true
-            isChecked = true
-            setChipBackgroundColorResource(R.color.bg_card)
-            setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-        }
-        cgCategories.addView(allChip)
+        cgCategories.setOnCheckedStateChangeListener(null)
+        cgCategories.removeAllViews()
 
-        ToolData.Category.entries.forEach { cat ->
+        val chipItems = listOf(
+            SearchCategoryChip("All Tools", null),
+            SearchCategoryChip("🔧 Utility", setOf(ToolData.Category.UTILITY)),
+            SearchCategoryChip("🔐 Security & Generate", setOf(ToolData.Category.SECURITY_GEN)),
+            SearchCategoryChip("📁 File & System", setOf(ToolData.Category.FILE)),
+            SearchCategoryChip("🌐 Cyber Tools", setOf(ToolData.Category.NETWORK, ToolData.Category.OFFENSIVE, ToolData.Category.DEFENSIVE)),
+            SearchCategoryChip("🎨 Media", setOf(ToolData.Category.MEDIA)),
+            SearchCategoryChip("🧰 Dev Tools", setOf(ToolData.Category.DEV)),
+            SearchCategoryChip("🔍 Forensic", setOf(ToolData.Category.FORENSIC)),
+            SearchCategoryChip("🛡️ Security", setOf(ToolData.Category.SECURITY)),
+            SearchCategoryChip("🎮 Games", setOf(ToolData.Category.GAMES)),
+        )
+
+        chipItems.forEachIndexed { index, item ->
             val chip = Chip(context).apply {
-                text = "${cat.emoji} ${cat.displayName}"
-                tag = cat
+                id = View.generateViewId()
+                text = item.label
+                tag = item.categories
                 isCheckable = true
-                isChecked = false
+                isChecked = index == 0
                 setChipBackgroundColorResource(R.color.bg_card)
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
             }
             cgCategories.addView(chip)
         }
 
-        cgCategories.setOnCheckedChangeListener { group, checkedId ->
-            val chip = group.findViewById<Chip>(checkedId)
-            selectedCategory = chip?.tag as? ToolData.Category
+        cgCategories.setOnCheckedStateChangeListener { group, checkedIds ->
+            val checkedId = checkedIds.firstOrNull()
+            val chip = if (checkedId != null) group.findViewById<Chip>(checkedId) else null
+            @Suppress("UNCHECKED_CAST")
+            selectedCategories = chip?.tag as? Set<ToolData.Category>
             updateResults()
         }
     }
@@ -197,8 +222,9 @@ class SearchActivity : AppCompatActivity() {
 
     private fun updateResults() {
         var results = ToolData.searchTools(currentQuery)
-        if (selectedCategory != null) {
-            results = results.filter { it.category == selectedCategory }
+        val categories = selectedCategories
+        if (!categories.isNullOrEmpty()) {
+            results = results.filter { it.category in categories }
         }
 
         adapter.updateResults(results)
@@ -217,19 +243,21 @@ class SearchActivity : AppCompatActivity() {
         selectNavTab(1)
 
         tabHome.setOnClickListener {
-            ActivityTransition.finishSmooth(this)
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabSearch.setOnClickListener {
-            // Already here
+            selectNavTab(1)
         }
 
         tabHistory.setOnClickListener {
             val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
-            finish()
         }
 
         tabAbout.setOnClickListener {
@@ -277,7 +305,10 @@ class SearchActivity : AppCompatActivity() {
 
     private fun setupDrawerMenuClicks() {
         findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            ActivityTransition.finishSmooth(this)
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
@@ -290,7 +321,6 @@ class SearchActivity : AppCompatActivity() {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
-            finish()
         }
 
         findViewById<LinearLayout>(R.id.menuFavorites).setNavigatorClick {
@@ -335,6 +365,12 @@ class SearchActivity : AppCompatActivity() {
             super.onBackPressed()
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        selectNavTab(1)
     }
 
     override fun onResume() {

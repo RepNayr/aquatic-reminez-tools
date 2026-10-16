@@ -253,7 +253,6 @@ class HomeActivity : AppCompatActivity() {
         }
 
         tabSearch.setOnClickListener {
-            selectNavTab(1)
             val intent = Intent(this, SearchActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
@@ -261,7 +260,6 @@ class HomeActivity : AppCompatActivity() {
         }
 
         tabHistory.setOnClickListener {
-            selectNavTab(2)
             val intent = Intent(this, HistoryActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
@@ -269,12 +267,10 @@ class HomeActivity : AppCompatActivity() {
         }
 
         tabAbout.setOnClickListener {
-            selectNavTab(3)
             Toast.makeText(this, "About - Coming Soon", Toast.LENGTH_SHORT).show()
         }
 
         tabSettings.setOnClickListener {
-            selectNavTab(4)
             Toast.makeText(this, "Settings - Coming Soon", Toast.LENGTH_SHORT).show()
         }
     }
@@ -320,13 +316,16 @@ class HomeActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuSearch).setOnClickListener {
             closeDrawer()
-            ActivityTransition.startActivitySmooth(this, Intent(this, SearchActivity::class.java))
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuHistory).setOnClickListener {
             closeDrawer()
             val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
         }
@@ -841,6 +840,12 @@ class HomeActivity : AppCompatActivity() {
             96, 99 -> "⛈️"
             else -> "🌤️"
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        selectNavTab(0)
     }
 
     override fun onBackPressed() {
