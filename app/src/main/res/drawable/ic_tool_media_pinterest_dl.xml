@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+
+    <!-- Drop Shadow -->
+    <path
+        android:pathData="M12,52 C18,57 46,57 52,52 C46,56 18,56 12,52 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="32"
+                android:centerY="54"
+                android:gradientRadius="22"
+                android:startColor="#50000000"
+                android:endColor="#00000000" />
+        </aapt:attr>
+    </path>
+
+    <!-- 3D Base Badge -->
+    <path
+        android:pathData="M16,8 L48,8 C52.4,8 56,11.6 56,16 L56,48 C56,52.4 52.4,56 48,56 L16,56 C11.6,56 8,52.4 8,48 L8,16 C8,11.6 11.6,8 16,8 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="12"
+                android:startY="6"
+                android:endX="52"
+                android:endY="58"
+                android:startColor="#FFEF4444"
+                android:endColor="#FF991B1B" />
+        </aapt:attr>
+    </path>
+
+    <!-- 3D Glossy Reflection -->
+    <path
+        android:pathData="M16,8 L48,8 C52.4,8 56,11.6 56,16 L56,26 C40,30 24,30 8,26 L8,16 C8,11.6 11.6,8 16,8 Z"
+        android:fillColor="#35FFFFFF" />
+
+
+    <path android:pathData="M32,48 A16,16 0 1,0 32,16 A16,16 0 1,0 32,48" android:fillColor="#E60023" />
+    <path android:pathData="M30,44 L33,32 C32,30 32,28 34,26 C36,24 38,26 37,28 C36,31 34,35 37,35 C40,35 42,30 40,26 C38,21 30,21 27,26 C25,29 26,34 28,34 C28,34 28,35 27,36 C25,37 22,34 23,28 C24,20 33,18 40,22 C46,25 45,35 39,39 C36,41 33,39 33,39 L30,44 Z" android:fillColor="#FFFFFF" />
+
+</vector>

@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.button.MaterialButton
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.data.ToolIconRegistry
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -61,40 +62,11 @@ class HistoryDetailBottomSheet(
         tvDetailSummary.text = entity.resultSummary ?: "No summary or logs recorded."
 
         val context = requireContext()
-        when (entity.category) {
-            "Utility" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_utility)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_utility))
-            }
-            "Cyber Tools" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_network_cat)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_network))
-            }
-            "Media" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_media)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_media))
-            }
-            "Dev Tools" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_dev)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_dev))
-            }
-            "Security & General" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_security_gen)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_security_gen))
-            }
-            "Security" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_security)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_security))
-            }
-            "Forensic" -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_forensic)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_forensic))
-            }
-            else -> {
-                ivDetailIcon.setImageResource(R.drawable.ic_file)
-                ivDetailIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_file))
-            }
-        }
+        // Tool Icon mapped by toolId
+        val iconRes = ToolIconRegistry.getIconRes(entity.toolId)
+        ivDetailIcon.setImageResource(iconRes)
+        ivDetailIcon.imageTintList = null
+        ivDetailIcon.clearColorFilter()
 
         if (entity.activityType == "OPENED") {
             detailStatusChip.visibility = View.VISIBLE

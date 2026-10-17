@@ -244,7 +244,22 @@
         <!-- SETTINGS -->
         <TextView
             style="@style/DrawerSectionHeader"
-            android:text="@string/settings_title" />
+            android:text="@string/drawer_settings_header" />
+
+        <LinearLayout
+            android:id="@+id/menuAbout"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_info"
+                android:contentDescription="@string/nav_about"
+                app:tint="@color/accent_primary" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/nav_about" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/menuSettings"
@@ -253,12 +268,12 @@
             <ImageView
                 style="@style/DrawerMenuIcon"
                 android:src="@drawable/ic_settings"
-                android:contentDescription="@string/settings_title"
+                android:contentDescription="@string/nav_settings"
                 app:tint="@color/accent_primary" />
 
             <TextView
                 style="@style/DrawerMenuText"
-                android:text="@string/settings_title" />
+                android:text="@string/nav_settings" />
         </LinearLayout>
 
         <!-- FOOTER -->

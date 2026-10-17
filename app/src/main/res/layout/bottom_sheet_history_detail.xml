@@ -31,11 +31,12 @@
 
             <ImageView
                 android:id="@+id/ivDetailIcon"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_utility"
-                app:tint="@color/cat_network" />
+                android:scaleType="fitCenter"
+                android:contentDescription="@null"
+                tools:src="@drawable/ic_tool_net_ping" />
         </FrameLayout>
 
         <LinearLayout

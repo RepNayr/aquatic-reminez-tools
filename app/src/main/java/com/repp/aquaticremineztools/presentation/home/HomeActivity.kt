@@ -48,6 +48,7 @@ import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
+import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
@@ -267,7 +268,10 @@ class HomeActivity : AppCompatActivity() {
         }
 
         tabAbout.setOnClickListener {
-            Toast.makeText(this, "About - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabSettings.setOnClickListener {
@@ -365,6 +369,14 @@ class HomeActivity : AppCompatActivity() {
             } else {
                 startActivity(Intent(this, PinSetupActivity::class.java))
             }
+        }
+
+        findViewById<LinearLayout>(R.id.menuAbout).setOnClickListener {
+            closeDrawer()
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuSettings).setOnClickListener {

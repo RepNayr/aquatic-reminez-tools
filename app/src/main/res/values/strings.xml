@@ -36,6 +36,7 @@
     <string name="drawer_logout">Log Out</string>
     <string name="drawer_powered_by">Powered by: ReeP</string>
     <string name="drawer_copyright">© 2026 Aquatic Reminez Tools</string>
+    <string name="drawer_settings_header">SETTINGS</string>
 
     <!-- HOME -->
     <string name="home_greeting">Hello, Developer 👋</string>
@@ -160,14 +161,31 @@
     <string name="settings_reset_achievement">Reset Achievement</string>
 
     <!-- ABOUT -->
-    <string name="about_title">ABOUT</string>
-    <string name="about_what_is">📖 What is Aquatic Reminez Tools?</string>
-    <string name="about_desc">Aquatic Reminez Tools is a collection of 100 multi-purpose tools designed to simplify your daily digital work.\n\nFrom basic utilities to security tools, and games — all in one app. No need to use many apps, because this app already provides everything to make your activities easier.</string>
-    <string name="about_features">⚡ Key Features</string>
-    <string name="about_features_list">• 100 tools in 11 categories\n• Lightweight &amp; fast\n• Privacy first - your data is safe\n• Offline friendly\n• Dark theme - easy on the eyes</string>
-    <string name="about_developer">👨‍💻 Developer</string>
-    <string name="about_legal">📜 Legal</string>
-    <string name="about_legal_desc">This app is made for educational and productivity purposes.</string>
+    <string name="about_title">About</string>
+    <string name="about_what_is">What is Aquatic Reminez Tools?</string>
+    <string name="about_desc">Aquatic Reminez Tools is a personal collection of multipurpose digital tools designed to help with everyday tasks, learning, and exploration. Its catalog brings together utilities, security-related tools, media, development, and games in one place. Tool availability varies as development continues.</string>
+    <string name="about_features_header">Key Features</string>
+    <string name="about_feat_1">108 catalog entries · 8 quick-access groups</string>
+    <string name="about_feat_2">Built toward a lightweight, fast experience</string>
+    <string name="about_feat_3">Privacy-conscious development</string>
+    <string name="about_feat_4">Offline support where available</string>
+    <string name="about_feat_5">Games category</string>
+    <string name="about_dev_header">Developer</string>
+    <string name="about_dev_name">ReePNayr</string>
+    <string name="about_dev_sub">ReepNayr - Beginner</string>
+    <string name="about_dev_quote">"beginner under beginner"</string>
+    <string name="about_connect_header">Connect</string>
+    <string name="about_legal_header">Legal</string>
+    <string name="about_legal_desc">This app is made for educational and productivity purposes. Use its tools responsibly and only on systems, networks, and data you own or are authorized to access.</string>
+    <string name="about_info_header">App Info</string>
+    <string name="about_version_label">Version / Versi</string>
+    <string name="about_build_label">Build</string>
+    <string name="about_build_val">11 Oct 2026</string>
+    <string name="about_package_label">Package / Paket</string>
+    <string name="about_minsdk_label">Min SDK / SDK Minimum</string>
+    <string name="about_minsdk_val">24 — Android 7.0</string>
+    <string name="about_footer_credit">"Made with ❤️ by ReePNayr"</string>
+    <string name="about_status_unavailable">Not available yet</string>
 
     <!-- SEARCH / HISTORY -->
     <string name="search_title">Search</string>

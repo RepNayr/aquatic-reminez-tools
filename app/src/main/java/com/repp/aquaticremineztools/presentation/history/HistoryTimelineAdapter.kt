@@ -12,6 +12,7 @@ import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.data.ToolIconRegistry
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import eightbitlab.com.blurview.BlurTarget
@@ -130,41 +131,11 @@ class HistoryTimelineAdapter(
             } else ""
             tvTimeDuration.text = "$timeStr$durationStr"
 
-            // Icon by category
-            when (entity.category) {
-                "Utility" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_utility)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_utility))
-                }
-                "Cyber Tools" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_network_cat)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_network))
-                }
-                "Media" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_media)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_media))
-                }
-                "Dev Tools" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_dev)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_dev))
-                }
-                "Security & General" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_security_gen)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_security_gen))
-                }
-                "Security" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_security)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_security))
-                }
-                "Forensic" -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_forensic)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_forensic))
-                }
-                else -> {
-                    ivToolIcon.setImageResource(R.drawable.ic_file)
-                    ivToolIcon.setColorFilter(ContextCompat.getColor(context, R.color.cat_file))
-                }
-            }
+            // Tool Icon mapped by toolId
+            val iconRes = ToolIconRegistry.getIconRes(entity.toolId)
+            ivToolIcon.setImageResource(iconRes)
+            ivToolIcon.imageTintList = null
+            ivToolIcon.clearColorFilter()
 
             // Status chip
             if (entity.activityType == "OPENED") {

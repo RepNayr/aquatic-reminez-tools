@@ -30,6 +30,7 @@ import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 
@@ -261,7 +262,10 @@ class SearchActivity : AppCompatActivity() {
         }
 
         tabAbout.setOnClickListener {
-            Toast.makeText(this, "About - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabSettings.setOnClickListener {
@@ -336,6 +340,13 @@ class SearchActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
             closeDrawer()
             ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {

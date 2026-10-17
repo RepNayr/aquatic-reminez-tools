@@ -32,6 +32,7 @@ import com.repp.aquaticremineztools.data.local.history.HistoryRepository
 import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import eightbitlab.com.blurview.BlurTarget
 import kotlinx.coroutines.flow.collectLatest
@@ -332,7 +333,10 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         tabAbout.setOnClickListener {
-            Toast.makeText(this, "About - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         tabSettings.setOnClickListener {
@@ -407,6 +411,13 @@ class HistoryActivity : AppCompatActivity() {
         findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
             closeDrawer()
             ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {

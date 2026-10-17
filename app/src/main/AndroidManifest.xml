@@ -60,6 +60,11 @@
             android:windowSoftInputMode="adjustPan" />
 
         <activity
+            android:name=".presentation.about.AboutActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".presentation.security.PinSetupActivity"
             android:exported="false"
             android:screenOrientation="portrait" />

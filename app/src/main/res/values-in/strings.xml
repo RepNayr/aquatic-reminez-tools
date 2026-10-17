@@ -36,6 +36,7 @@
     <string name="drawer_logout">Keluar</string>
     <string name="drawer_powered_by">Didukung oleh: ReeP</string>
     <string name="drawer_copyright">© 2026 Aquatic Reminez Tools</string>
+    <string name="drawer_settings_header">SETTINGS</string>
 
     <!-- HOME -->
     <string name="home_greeting">Halo, Developer 👋</string>
@@ -160,14 +161,31 @@
     <string name="settings_reset_achievement">Reset Achievement</string>
 
     <!-- ABOUT -->
-    <string name="about_title">TENTANG</string>
-    <string name="about_what_is">📖 Apa itu Aquatic Reminez Tools?</string>
-    <string name="about_desc">Aquatic Reminez Tools adalah kumpulan 100 tools serbaguna yang dirancang untuk mempermudah pekerjaan digital kamu sehari-hari.\n\nDari utility dasar sampai tools keamanan, dan game ada di satu aplikasi. Tidak perlu menggunakan banyak aplikasi, karena di aplikasi ini sudah menyiapkan semuanya untuk mempermudah aktivitas anda.</string>
-    <string name="about_features">⚡ Fitur Unggulan</string>
-    <string name="about_features_list">• 100 tools dalam 11 kategori\n• Ringan &amp; cepat\n• Privacy first - data kamu aman\n• Offline friendly\n• Dark theme - nyaman di mata</string>
-    <string name="about_developer">👨‍💻 Developer</string>
-    <string name="about_legal">📜 Legal</string>
-    <string name="about_legal_desc">App ini dibuat untuk tujuan edukasi dan produktivitas.</string>
+    <string name="about_title">Tentang</string>
+    <string name="about_what_is">Apa itu Aquatic Reminez Tools?</string>
+    <string name="about_desc">Aquatic Reminez Tools adalah koleksi pribadi alat digital serbaguna yang dirancang untuk membantu aktivitas sehari-hari, belajar, dan bereksplorasi. Katalognya menghimpun utilitas, alat terkait keamanan, media, pengembangan, dan permainan dalam satu tempat. Ketersediaan alat mengikuti perkembangan aplikasi.</string>
+    <string name="about_features_header">Fitur Utama</string>
+    <string name="about_feat_1">108 entri katalog · 8 kelompok akses cepat</string>
+    <string name="about_feat_2">Dikembangkan agar ringan dan cepat</string>
+    <string name="about_feat_3">Pengembangan yang memperhatikan privasi</string>
+    <string name="about_feat_4">Dukungan offline pada fitur yang tersedia</string>
+    <string name="about_feat_5">Kategori permainan</string>
+    <string name="about_dev_header">Pengembang</string>
+    <string name="about_dev_name">ReePNayr</string>
+    <string name="about_dev_sub">ReepNayr - Pemula</string>
+    <string name="about_dev_quote">"pemula di bawah pemula"</string>
+    <string name="about_connect_header">Terhubung</string>
+    <string name="about_legal_header">Legal</string>
+    <string name="about_legal_desc">Aplikasi ini dibuat untuk tujuan edukasi dan produktivitas. Gunakan alat secara bertanggung jawab dan hanya pada sistem, jaringan, serta data milik sendiri atau yang telah diizinkan untuk diakses.</string>
+    <string name="about_info_header">Info Aplikasi</string>
+    <string name="about_version_label">Version / Versi</string>
+    <string name="about_build_label">Build</string>
+    <string name="about_build_val">11 Okt 2026</string>
+    <string name="about_package_label">Package / Paket</string>
+    <string name="about_minsdk_label">Min SDK / SDK Minimum</string>
+    <string name="about_minsdk_val">24 — Android 7.0</string>
+    <string name="about_footer_credit">"Dibuat dengan ❤️ oleh ReePNayr"</string>
+    <string name="about_status_unavailable">Belum tersedia</string>
 
     <!-- SEARCH / HISTORY -->
     <string name="search_title">Pencarian</string>

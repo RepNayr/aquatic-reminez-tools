@@ -4,10 +4,12 @@ import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.ToolData
+import com.repp.aquaticremineztools.data.ToolIconRegistry
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
@@ -28,7 +30,7 @@ class SearchResultAdapter(
     override fun onBindViewHolder(holder: ResultViewHolder, position: Int) {
         val tool = results[position]
 
-        holder.tvEmoji.text = tool.emoji
+        holder.ivIcon.setImageResource(ToolIconRegistry.getIconRes(tool))
         holder.tvName.text = tool.name
         holder.tvCategory.text = tool.category.displayName
         holder.tvDesc.text = tool.description
@@ -52,7 +54,7 @@ class SearchResultAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
         val blurCard: BlurView = itemView.findViewById(R.id.blurCard)
         val cardContent: View = itemView.findViewById(R.id.cardContent)
-        val tvEmoji: TextView = itemView.findViewById(R.id.tvToolEmoji)
+        val ivIcon: ImageView = itemView.findViewById(R.id.ivToolIcon)
         val tvName: TextView = itemView.findViewById(R.id.tvToolName)
         val tvCategory: TextView = itemView.findViewById(R.id.tvToolCategory)
         val tvDesc: TextView = itemView.findViewById(R.id.tvToolDesc)

@@ -43,19 +43,20 @@
         <!-- TOOL ICON CONTAINER -->
         <FrameLayout
             android:id="@+id/iconContainer"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
             android:background="@drawable/bg_quick_icon_circle"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toEndOf="@id/cbSelect">
 
             <ImageView
                 android:id="@+id/ivToolIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_gravity="center"
-                android:src="@drawable/ic_utility"
-                app:tint="@color/cat_network" />
+                android:scaleType="fitCenter"
+                android:contentDescription="@null"
+                tools:src="@drawable/ic_tool_net_ping" />
 
         </FrameLayout>
 

@@ -70,7 +70,7 @@ class HistoryRepository private constructor(context: Context) {
 
             val seedItems = listOf(
                 HistoryEntity(
-                    toolId = "net_diag",
+                    toolId = "net_ping",
                     toolName = "Network Diagnostics",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -81,7 +81,7 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Ping: 43ms · Packet Loss: 0% · Target: 1.1.1.1 reachable."
                 ),
                 HistoryEntity(
-                    toolId = "wifi_scanner",
+                    toolId = "net_wifi_analyzer",
                     toolName = "Wi-Fi Analyzer",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -91,7 +91,7 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Scanning nearby 2.4GHz / 5GHz channels..."
                 ),
                 HistoryEntity(
-                    toolId = "port_scan",
+                    toolId = "net_port_scanner",
                     toolName = "Port Scanner",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -101,16 +101,16 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Connection refused at 192.168.1.1:8080 (Timeout)."
                 ),
                 HistoryEntity(
-                    toolId = "hash_calc",
+                    toolId = "secgen_hash",
                     toolName = "Hash Calculator",
-                    category = "Utility",
+                    category = "Security & Generate",
                     activityType = "OPENED",
                     status = null,
                     timestamp = now - 4 * hourMs,
                     resultSummary = "Opened tool view."
                 ),
                 HistoryEntity(
-                    toolId = "dns_lookup",
+                    toolId = "net_dns",
                     toolName = "DNS Lookup",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -120,7 +120,7 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Resolved A record: 104.21.55.2"
                 ),
                 HistoryEntity(
-                    toolId = "subdomain_enum",
+                    toolId = "net_subdomain",
                     toolName = "Subdomain Enumerator",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -130,7 +130,7 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Execution cancelled by user at candidate 42."
                 ),
                 HistoryEntity(
-                    toolId = "packet_sniffer",
+                    toolId = "net_traceroute",
                     toolName = "Packet Capture",
                     category = "Cyber Tools",
                     activityType = "EXECUTED",
@@ -140,9 +140,9 @@ class HistoryRepository private constructor(context: Context) {
                     resultSummary = "Capture service interrupted due to network interface disconnect."
                 ),
                 HistoryEntity(
-                    toolId = "qr_gen",
+                    toolId = "secgen_qr_gen",
                     toolName = "QR Code Generator",
-                    category = "Utility",
+                    category = "Security & Generate",
                     activityType = "OPENED",
                     status = null,
                     timestamp = now - 3 * dayMs,
