@@ -10,12 +10,15 @@ object SettingsPreferences {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     }
 
-    // --- Stage 01: Appearance & Personalization ---
+    // --- Appearance & Personalization ---
     fun getThemeMode(context: Context): String = getPrefs(context).getString("theme_mode", "system") ?: "system"
     fun setThemeMode(context: Context, mode: String) = getPrefs(context).edit().putString("theme_mode", mode).apply()
 
     fun getAccentColor(context: Context): String = getPrefs(context).getString("accent_color", "cyan") ?: "cyan"
     fun setAccentColor(context: Context, color: String) = getPrefs(context).edit().putString("accent_color", color).apply()
+
+    fun getCustomAccentHex(context: Context): String = getPrefs(context).getString("custom_accent_hex", "#43D9E6") ?: "#43D9E6"
+    fun setCustomAccentHex(context: Context, hex: String) = getPrefs(context).edit().putString("custom_accent_hex", hex).apply()
 
     fun getWallpaperUri(context: Context): String = getPrefs(context).getString("wallpaper_uri", "") ?: ""
     fun setWallpaperUri(context: Context, uri: String) = getPrefs(context).edit().putString("wallpaper_uri", uri).apply()
@@ -38,16 +41,28 @@ object SettingsPreferences {
     fun getCardStyle(context: Context): String = getPrefs(context).getString("card_style", "glass") ?: "glass"
     fun setCardStyle(context: Context, style: String) = getPrefs(context).edit().putString("card_style", style).apply()
 
+    fun getCornerRadius(context: Context): Int = getPrefs(context).getInt("corner_radius", 16)
+    fun setCornerRadius(context: Context, radius: Int) = getPrefs(context).edit().putInt("corner_radius", radius).apply()
+
     fun isReduceMotion(context: Context): Boolean = getPrefs(context).getBoolean("reduce_motion", false)
     fun setReduceMotion(context: Context, reduce: Boolean) = getPrefs(context).edit().putBoolean("reduce_motion", reduce).apply()
 
     fun getLanguage(context: Context): String = getPrefs(context).getString("language", "en") ?: "en"
     fun setLanguage(context: Context, lang: String) = getPrefs(context).edit().putString("language", lang).apply()
 
+    fun getDateFormat(context: Context): String = getPrefs(context).getString("date_format", "dd/MM/yyyy") ?: "dd/MM/yyyy"
+    fun setDateFormat(context: Context, fmt: String) = getPrefs(context).edit().putString("date_format", fmt).apply()
+
+    fun getTimeFormat(context: Context): String = getPrefs(context).getString("time_format", "24h") ?: "24h"
+    fun setTimeFormat(context: Context, fmt: String) = getPrefs(context).edit().putString("time_format", fmt).apply()
+
     fun isHighContrast(context: Context): Boolean = getPrefs(context).getBoolean("high_contrast", false)
     fun setHighContrast(context: Context, hc: Boolean) = getPrefs(context).edit().putBoolean("high_contrast", hc).apply()
 
-    // --- Stage 02: Security & Data ---
+    fun isLightweightEffects(context: Context): Boolean = getPrefs(context).getBoolean("lightweight_effects", false)
+    fun setLightweightEffects(context: Context, lw: Boolean) = getPrefs(context).edit().putBoolean("lightweight_effects", lw).apply()
+
+    // --- Security & Data ---
     fun isAppLockEnabled(context: Context): Boolean = getPrefs(context).getBoolean("app_lock_enabled", false)
     fun setAppLockEnabled(context: Context, enabled: Boolean) = getPrefs(context).edit().putBoolean("app_lock_enabled", enabled).apply()
 
@@ -72,14 +87,26 @@ object SettingsPreferences {
     fun isExecutionConfirmationEnabled(context: Context): Boolean = getPrefs(context).getBoolean("execution_confirmation", true)
     fun setExecutionConfirmation(context: Context, enabled: Boolean) = getPrefs(context).edit().putBoolean("execution_confirmation", enabled).apply()
 
-    // --- Stage 03: App Info, Games, Support ---
+    fun isTargetConfirmationEnabled(context: Context): Boolean = getPrefs(context).getBoolean("target_confirmation", true)
+    fun setTargetConfirmation(context: Context, enabled: Boolean) = getPrefs(context).edit().putBoolean("target_confirmation", enabled).apply()
+
+    fun getDefaultToolTimeout(context: Context): Int = getPrefs(context).getInt("default_tool_timeout", 30)
+    fun setDefaultToolTimeout(context: Context, timeoutSec: Int) = getPrefs(context).edit().putInt("default_tool_timeout", timeoutSec).apply()
+
+    fun isResultLoggingEnabled(context: Context): Boolean = getPrefs(context).getBoolean("result_logging", true)
+    fun setResultLogging(context: Context, enabled: Boolean) = getPrefs(context).edit().putBoolean("result_logging", enabled).apply()
+
+    // --- App Info, Games, Support ---
     fun getGameSoundMode(context: Context): Boolean = getPrefs(context).getBoolean("game_sound", true)
     fun setGameSoundMode(context: Context, sound: Boolean) = getPrefs(context).edit().putBoolean("game_sound", sound).apply()
 
     fun getGameVibrationMode(context: Context): Boolean = getPrefs(context).getBoolean("game_vibration", true)
     fun setGameVibrationMode(context: Context, vib: Boolean) = getPrefs(context).edit().putBoolean("game_vibration", vib).apply()
 
-    // --- Stage 04: Tool Workspace & Workflows ---
+    fun getGameDisplayMode(context: Context): String = getPrefs(context).getString("game_display_mode", "fullscreen") ?: "fullscreen"
+    fun setGameDisplayMode(context: Context, mode: String) = getPrefs(context).edit().putString("game_display_mode", mode).apply()
+
+    // --- Tool Workspace & Workflows ---
     fun getFavorites(context: Context): Set<String> = getPrefs(context).getStringSet("favorites_set", emptySet()) ?: emptySet()
     fun setFavorites(context: Context, favorites: Set<String>) = getPrefs(context).edit().putStringSet("favorites_set", favorites).apply()
 

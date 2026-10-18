@@ -3,17 +3,40 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainContent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
     android:fitsSystemWindows="true"
     tools:context=".presentation.settings.AppearanceSettingsActivity">
 
+    <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+    <eightbitlab.com.blurview.BlurTarget
+        android:id="@+id/appearanceBlurTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/home_background_image"
+            android:alpha="0.38"
+            android:contentDescription="@null" />
+
+    </eightbitlab.com.blurview.BlurTarget>
+
+    <!-- GRADIENT OVERLAY -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_home_overlay" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_primary"
-        app:elevation="0dp">
+        android:background="#080808"
+        app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -61,6 +84,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -69,245 +94,454 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Theme Section -->
-            <TextView
+            <!-- Live Preview Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurPreviewCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="THEME &amp; ACCENT"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <RadioGroup
-                android:id="@+id/rgTheme"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="vertical">
-
-                <RadioButton
-                    android:id="@+id/rbDark"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Dark Theme (Default)"
-                    android:textColor="@color/text_primary" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <RadioButton
-                    android:id="@+id/rbLight"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="LIVE PREVIEW"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvPreviewSample"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Aquatic Reminez Tools — Dark Glassmorphic Theme Preview"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 1. Theme & Accent -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurThemeCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Light Theme"
-                    android:textColor="@color/text_primary" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <RadioButton
-                    android:id="@+id/rbSystem"
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="THEME MODE"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <RadioGroup
+                        android:id="@+id/rgTheme"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical">
+
+                        <RadioButton
+                            android:id="@+id/rbDark"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Dark Theme (Default)"
+                            android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbLight"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="Light Theme"
+                            android:textColor="@color/text_primary" />
+
+                        <RadioButton
+                            android:id="@+id/rbSystem"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="System Default"
+                            android:textColor="@color/text_primary" />
+                    </RadioGroup>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="16dp"
+                        android:background="@color/divider" />
+
+                    <!-- Accent Color -->
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="ACCENT COLOR &amp; CUSTOM PICKER"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnAccentCyan"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="2dp"
+                            android:text="Cyan"
+                            android:textSize="10sp" />
+
+                        <Button
+                            android:id="@+id/btnAccentTeal"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="2dp"
+                            android:text="Teal"
+                            android:textSize="10sp" />
+
+                        <Button
+                            android:id="@+id/btnAccentViolet"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="2dp"
+                            android:text="Violet"
+                            android:textSize="10sp" />
+
+                        <Button
+                            android:id="@+id/btnAccentBlue"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="2dp"
+                            android:text="Blue"
+                            android:textSize="10sp" />
+
+                        <Button
+                            android:id="@+id/btnAccentEmerald"
+                            android:layout_width="0dp"
+                            android:layout_height="38dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="2dp"
+                            android:text="Emerald"
+                            android:textSize="10sp" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnCustomColorPicker"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Custom Color Picker (Hex)" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- Wallpaper & Glass Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurWallpaperCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="System Default"
-                    android:textColor="@color/text_primary" />
-            </RadioGroup>
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="WALLPAPER, OPACITY &amp; GLASS BLUR"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <!-- Accent Color -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="ACCENT COLOR PRESETS"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                    <Button
+                        android:id="@+id/btnSelectWallpaper"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Select Built-in / Gallery Wallpaper" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Glass Transparency"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
 
-                <Button
-                    android:id="@+id/btnAccentCyan"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Cyan"
-                    android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekGlassTransparency"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:max="100"
+                        android:progress="75" />
 
-                <Button
-                    android:id="@+id/btnAccentTeal"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:text="Teal"
-                    android:textSize="11sp" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="Blur Intensity"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
 
-                <Button
-                    android:id="@+id/btnAccentViolet"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:text="Violet"
-                    android:textSize="11sp" />
+                    <SeekBar
+                        android:id="@+id/seekBlurIntensity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:max="30"
+                        android:progress="15" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
-                <Button
-                    android:id="@+id/btnAccentBlue"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:text="Blue"
-                    android:textSize="11sp" />
-
-                <Button
-                    android:id="@+id/btnAccentEmerald"
-                    android:layout_width="0dp"
-                    android:layout_height="40dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Emerald"
-                    android:textSize="10sp" />
-            </LinearLayout>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
-
-            <!-- Wallpaper & Glass -->
-            <TextView
+            <!-- 2. Display & Layout -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurDisplayCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="WALLPAPER &amp; GLASS TRANSPARENCY"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnSelectWallpaper"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Select Built-in / Gallery Wallpaper" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Glass Transparency"
-                android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
-
-            <SeekBar
-                android:id="@+id/seekGlassTransparency"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:max="100"
-                android:progress="75" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
-
-            <!-- Personalization Presets -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="PERSONALIZATION PRESETS"
-                android:textColor="@color/accent_cyan"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btnPresetOcean"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Ocean Cyber"
-                    android:textSize="11sp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <Button
-                    android:id="@+id/btnPresetNeon"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="4dp"
-                    android:text="Neon Violet"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="DISPLAY, FONT &amp; LAYOUT DENSITY"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <LinearLayout
+                    <Button
+                        android:id="@+id/btnFontSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Font Size: Default (Small / Large / XL)" />
+
+                    <Button
+                        android:id="@+id/btnUiDensity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="UI Density: Comfortable (Compact / Comfortable)" />
+
+                    <Button
+                        android:id="@+id/btnCardStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Card Style: Glass (Glass / Standard)" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 3. Language & Region -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurLanguageCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal">
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-                <Button
-                    android:id="@+id/btnPresetEmerald"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:text="Emerald"
-                    android:textSize="11sp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-                <Button
-                    android:id="@+id/btnPresetClean"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:text="Clean Light"
-                    android:textSize="11sp" />
-            </LinearLayout>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="LANGUAGE &amp; REGION"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                    <Button
+                        android:id="@+id/btnLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Language: English (Bahasa Indonesia / English)" />
 
-            <!-- Accessibility & Reset -->
-            <Switch
-                android:id="@+id/switchReduceMotion"
+                    <Button
+                        android:id="@+id/btnDateTimeFormats"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Date &amp; Time Formats (dd/MM/yyyy • 24h)" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 4. Accessibility & Performance -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurAccessibilityCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Reduce Motion Effects"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Switch
-                android:id="@+id/switchHighContrast"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="ACCESSIBILITY &amp; PERFORMANCE"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchReduceMotion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Reduce Motion Effects"
+                        android:textColor="@color/text_primary" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchHighContrast"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="High Contrast Text"
+                        android:textColor="@color/text_primary" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchLightweightEffects"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Lightweight Visual Effects (Low-Resource Devices)"
+                        android:textColor="@color/text_primary" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 5. Personalization Presets -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurPresetsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="High Contrast Text"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="PERSONALIZATION PRESETS"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnPresetOcean"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Ocean Cyber"
+                            android:textSize="11sp" />
+
+                        <Button
+                            android:id="@+id/btnPresetNeon"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginHorizontal="4dp"
+                            android:text="Neon Violet"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnPresetEmerald"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Emerald"
+                            android:textSize="11sp" />
+
+                        <Button
+                            android:id="@+id/btnPresetClean"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="Clean Light"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
             <Button
                 android:id="@+id/btnResetAppearance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="8dp"
                 android:backgroundTint="@color/accent_muted_red"
                 android:text="Reset Appearance to Defaults" />
 

@@ -3,17 +3,40 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainContent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
     android:fitsSystemWindows="true"
     tools:context=".presentation.settings.SecurityDataSettingsActivity">
 
+    <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+    <eightbitlab.com.blurview.BlurTarget
+        android:id="@+id/securityBlurTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/home_background_image"
+            android:alpha="0.38"
+            android:contentDescription="@null" />
+
+    </eightbitlab.com.blurview.BlurTarget>
+
+    <!-- GRADIENT OVERLAY -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_home_overlay" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_primary"
-        app:elevation="0dp">
+        android:background="#080808"
+        app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -61,6 +84,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -69,160 +94,348 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Security Center -->
-            <TextView
+            <!-- Security Status Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurSecurityStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="SECURITY CENTER"
-                android:textColor="@color/accent_teal"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Switch
-                android:id="@+id/switchAppLock"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="SECURITY STATUS"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSecurityStatusText"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Status: Normal • Biometrics Supported • Protection Active"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 1. Security Center Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurSecurityCenterCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Enable App Lock (PIN)"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Switch
-                android:id="@+id/switchBiometric"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="SECURITY CENTER"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchAppLock"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Enable App Lock (PIN)"
+                        android:textColor="@color/text_primary" />
+
+                    <Button
+                        android:id="@+id/btnAutoLockTimeout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Auto-Lock Timeout: 1 Minute (30s / 1m / 5m)" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchBiometric"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Biometric Unlock (Fingerprint / Face)"
+                        android:textColor="@color/text_primary" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchPrivacyShield"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Privacy Shield (Recent Apps Blur)"
+                        android:textColor="@color/text_primary" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchScreenshotProtection"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Screenshot Protection"
+                        android:textColor="@color/text_primary" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 2. History & Activity Management -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurHistoryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Biometric Unlock"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Switch
-                android:id="@+id/switchPrivacyShield"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="HISTORY &amp; ACTIVITY MANAGEMENT"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchHistoryLogging"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Enable History Logging"
+                        android:textColor="@color/text_primary" />
+
+                    <Button
+                        android:id="@+id/btnAutoCleanup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Automatic History Cleanup: 30 Days (7d / 30d / 90d / Disabled)" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnExportCsv"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:text="Export CSV" />
+
+                        <Button
+                            android:id="@+id/btnExportJson"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:text="Export JSON" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnClearHistory"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/accent_muted_red"
+                        android:text="Clear All History Records" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 3. Storage & Cleanup -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurStorageCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Privacy Shield (Recent Apps)"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Switch
-                android:id="@+id/switchScreenshotProtection"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="STORAGE MANAGER &amp; CLEANUP"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvStorageOverviewInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Cache: 14.2 MB • Database: 1.8 MB (108 records) • Temp Files: 0.4 MB"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="12sp" />
+
+                    <Button
+                        android:id="@+id/btnClearCache"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Clear Cache &amp; Clean Temporary Files" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 4. Backup & Restore -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurBackupCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Screenshot Protection"
-                android:textColor="@color/text_primary" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- History & Activity -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="HISTORY &amp; ACTIVITY MANAGEMENT"
-                android:textColor="@color/accent_teal"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="BACKUP &amp; RESTORE"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <Switch
-                android:id="@+id/switchHistoryLogging"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Enable History Logging"
-                android:textColor="@color/text_primary" />
+                    <Button
+                        android:id="@+id/btnCreateBackup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Create Encrypted Backup File" />
 
-            <Button
-                android:id="@+id/btnExportCsv"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Export History to CSV" />
+                    <Button
+                        android:id="@+id/btnRestoreBackup"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Restore &amp; Validate Backup File" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
-            <Button
-                android:id="@+id/btnExportJson"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Export History to JSON" />
-
-            <Button
-                android:id="@+id/btnClearHistory"
+            <!-- 5. Tool Behavior & Safety -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurToolSafetyCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="@color/accent_muted_red"
-                android:text="Clear All History" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- Storage & Cache -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="STORAGE &amp; CLEANUP"
-                android:textColor="@color/accent_teal"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="TOOL BEHAVIOR &amp; SAFETY"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnClearCache"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Clear Application Cache &amp; Temp Files" />
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchExecutionConfirmation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Execution Confirmation for Sensitive Tools"
+                        android:textColor="@color/text_primary" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                    <androidx.appcompat.widget.SwitchCompat
+                        android:id="@+id/switchTargetConfirmation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Target Confirmation Reminder"
+                        android:textColor="@color/text_primary" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
-            <!-- Backup & Restore -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="BACKUP &amp; RESTORE"
-                android:textColor="@color/accent_teal"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnCreateBackup"
+            <!-- 6. Recovery & Reset -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurRecoveryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Create Encrypted Backup" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnRestoreBackup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Restore from Backup" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="PRIVACY, PERMISSIONS &amp; RECOVERY"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <!-- Recovery Center -->
-            <Button
-                android:id="@+id/btnResetAppData"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@color/accent_muted_red"
-                android:text="Reset App Data &amp; Preferences" />
+                    <Button
+                        android:id="@+id/btnManagePermissions"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Manage Android App Permissions" />
+
+                    <Button
+                        android:id="@+id/btnResetPreferences"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Reset Visual &amp; App Preferences" />
+
+                    <Button
+                        android:id="@+id/btnResetAppData"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/accent_muted_red"
+                        android:text="Reset All App Data &amp; Security Settings" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

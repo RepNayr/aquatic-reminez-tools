@@ -4,25 +4,50 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.settings.SettingsPreferences
 import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.presentation.about.AboutActivity
+import com.repp.aquaticremineztools.presentation.history.HistoryActivity
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
+import com.repp.aquaticremineztools.presentation.home.HomeActivity
+import com.repp.aquaticremineztools.presentation.search.SearchActivity
+import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
+import com.repp.aquaticremineztools.presentation.storage.StorageActivity
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 
 class SettingsActivity : AppCompatActivity() {
 
-    private lateinit var btnBack: FrameLayout
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var settingsBlurTarget: BlurTarget
+    private lateinit var btnMenu: FrameLayout
     private lateinit var etSearch: EditText
+
+    // Blur Cards
+    private lateinit var blurSearchHeader: BlurView
+    private lateinit var blurAppearance: BlurView
+    private lateinit var blurSecurity: BlurView
+    private lateinit var blurStorage: BlurView
+    private lateinit var blurWorkspace: BlurView
+    private lateinit var blurAppSupport: BlurView
 
     // Status Chips
     private lateinit var tvStatusTheme: TextView
@@ -55,6 +80,31 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnCopyDebugInfo: Button
     private lateinit var btnBugReport: Button
 
+    // Bottom Nav Pill
+    private lateinit var tabHome: FrameLayout
+    private lateinit var tabSearch: FrameLayout
+    private lateinit var tabHistory: FrameLayout
+    private lateinit var tabAbout: FrameLayout
+    private lateinit var tabSettings: FrameLayout
+
+    private lateinit var pillHome: LinearLayout
+    private lateinit var pillSearch: LinearLayout
+    private lateinit var pillHistory: LinearLayout
+    private lateinit var pillAbout: LinearLayout
+    private lateinit var pillSettings: LinearLayout
+
+    private lateinit var iconHome: ImageView
+    private lateinit var iconSearch: ImageView
+    private lateinit var iconHistory: ImageView
+    private lateinit var iconAbout: ImageView
+    private lateinit var iconSettings: ImageView
+
+    private lateinit var textHome: TextView
+    private lateinit var textSearch: TextView
+    private lateinit var textHistory: TextView
+    private lateinit var textAbout: TextView
+    private lateinit var textSettings: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -67,6 +117,9 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
 
         bindViews()
+        setupGlassCards()
+        setupBottomNav()
+        setupDrawerMenuClicks()
         loadSettingsState()
         setupListeners()
     }
@@ -77,7 +130,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
-        btnBack = findViewById(R.id.btnBackSettings)
+        drawerLayout = findViewById(R.id.drawerLayout)
+        settingsBlurTarget = findViewById(R.id.settingsBlurTarget)
+        btnMenu = findViewById(R.id.btnMenu)
         etSearch = findViewById(R.id.etSearchSettings)
 
         tvStatusTheme = findViewById(R.id.tvStatusTheme)
@@ -104,6 +159,177 @@ class SettingsActivity : AppCompatActivity() {
         btnCheckUpdates = findViewById(R.id.btnCheckUpdates)
         btnCopyDebugInfo = findViewById(R.id.btnCopyDebugInfo)
         btnBugReport = findViewById(R.id.btnBugReport)
+
+        // Bottom Nav Pill
+        tabHome = findViewById(R.id.tabHome)
+        tabSearch = findViewById(R.id.tabSearch)
+        tabHistory = findViewById(R.id.tabHistory)
+        tabAbout = findViewById(R.id.tabAbout)
+        tabSettings = findViewById(R.id.tabSettings)
+
+        pillHome = findViewById(R.id.pillHome)
+        pillSearch = findViewById(R.id.pillSearch)
+        pillHistory = findViewById(R.id.pillHistory)
+        pillAbout = findViewById(R.id.pillAbout)
+        pillSettings = findViewById(R.id.pillSettings)
+
+        iconHome = findViewById(R.id.iconHome)
+        iconSearch = findViewById(R.id.iconSearch)
+        iconHistory = findViewById(R.id.iconHistory)
+        iconAbout = findViewById(R.id.iconAbout)
+        iconSettings = findViewById(R.id.iconSettings)
+
+        textHome = findViewById(R.id.textHome)
+        textSearch = findViewById(R.id.textSearch)
+        textHistory = findViewById(R.id.textHistory)
+        textAbout = findViewById(R.id.textAbout)
+        textSettings = findViewById(R.id.textSettings)
+    }
+
+    private fun setupGlassCards() {
+        blurSearchHeader = findViewById(R.id.blurSearchHeader)
+        blurAppearance = findViewById(R.id.blurAppearance)
+        blurSecurity = findViewById(R.id.blurSecurity)
+        blurStorage = findViewById(R.id.blurStorage)
+        blurWorkspace = findViewById(R.id.blurWorkspace)
+        blurAppSupport = findViewById(R.id.blurAppSupport)
+
+        val frameClearDrawable = window.decorView.background
+        GlassBlurHelper.setupBlur(blurSearchHeader, settingsBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurAppearance, settingsBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurSecurity, settingsBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurStorage, settingsBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurWorkspace, settingsBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurAppSupport, settingsBlurTarget, frameClearDrawable)
+    }
+
+    private fun setupBottomNav() {
+        selectNavTab(4) // Tab 4 = Settings
+
+        tabHome.setOnClickListener {
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        tabSearch.setOnClickListener {
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        tabHistory.setOnClickListener {
+            val intent = Intent(this, HistoryActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        tabAbout.setOnClickListener {
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        tabSettings.setOnClickListener {
+            selectNavTab(4)
+        }
+    }
+
+    private fun selectNavTab(index: Int) {
+        val tabContainers = listOf(tabHome, tabSearch, tabHistory, tabAbout, tabSettings)
+        val tabs = listOf(
+            Triple(pillHome, iconHome, textHome),
+            Triple(pillSearch, iconSearch, textSearch),
+            Triple(pillHistory, iconHistory, textHistory),
+            Triple(pillAbout, iconAbout, textAbout),
+            Triple(pillSettings, iconSettings, textSettings),
+        )
+
+        val primaryColor = ContextCompat.getColor(this, R.color.text_primary)
+        val secondaryColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        tabs.forEachIndexed { i, (pill, icon, text) ->
+            val container = tabContainers[i]
+            val lp = container.layoutParams as? LinearLayout.LayoutParams
+            if (i == index) {
+                lp?.weight = 1.4f
+                container.layoutParams = lp
+                container.requestLayout()
+                pill.setBackgroundResource(R.drawable.bg_nav_active_pill)
+                text.visibility = View.VISIBLE
+                icon.setColorFilter(primaryColor)
+            } else {
+                lp?.weight = 0.9f
+                container.layoutParams = lp
+                container.requestLayout()
+                pill.setBackgroundColor(Color.TRANSPARENT)
+                text.visibility = View.GONE
+                icon.setColorFilter(secondaryColor)
+            }
+        }
+    }
+
+    private fun setupDrawerMenuClicks() {
+        findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
+            val intent = Intent(this, HomeActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
+            val intent = Intent(this, SearchActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
+            val intent = Intent(this, HistoryActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        findViewById<LinearLayout>(R.id.menuFavorites).setNavigatorClick {
+            Toast.makeText(this, "Favorites - Coming Soon", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<LinearLayout>(R.id.menuCategories).setNavigatorClick {
+            Toast.makeText(this, "Categories - Coming Soon", Toast.LENGTH_SHORT).show()
+        }
+
+        findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
+            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
+            val intent = Intent(this, AboutActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
+            closeDrawer()
+        }
+    }
+
+    private fun View.setNavigatorClick(action: () -> Unit) {
+        setOnClickListener {
+            closeDrawer()
+            action()
+        }
+    }
+
+    private fun closeDrawer() {
+        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            drawerLayout.closeDrawer(GravityCompat.START)
+        }
     }
 
     private fun loadSettingsState() {
@@ -122,7 +348,9 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        btnBack.setOnClickListener { finish() }
+        btnMenu.setOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
 
         // Quick Preset Actions
         btnQuickOcean.setOnClickListener {

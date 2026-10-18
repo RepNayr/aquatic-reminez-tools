@@ -1,786 +1,867 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<androidx.drawerlayout.widget.DrawerLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/rootSettings"
+    android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_primary"
     android:fitsSystemWindows="true"
     tools:context=".presentation.settings.SettingsActivity">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarSettings"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/bg_primary"
-        android:fitsSystemWindows="true"
-        app:elevation="0dp">
-
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingHorizontal="16dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp">
-
-            <FrameLayout
-                android:id="@+id/btnBackSettings"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/accent_cyan"
-                    android:contentDescription="@string/back" />
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/tvSettingsTitle"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:layout_marginEnd="12dp"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:letterSpacing="0.02"
-                android:maxLines="1"
-                android:ellipsize="end"
-                android:text="Settings &amp; Preferences"
-                android:textColor="@color/text_primary"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@id/btnBackSettings"
-                app:layout_constraintTop_toTopOf="parent" />
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </com.google.android.material.appbar.AppBarLayout>
-
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollSettings"
+    <!-- ========== KONTEN UTAMA ========== -->
+    <androidx.coordinatorlayout.widget.CoordinatorLayout
+        android:id="@+id/mainContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingHorizontal="12dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="32dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:background="@color/bg_primary"
+        android:fitsSystemWindows="true">
 
-        <LinearLayout
+        <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+        <eightbitlab.com.blurview.BlurTarget
+            android:id="@+id/settingsBlurTarget"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:id="@+id/ivSettingsBackground"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/home_background_image"
+                android:alpha="0.38"
+                android:contentDescription="@null" />
+
+        </eightbitlab.com.blurview.BlurTarget>
+
+        <!-- GRADIENT OVERLAY -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_home_overlay" />
+
+        <!-- APP BAR -->
+        <com.google.android.material.appbar.AppBarLayout
+            android:id="@+id/appBarSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:background="#080808"
+            android:fitsSystemWindows="true"
+            app:elevation="4dp">
 
-            <!-- 1. SEARCH & QUICK STATUS BAR -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurSearchHeader"
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_glass_card_clip">
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
+                <FrameLayout
+                    android:id="@+id/btnMenu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_menu"
+                        android:contentDescription="@string/menu"
+                        app:tint="@color/accent_cyan" />
+                </FrameLayout>
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvSettingsToolbarTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.02"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:text="SETTINGS"
+                    android:textColor="@color/text_primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btnMenu"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <!-- CONTENT SCROLL -->
+        <androidx.core.widget.NestedScrollView
+            android:id="@+id/scrollSettings"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="12dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="75dp"
+            app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 1. SEARCH & QUICK STATUS BAR -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurSearchHeader"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
 
-                    <EditText
-                        android:id="@+id/etSearchSettings"
+                    <View
                         android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:background="@drawable/bg_input_field"
-                        android:drawableStart="@drawable/ic_categories"
-                        android:drawablePadding="12dp"
-                        android:hint="Search any setting..."
-                        android:imeOptions="actionSearch"
-                        android:inputType="text"
-                        android:paddingHorizontal="16dp"
-                        android:textColor="@color/text_primary"
-                        android:textColorHint="@color/text_muted"
-                        android:textSize="13sp" />
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
 
-                    <!-- Quick Status Chips -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal"
-                        android:weightSum="3">
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <EditText
+                            android:id="@+id/etSearchSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:background="@drawable/bg_input_field"
+                            android:drawableStart="@drawable/ic_categories"
+                            android:drawablePadding="12dp"
+                            android:hint="Search preferences..."
+                            android:imeOptions="actionSearch"
+                            android:inputType="text"
+                            android:paddingHorizontal="16dp"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_muted"
+                            android:textSize="13sp" />
+
+                        <!-- Quick Status Chips -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false"
+                            android:weightSum="3">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="4dp"
+                                android:background="@drawable/bg_card_dark"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="8dp">
+
+                                <TextView
+                                    android:id="@+id/tvStatusTheme"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="Dark"
+                                    android:textColor="@color/accent_cyan"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Theme"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginHorizontal="2dp"
+                                android:background="@drawable/bg_card_dark"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="8dp">
+
+                                <TextView
+                                    android:id="@+id/tvStatusLock"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="Off"
+                                    android:textColor="@color/accent_teal"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="App Lock"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="4dp"
+                                android:background="@drawable/bg_card_dark"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="8dp">
+
+                                <TextView
+                                    android:id="@+id/tvStatusProfile"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="Default"
+                                    android:textColor="@color/accent_violet"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Profile"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 2. APPEARANCE & PERSONALIZATION -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurAppearance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
-                            android:background="@drawable/bg_card_dark"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_categories"
+                                app:tint="@color/accent_cyan"
+                                android:contentDescription="Appearance" />
 
                             <TextView
-                                android:id="@+id/tvStatusTheme"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Dark"
+                                android:text="Appearance &amp; Personalization"
                                 android:textColor="@color/accent_cyan"
-                                android:textSize="13sp"
+                                android:textSize="15sp"
                                 android:textStyle="bold" />
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:fontFamily="@font/times_new_roman_regular"
-                                android:text="Theme"
-                                android:textColor="@color/text_muted"
-                                android:textSize="11sp" />
                         </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
+                        <TextView
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginHorizontal="2dp"
-                            android:background="@drawable/bg_card_dark"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Customize theme, accent colors, wallpaper, fonts &amp; glass presets."
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
 
-                            <TextView
-                                android:id="@+id/tvStatusLock"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Off"
-                                android:textColor="@color/accent_teal"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
+                        <!-- Quick Accent Presets -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:fontFamily="@font/times_new_roman_regular"
-                                android:text="App Lock"
-                                android:textColor="@color/text_muted"
+                            <Button
+                                android:id="@+id/btnQuickOcean"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Ocean"
+                                android:textColor="@color/accent_cyan"
                                 android:textSize="11sp" />
-                        </LinearLayout>
 
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:background="@drawable/bg_card_dark"
-                            android:gravity="center"
-                            android:orientation="vertical"
-                            android:padding="8dp">
-
-                            <TextView
-                                android:id="@+id/tvStatusProfile"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Default"
+                            <Button
+                                android:id="@+id/btnQuickNeon"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_weight="1"
+                                android:layout_marginHorizontal="2dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Neon"
                                 android:textColor="@color/accent_violet"
-                                android:textSize="13sp"
-                                android:textStyle="bold" />
+                                android:textSize="11sp" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:fontFamily="@font/times_new_roman_regular"
-                                android:text="Profile"
-                                android:textColor="@color/text_muted"
+                            <Button
+                                android:id="@+id/btnQuickEmerald"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_weight="1"
+                                android:layout_marginHorizontal="2dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Emerald"
+                                android:textColor="@color/status_online"
+                                android:textSize="11sp" />
+
+                            <Button
+                                android:id="@+id/btnQuickClean"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Light"
+                                android:textColor="@color/text_primary"
                                 android:textSize="11sp" />
                         </LinearLayout>
-                    </LinearLayout>
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
 
-            <!-- 2. APPEARANCE & PERSONALIZATION -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurAppearance"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_glass_card_clip">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_categories"
-                            app:tint="@color/accent_cyan"
-                            android:contentDescription="Appearance" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Appearance &amp; Personalization"
-                            android:textColor="@color/accent_cyan"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="@font/times_new_roman_regular"
-                        android:text="Customize application theme, accent colors, and visual presets."
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp" />
-
-                    <!-- Quick Accent Preset Buttons -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btnQuickOcean"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Ocean"
-                            android:textColor="@color/accent_cyan"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnQuickNeon"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginHorizontal="2dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Neon"
-                            android:textColor="@color/accent_violet"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnQuickEmerald"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginHorizontal="2dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Emerald"
-                            android:textColor="@color/status_online"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnQuickClean"
-                            android:layout_width="0dp"
-                            android:layout_height="36dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Light"
-                            android:textColor="@color/text_primary"
-                            android:textSize="11sp" />
-                    </LinearLayout>
-
-                    <!-- Advanced Appearance Entry -->
-                    <LinearLayout
-                        android:id="@+id/rowAppearanceDeep"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Detailed Theme, Font &amp; Glass Settings"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp" />
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_chevron_right"
-                            app:tint="@color/text_muted"
-                            android:contentDescription="More" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-            <!-- 3. SECURITY & PRIVACY -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurSecurity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_glass_card_clip">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_activity"
-                            app:tint="@color/accent_teal"
-                            android:contentDescription="Security" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Security &amp; Privacy"
-                            android:textColor="@color/accent_teal"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchQuickAppLock"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="@font/times_new_roman_regular"
-                        android:text="Enable App Lock PIN Protection"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <androidx.appcompat.widget.SwitchCompat
-                        android:id="@+id/switchQuickPrivacyShield"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:fontFamily="@font/times_new_roman_regular"
-                        android:text="Privacy Shield in Recent Apps"
-                        android:textColor="@color/text_primary"
-                        android:textSize="13sp" />
-
-                    <LinearLayout
-                        android:id="@+id/rowSecurityDeep"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Biometrics, Screenshot Shield &amp; History Policy"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp" />
-
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_chevron_right"
-                            app:tint="@color/text_muted"
-                            android:contentDescription="More" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-            <!-- 4. STORAGE & DATA MANAGEMENT -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurStorage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_glass_card_clip">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_file"
-                            app:tint="@color/accent_gold"
-                            android:contentDescription="Storage" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Storage &amp; Data Cleanup"
-                            android:textColor="@color/accent_gold"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btnQuickClearCache"
-                            android:layout_width="0dp"
-                            android:layout_height="38dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="6dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Clear Cache"
-                            android:textColor="@color/accent_gold"
-                            android:textSize="12sp" />
-
-                        <Button
-                            android:id="@+id/btnQuickExportHistory"
-                            android:layout_width="0dp"
-                            android:layout_height="38dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="6dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Export CSV/JSON"
-                            android:textColor="@color/text_primary"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-            <!-- 5. TOOL WORKSPACE & WORKFLOWS -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurWorkspace"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_glass_card_clip">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_dev"
-                            app:tint="@color/accent_blue"
-                            android:contentDescription="Workspace" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Tool Workspace &amp; Workflows"
-                            android:textColor="@color/accent_blue"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/rowWorkspaceProfile"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
-
+                        <!-- Deep Link -->
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:id="@+id/rowAppearanceDeep"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:layout_marginTop="12dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Active Workspace Profile"
+                                android:text="Detailed Theme, Font, Language &amp; Glass Settings"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp" />
 
-                            <TextView
-                                android:id="@+id/tvActiveProfileName"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:fontFamily="@font/times_new_roman_regular"
-                                android:text="Default (School / Dev / Home)"
-                                android:textColor="@color/text_secondary"
-                                android:textSize="11sp" />
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="More" />
                         </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_chevron_right"
-                            app:tint="@color/text_muted"
-                            android:contentDescription="Select" />
                     </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 3. SECURITY & PRIVACY -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurSecurity"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
-                        android:id="@+id/rowWorkspaceDeep"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:background="?attr/selectableItemBackground"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:gravity="center_vertical"
-                        android:paddingVertical="8dp">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                        <TextView
-                            android:layout_width="0dp"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="Custom Collections, Tool Presets &amp; Workflows"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_activity"
+                                app:tint="@color/accent_teal"
+                                android:contentDescription="Security" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Security &amp; Privacy"
+                                android:textColor="@color/accent_teal"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchQuickAppLock"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Enable App Lock PIN Protection"
                             android:textColor="@color/text_primary"
                             android:textSize="13sp" />
 
-                        <ImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:src="@drawable/ic_chevron_right"
-                            app:tint="@color/text_muted"
-                            android:contentDescription="More" />
+                        <androidx.appcompat.widget.SwitchCompat
+                            android:id="@+id/switchQuickPrivacyShield"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="6dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Privacy Shield in Recent Apps"
+                            android:textColor="@color/text_primary"
+                            android:textSize="13sp" />
+
+                        <LinearLayout
+                            android:id="@+id/rowSecurityDeep"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Biometrics, Backup, Cleanup &amp; Recovery Center"
+                                android:textColor="@color/text_primary"
+                                android:textSize="13sp" />
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="More" />
+                        </LinearLayout>
+
                     </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
 
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
-
-            <!-- 6. APP INFO, UPDATES & SUPPORT -->
-            <eightbitlab.com.blurview.BlurView
-                android:id="@+id/blurAppSupport"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                android:background="@drawable/bg_glass_card_clip">
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_specular"
-                    android:clickable="false"
-                    android:focusable="false" />
-
-                <LinearLayout
+                <!-- 4. STORAGE & DATA MANAGEMENT -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurStorage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_favorite"
-                            app:tint="@color/accent_violet"
-                            android:contentDescription="Support" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="App Information &amp; Support"
-                            android:textColor="@color/accent_violet"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_file"
+                                app:tint="@color/accent_gold"
+                                android:contentDescription="Storage" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Storage &amp; Data Cleanup"
+                                android:textColor="@color/accent_gold"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnQuickClearCache"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="6dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Clear Cache"
+                                android:textColor="@color/accent_gold"
+                                android:textSize="12sp" />
+
+                            <Button
+                                android:id="@+id/btnQuickExportHistory"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="6dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Export CSV/JSON"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
                     </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 5. TOOL WORKSPACE & WORKFLOWS -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurWorkspace"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:orientation="horizontal">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                        <Button
-                            android:id="@+id/btnCheckUpdates"
-                            android:layout_width="0dp"
-                            android:layout_height="38dp"
-                            android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Check Updates"
-                            android:textColor="@color/accent_violet"
-                            android:textSize="11sp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
 
-                        <Button
-                            android:id="@+id/btnCopyDebugInfo"
-                            android:layout_width="0dp"
-                            android:layout_height="38dp"
-                            android:layout_weight="1"
-                            android:layout_marginHorizontal="2dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Copy Debug"
-                            android:textColor="@color/text_primary"
-                            android:textSize="11sp" />
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_dev"
+                                app:tint="@color/accent_blue"
+                                android:contentDescription="Workspace" />
 
-                        <Button
-                            android:id="@+id/btnBugReport"
-                            android:layout_width="0dp"
-                            android:layout_height="38dp"
-                            android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:backgroundTint="@color/bg_card_elevated"
-                            android:text="Report Bug"
-                            android:textColor="@color/text_primary"
-                            android:textSize="11sp" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Tool Workspace &amp; Workflows"
+                                android:textColor="@color/accent_blue"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/rowWorkspaceProfile"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="Active Workspace Profile"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:id="@+id/tvActiveProfileName"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Default (School / Dev / Home)"
+                                    android:textColor="@color/text_secondary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Select" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/rowWorkspaceDeep"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="?attr/selectableItemBackground"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:paddingVertical="8dp">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Custom Collections, Tool Presets &amp; Workflows"
+                                android:textColor="@color/text_primary"
+                                android:textSize="13sp" />
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="More" />
+                        </LinearLayout>
+
                     </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
 
-                </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
+                <!-- 6. APP INFO, UPDATES & SUPPORT -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurAppSupport"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/bg_glass_card_clip">
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_favorite"
+                                app:tint="@color/accent_violet"
+                                android:contentDescription="Support" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="8dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="App Information &amp; Support"
+                                android:textColor="@color/accent_violet"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnCheckUpdates"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Check Updates"
+                                android:textColor="@color/accent_violet"
+                                android:textSize="11sp" />
+
+                            <Button
+                                android:id="@+id/btnCopyDebugInfo"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:layout_marginHorizontal="2dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Copy Debug"
+                                android:textColor="@color/text_primary"
+                                android:textSize="11sp" />
+
+                            <Button
+                                android:id="@+id/btnBugReport"
+                                android:layout_width="0dp"
+                                android:layout_height="38dp"
+                                android:layout_weight="1"
+                                android:layout_marginStart="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Report Bug"
+                                android:textColor="@color/text_primary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- FOOTER -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:gravity="center"
+                    android:text="© 2026 Aquatic Reminez Tools"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:gravity="center"
+                    android:text="Powered by: ReeP"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+        <!-- BOTTOM NAV — PILL -->
+        <FrameLayout
+            android:id="@+id/bottomNavContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:paddingHorizontal="8dp"
+            android:paddingBottom="6dp">
+
+            <include
+                android:id="@+id/bottomNavPillInclude"
+                layout="@layout/view_bottom_nav_pill"
+                android:layout_width="match_parent"
+                android:layout_height="56dp" />
+
+        </FrameLayout>
+
+    </androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- ========== DRAWER ========== -->
+    <include
+        android:id="@+id/drawerContent"
+        layout="@layout/view_drawer"
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:layout_gravity="start" />
+
+</androidx.drawerlayout.widget.DrawerLayout>

@@ -3,17 +3,40 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mainContent"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary"
     android:fitsSystemWindows="true"
     tools:context=".presentation.settings.WorkspaceWorkflowSettingsActivity">
 
+    <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+    <eightbitlab.com.blurview.BlurTarget
+        android:id="@+id/workspaceBlurTarget"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/home_background_image"
+            android:alpha="0.38"
+            android:contentDescription="@null" />
+
+    </eightbitlab.com.blurview.BlurTarget>
+
+    <!-- GRADIENT OVERLAY -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_home_overlay" />
+
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/bg_primary"
-        app:elevation="0dp">
+        android:background="#080808"
+        app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -61,6 +84,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="32dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -69,105 +94,262 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Tool Library & Favorites -->
-            <TextView
+            <!-- 1. Tool Library Manager Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurToolLibraryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="TOOL LIBRARY &amp; FAVORITES"
-                android:textColor="@color/accent_blue"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnManageToolLibrary"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="TOOL LIBRARY MANAGER"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnManageToolLibrary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Manage Visible Tools &amp; Implemented Status" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 2. Favorites & Quick Access Grid Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurFavoritesCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Manage Visible Tools &amp; Categories" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnManageFavorites"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="FAVORITES &amp; QUICK ACCESS (3-COLUMN GRID)"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnManageFavorites"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Pin Tools to Home 3-Column Quick Grid" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 3. Custom Tool Collections Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurCollectionsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Manage Favorites &amp; Quick Menu Grid" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- Custom Collections & Presets -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="COLLECTIONS &amp; TOOL PRESETS"
-                android:textColor="@color/accent_blue"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="CUSTOM TOOL COLLECTIONS"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnManageCollections"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Custom Tool Collections (e.g. School Lab)" />
+                    <Button
+                        android:id="@+id/btnManageCollections"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Collections: School Lab / Network / Dev Toolkit" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
-            <Button
-                android:id="@+id/btnManageToolPresets"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Tool Configuration Presets" />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
-
-            <!-- Workflow Builder -->
-            <TextView
+            <!-- 4. Tool Profiles & Presets Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurPresetsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="WORKFLOW BUILDER"
-                android:textColor="@color/accent_blue"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnWorkflowBuilder"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="TOOL PROFILES &amp; PRESETS"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnManageToolPresets"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Save &amp; Preview Tool Configuration Presets" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 5. Workflow Builder Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurWorkflowCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Network Troubleshooting Workflow &amp; Steps" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="@color/divider" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
-            <!-- Workspace Profiles -->
-            <TextView
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="WORKFLOW BUILDER"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnWorkflowBuilder"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Network Troubleshooting Workflow (4 Steps)" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 6. Home Workspace Manager Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurDashboardCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="WORKSPACE PROFILES"
-                android:textColor="@color/accent_blue"
-                android:textSize="12sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
 
-            <Button
-                android:id="@+id/btnWorkspaceProfiles"
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="HOME WORKSPACE MANAGER"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnHomeDashboardManager"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Manage Visible Info Cards &amp; Dashboard Sections" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 7. Android Shortcuts Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurShortcutsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Switch Workspace Profile (School / Dev / Home)" />
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="ANDROID SHORTCUTS"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnAndroidShortcuts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Add Favorite Tool Shortcut to Android Home Screen" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
+            <!-- 8. Workspace Profiles Card -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurProfilesCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_glass_card_clip">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="WORKSPACE PROFILES"
+                        android:textColor="@color/accent_blue"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnWorkspaceProfiles"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="Switch Profile (School Lab / Home Net / Dev)" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
