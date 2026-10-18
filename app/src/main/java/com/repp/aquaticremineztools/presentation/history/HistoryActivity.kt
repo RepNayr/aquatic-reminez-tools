@@ -340,7 +340,10 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         tabSettings.setOnClickListener {
-            Toast.makeText(this, "Settings - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.settings.SettingsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
     }
 
@@ -422,7 +425,10 @@ class HistoryActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
             closeDrawer()
-            Toast.makeText(this, "Settings - Coming Soon", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.settings.SettingsActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
+            ActivityTransition.startActivitySmooth(this, intent)
         }
     }
 
