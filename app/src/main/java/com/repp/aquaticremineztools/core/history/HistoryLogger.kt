@@ -1,11 +1,13 @@
 package com.repp.aquaticremineztools.core.history
 
 import android.content.Context
+import com.repp.aquaticremineztools.data.local.history.HistoryDatabase
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import com.repp.aquaticremineztools.data.local.history.HistoryRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 object HistoryLogger {
 
@@ -44,9 +46,11 @@ object HistoryLogger {
             resultSummary = initialSummary
         )
         kotlin.runCatching {
-            kotlinx.coroutines.runBlocking(Dispatchers.IO) {
+            runBlocking(Dispatchers.IO) {
                 id = repository.insert(entry)
             }
+        }.onFailure { e ->
+            e.printStackTrace()
         }
         return id
     }
@@ -60,7 +64,7 @@ object HistoryLogger {
     ) {
         if (entryId <= 0) return
         CoroutineScope(Dispatchers.IO).launch {
-            val db = com.repp.aquaticremineztools.data.local.history.HistoryDatabase.getInstance(context)
+            val db = HistoryDatabase.getInstance(context)
             val existing = db.historyDao().getHistoryById(entryId)
             if (existing != null) {
                 val now = System.currentTimeMillis()

@@ -18,11 +18,36 @@ data class HistoryFilterOptions(
     val dateRange: String? = null
 )
 
-class HistoryFilterBottomSheet(
-    private val currentFilters: HistoryFilterOptions,
-    private val onApply: (HistoryFilterOptions) -> Unit,
-    private val onReset: () -> Unit
-) : BottomSheetDialogFragment() {
+class HistoryFilterBottomSheet : BottomSheetDialogFragment() {
+
+    var onApply: ((HistoryFilterOptions) -> Unit)? = null
+    var onReset: (() -> Unit)? = null
+    private var currentFilters = HistoryFilterOptions()
+
+    companion object {
+        private const val ARG_CATEGORY = "arg_category"
+        private const val ARG_TYPE = "arg_type"
+        private const val ARG_STATUS = "arg_status"
+        private const val ARG_DATE = "arg_date"
+
+        fun newInstance(
+            currentFilters: HistoryFilterOptions,
+            onApply: ((HistoryFilterOptions) -> Unit)? = null,
+            onReset: (() -> Unit)? = null
+        ): HistoryFilterBottomSheet {
+            val fragment = HistoryFilterBottomSheet()
+            val args = Bundle().apply {
+                putString(ARG_CATEGORY, currentFilters.category)
+                putString(ARG_TYPE, currentFilters.activityType)
+                putString(ARG_STATUS, currentFilters.status)
+                putString(ARG_DATE, currentFilters.dateRange)
+            }
+            fragment.arguments = args
+            fragment.onApply = onApply
+            fragment.onReset = onReset
+            return fragment
+        }
+    }
 
     private val categories = listOf("Utility", "Security & Generate", "File & System", "Cyber Tools", "Media", "Dev Tools", "Forensic", "Security", "Games")
     private val types = listOf("OPENED", "EXECUTED")
@@ -33,6 +58,18 @@ class HistoryFilterBottomSheet(
     private lateinit var cgType: ChipGroup
     private lateinit var cgStatus: ChipGroup
     private lateinit var cgDate: ChipGroup
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        arguments?.let { args ->
+            currentFilters = HistoryFilterOptions(
+                category = args.getString(ARG_CATEGORY),
+                activityType = args.getString(ARG_TYPE),
+                status = args.getString(ARG_STATUS),
+                dateRange = args.getString(ARG_DATE)
+            )
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,7 +93,7 @@ class HistoryFilterBottomSheet(
         populateChips()
 
         btnResetFilter.setOnClickListener {
-            onReset()
+            onReset?.invoke()
             dismiss()
         }
 
@@ -71,7 +108,7 @@ class HistoryFilterBottomSheet(
             val status = if (selectedStatusId != View.NO_ID) view.findViewById<Chip>(selectedStatusId)?.tag as? String else null
             val date = if (selectedDateId != View.NO_ID) view.findViewById<Chip>(selectedDateId)?.tag as? String else null
 
-            onApply(HistoryFilterOptions(cat, type, status, date))
+            onApply?.invoke(HistoryFilterOptions(cat, type, status, date))
             dismiss()
         }
     }

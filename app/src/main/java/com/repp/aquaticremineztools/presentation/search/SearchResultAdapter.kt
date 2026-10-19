@@ -1,6 +1,5 @@
 package com.repp.aquaticremineztools.presentation.search
 
-import android.graphics.drawable.Drawable
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.style.ForegroundColorSpan
@@ -14,14 +13,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.ToolData
 import com.repp.aquaticremineztools.data.ToolIconRegistry
-import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
-import eightbitlab.com.blurview.BlurTarget
-import eightbitlab.com.blurview.BlurView
 import java.util.Locale
 
 class SearchResultAdapter(
-    private val blurTarget: BlurTarget,
-    private val frameClearDrawable: Drawable?,
     private var results: List<ToolData.Tool>,
     private val onToolClick: (ToolData.Tool) -> Unit,
 ) : RecyclerView.Adapter<SearchResultAdapter.ResultViewHolder>() {
@@ -31,7 +25,7 @@ class SearchResultAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_search_result, parent, false)
-        return ResultViewHolder(view, blurTarget, frameClearDrawable)
+        return ResultViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: ResultViewHolder, position: Int) {
@@ -83,20 +77,11 @@ class SearchResultAdapter(
         notifyDataSetChanged()
     }
 
-    class ResultViewHolder(
-        itemView: View,
-        blurTarget: BlurTarget,
-        frameClearDrawable: Drawable?
-    ) : RecyclerView.ViewHolder(itemView) {
-        val blurCard: BlurView = itemView.findViewById(R.id.blurCard)
+    class ResultViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardContent: View = itemView.findViewById(R.id.cardContent)
         val ivIcon: ImageView = itemView.findViewById(R.id.ivToolIcon)
         val tvName: TextView = itemView.findViewById(R.id.tvToolName)
         val tvCategory: TextView = itemView.findViewById(R.id.tvToolCategory)
         val tvDesc: TextView = itemView.findViewById(R.id.tvToolDesc)
-
-        init {
-            GlassBlurHelper.setupBlur(blurCard, blurTarget, frameClearDrawable)
-        }
     }
 }

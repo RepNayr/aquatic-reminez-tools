@@ -395,9 +395,8 @@ class HomeActivity : AppCompatActivity() {
     private fun setupQuickMenu() {
         val rvQuickMenu: RecyclerView = findViewById(R.id.rvQuickMenu)
         val categories = QuickCategory.getAll()
-        val frameClearDrawable = window.decorView.background
 
-        val adapter = QuickCategoryAdapter(categories, homeBlurTarget, frameClearDrawable) { category ->
+        val adapter = QuickCategoryAdapter(categories) { category ->
             Toast.makeText(
                 this,
                 "${getString(category.nameRes)}\nComing soon!",

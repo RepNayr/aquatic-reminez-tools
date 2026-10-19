@@ -1,6 +1,5 @@
 package com.repp.aquaticremineztools.presentation.search
 
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,9 +10,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.ToolData
-import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
-import eightbitlab.com.blurview.BlurTarget
-import eightbitlab.com.blurview.BlurView
 
 data class SearchCategoryItem(
     val label: String,
@@ -22,8 +18,6 @@ data class SearchCategoryItem(
 )
 
 class SearchCategoryAdapter(
-    private val blurTarget: BlurTarget,
-    private val frameClearDrawable: Drawable?,
     private val items: List<SearchCategoryItem>,
     private val onCategorySelected: (Set<ToolData.Category>?) -> Unit
 ) : RecyclerView.Adapter<SearchCategoryAdapter.CategoryViewHolder>() {
@@ -33,7 +27,7 @@ class SearchCategoryAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CategoryViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_search_category_pill, parent, false)
-        return CategoryViewHolder(view, blurTarget, frameClearDrawable)
+        return CategoryViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: CategoryViewHolder, position: Int) {
@@ -73,18 +67,9 @@ class SearchCategoryAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    class CategoryViewHolder(
-        itemView: View,
-        blurTarget: BlurTarget,
-        frameClearDrawable: Drawable?
-    ) : RecyclerView.ViewHolder(itemView) {
+    class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val cardCategoryPill: MaterialCardView = itemView.findViewById(R.id.cardCategoryPill)
-        val blurCategoryPill: BlurView = itemView.findViewById(R.id.blurCategoryPill)
         val ivCatIcon: ImageView = itemView.findViewById(R.id.ivCatIcon)
         val tvCatName: TextView = itemView.findViewById(R.id.tvCatName)
-
-        init {
-            GlassBlurHelper.setupBlur(blurCategoryPill, blurTarget, frameClearDrawable)
-        }
     }
 }

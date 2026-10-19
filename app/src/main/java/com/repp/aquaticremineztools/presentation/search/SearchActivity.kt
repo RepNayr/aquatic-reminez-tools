@@ -163,8 +163,6 @@ class SearchActivity : AppCompatActivity() {
         )
 
         val categoryAdapter = SearchCategoryAdapter(
-            blurTarget = homeBlurTarget,
-            frameClearDrawable = window.decorView.background,
             items = categoryItems
         ) { categories ->
             selectedCategories = categories
@@ -177,8 +175,6 @@ class SearchActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         adapter = SearchResultAdapter(
-            blurTarget = homeBlurTarget,
-            frameClearDrawable = window.decorView.background,
             results = emptyList()
         ) { tool ->
             Toast.makeText(this, "Opening ${tool.name}...", Toast.LENGTH_SHORT).show()

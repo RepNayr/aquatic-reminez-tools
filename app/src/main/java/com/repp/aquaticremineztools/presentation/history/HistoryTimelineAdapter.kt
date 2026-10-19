@@ -1,6 +1,5 @@
 package com.repp.aquaticremineztools.presentation.history
 
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -14,9 +13,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.ToolIconRegistry
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
-import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
-import eightbitlab.com.blurview.BlurTarget
-import eightbitlab.com.blurview.BlurView
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -27,8 +23,6 @@ sealed class HistoryTimelineItem {
 }
 
 class HistoryTimelineAdapter(
-    private val blurTarget: BlurTarget,
-    private val frameClearDrawable: Drawable?,
     private val onItemClick: (HistoryEntity) -> Unit,
     private val onItemLongClick: (HistoryEntity) -> Unit,
     private val onCheckBoxChanged: (HistoryEntity, Boolean) -> Unit,
@@ -63,7 +57,7 @@ class HistoryTimelineAdapter(
             HeaderViewHolder(view)
         } else {
             val view = inflater.inflate(R.layout.item_history_card, parent, false)
-            CardViewHolder(view, blurTarget, frameClearDrawable)
+            CardViewHolder(view)
         }
     }
 
@@ -87,12 +81,7 @@ class HistoryTimelineAdapter(
         }
     }
 
-    class CardViewHolder(
-        itemView: View,
-        blurTarget: BlurTarget,
-        frameClearDrawable: Drawable?
-    ) : RecyclerView.ViewHolder(itemView) {
-        private val blurCard: BlurView = itemView.findViewById(R.id.blurCard)
+    class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val cardContent: View = itemView.findViewById(R.id.cardContent)
         private val cbSelect: CheckBox = itemView.findViewById(R.id.cbSelect)
         private val ivToolIcon: ImageView = itemView.findViewById(R.id.ivToolIcon)
@@ -104,10 +93,6 @@ class HistoryTimelineAdapter(
         private val tvCategory: TextView = itemView.findViewById(R.id.tvCategory)
         private val tvSummary: TextView = itemView.findViewById(R.id.tvSummary)
         private val tvTimeDuration: TextView = itemView.findViewById(R.id.tvTimeDuration)
-
-        init {
-            GlassBlurHelper.setupBlur(blurCard, blurTarget, frameClearDrawable)
-        }
 
         fun bind(
             item: HistoryTimelineItem.Card,

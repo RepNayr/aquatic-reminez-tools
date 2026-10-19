@@ -15,8 +15,7 @@
     app:strokeColor="@color/divider"
     app:strokeWidth="1dp">
 
-    <eightbitlab.com.blurview.BlurView
-        android:id="@+id/blurCategoryPill"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_glass_card_clip">
@@ -55,6 +54,6 @@
                 tools:text="Utility" />
 
         </LinearLayout>
-    </eightbitlab.com.blurview.BlurView>
+    </FrameLayout>
 
 </com.google.android.material.card.MaterialCardView>

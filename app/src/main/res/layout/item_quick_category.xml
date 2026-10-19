@@ -15,8 +15,7 @@
     app:strokeColor="@color/transparent"
     app:strokeWidth="0dp">
 
-    <eightbitlab.com.blurview.BlurView
-        android:id="@+id/blurCategory"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_glass_card_clip">
@@ -92,6 +91,6 @@
 
         </LinearLayout>
 
-    </eightbitlab.com.blurview.BlurView>
+    </FrameLayout>
 
 </com.repp.aquaticremineztools.presentation.home.SquareCardView>

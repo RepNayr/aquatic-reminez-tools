@@ -35,7 +35,9 @@ import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -118,6 +120,7 @@ class HistoryActivity : AppCompatActivity() {
     private val undoStack = Stack<List<HistoryEntity>>()
     private val redoStack = Stack<List<HistoryEntity>>()
 
+    private lateinit var blurSearchBar: BlurView
     private lateinit var timelineAdapter: HistoryTimelineAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -134,6 +137,7 @@ class HistoryActivity : AppCompatActivity() {
         repository = HistoryRepository.getInstance(this)
 
         bindViews()
+        setupGlassCards()
         setupClicks()
         setupBottomNav()
         setupDrawerMenuClicks()
@@ -148,6 +152,7 @@ class HistoryActivity : AppCompatActivity() {
     private fun bindViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
         homeBlurTarget = findViewById(R.id.homeBlurTarget)
+        blurSearchBar = findViewById(R.id.blurSearchBar)
 
         normalToolbar = findViewById(R.id.normalToolbar)
         selectionToolbar = findViewById(R.id.selectionToolbar)
@@ -199,6 +204,11 @@ class HistoryActivity : AppCompatActivity() {
         textHistory = findViewById(R.id.textHistory)
         textAbout = findViewById(R.id.textAbout)
         textSettings = findViewById(R.id.textSettings)
+    }
+
+    private fun setupGlassCards() {
+        val frameClearDrawable = window.decorView.background
+        GlassBlurHelper.setupBlur(blurSearchBar, homeBlurTarget, frameClearDrawable)
     }
 
     private fun setupClicks() {
@@ -259,16 +269,18 @@ class HistoryActivity : AppCompatActivity() {
         }
 
         btnFilter.setOnClickListener {
-            val sheet = HistoryFilterBottomSheet(filterOptions, onApply = { newOpts ->
-                filterOptions = newOpts
-                filterAndProcessData()
-                updateActiveFilterChips()
-            }, onReset = {
-                filterOptions = HistoryFilterOptions()
-                filterAndProcessData()
-                updateActiveFilterChips()
-            })
-            sheet.show(supportFragmentManager, "HistoryFilter")
+            if (!isFinishing && !isDestroyed && !supportFragmentManager.isStateSaved) {
+                val sheet = HistoryFilterBottomSheet.newInstance(filterOptions, onApply = { newOpts ->
+                    filterOptions = newOpts
+                    filterAndProcessData()
+                    updateActiveFilterChips()
+                }, onReset = {
+                    filterOptions = HistoryFilterOptions()
+                    filterAndProcessData()
+                    updateActiveFilterChips()
+                })
+                sheet.show(supportFragmentManager, "HistoryFilter")
+            }
         }
 
         btnSort.setOnClickListener {
@@ -383,7 +395,7 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        DrawerMenuHelper.setup(this, drawerLayout)
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(blurSearchBar))
     }
 
     private fun closeDrawer() {
@@ -394,27 +406,27 @@ class HistoryActivity : AppCompatActivity() {
 
     private fun setupRecyclerView() {
         timelineAdapter = HistoryTimelineAdapter(
-            blurTarget = homeBlurTarget,
-            frameClearDrawable = window.decorView.background,
             onItemClick = { entity ->
-                val detailSheet = HistoryDetailBottomSheet(
-                    entity = entity,
-                    onDelete = { toDel ->
-                        lifecycleScope.launch {
-                            undoStack.push(listOf(toDel))
-                            redoStack.clear()
-                            repository.delete(toDel)
-                            Toast.makeText(this@HistoryActivity, "Activity deleted", Toast.LENGTH_SHORT).show()
+                if (!isFinishing && !isDestroyed && !supportFragmentManager.isStateSaved) {
+                    val detailSheet = HistoryDetailBottomSheet.newInstance(
+                        entity = entity,
+                        onDelete = { toDel ->
+                            lifecycleScope.launch {
+                                undoStack.push(listOf(toDel))
+                                redoStack.clear()
+                                repository.delete(toDel)
+                                Toast.makeText(this@HistoryActivity, "Activity deleted", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        onOpenTool = { ent ->
+                            Toast.makeText(this@HistoryActivity, "Opening ${ent.toolName}...", Toast.LENGTH_SHORT).show()
+                            com.repp.aquaticremineztools.core.history.HistoryLogger.logOpened(
+                                this@HistoryActivity, ent.toolId, ent.toolName, ent.category
+                            )
                         }
-                    },
-                    onOpenTool = { ent ->
-                        Toast.makeText(this@HistoryActivity, "Opening ${ent.toolName}...", Toast.LENGTH_SHORT).show()
-                        com.repp.aquaticremineztools.core.history.HistoryLogger.logOpened(
-                            this@HistoryActivity, ent.toolId, ent.toolName, ent.category
-                        )
-                    }
-                )
-                detailSheet.show(supportFragmentManager, "HistoryDetail")
+                    )
+                    detailSheet.show(supportFragmentManager, "HistoryDetail")
+                }
             },
             onItemLongClick = { entity ->
                 if (!isSelectionMode) {

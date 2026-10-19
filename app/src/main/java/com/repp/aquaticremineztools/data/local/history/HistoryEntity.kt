@@ -2,6 +2,7 @@ package com.repp.aquaticremineztools.data.local.history
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.io.Serializable
 
 @Entity(tableName = "history")
 data class HistoryEntity(
@@ -17,4 +18,4 @@ data class HistoryEntity(
     val durationMs: Long? = null,
     val resultSummary: String? = null,
     val iconResName: String? = null
-)
+) : Serializable
