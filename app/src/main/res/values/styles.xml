@@ -5,25 +5,25 @@
     <style name="DrawerSectionHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginTop">14dp</item>
         <item name="android:layout_marginBottom">4dp</item>
-        <item name="android:layout_marginStart">20dp</item>
-        <item name="android:layout_marginEnd">20dp</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
         <item name="android:fontFamily">@font/times_new_roman_bold</item>
-        <item name="android:letterSpacing">0.15</item>
+        <item name="android:letterSpacing">0.12</item>
         <item name="android:textColor">@color/accent_cyan</item>
-        <item name="android:textSize">11sp</item>
+        <item name="android:textSize">10.5sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 
     <!-- ========== DRAWER MENU ITEM ========== -->
     <style name="DrawerMenuItem">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_height">44dp</item>
         <item name="android:orientation">horizontal</item>
         <item name="android:gravity">center_vertical</item>
-        <item name="android:paddingStart">20dp</item>
-        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
         <item name="android:clickable">true</item>
         <item name="android:focusable">true</item>
         <item name="android:background">?attr/selectableItemBackground</item>
@@ -31,8 +31,8 @@
 
     <!-- ========== DRAWER MENU ICON ========== -->
     <style name="DrawerMenuIcon">
-        <item name="android:layout_width">22dp</item>
-        <item name="android:layout_height">22dp</item>
+        <item name="android:layout_width">20dp</item>
+        <item name="android:layout_height">20dp</item>
     </style>
 
     <!-- ========== DRAWER MENU TEXT ========== -->
@@ -40,18 +40,18 @@
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_weight">1</item>
-        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginStart">14dp</item>
         <item name="android:fontFamily">@font/times_new_roman_regular</item>
         <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textSize">14sp</item>
+        <item name="android:textSize">13.5sp</item>
     </style>
 
     <!-- ========== DRAWER DIVIDER ========== -->
     <style name="DrawerDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginTop">8dp</item>
-        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:layout_marginTop">6dp</item>
+        <item name="android:layout_marginBottom">6dp</item>
         <item name="android:layout_marginStart">16dp</item>
         <item name="android:layout_marginEnd">16dp</item>
         <item name="android:background">@color/divider</item>
