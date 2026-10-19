@@ -88,17 +88,35 @@ object InfoCardHelper {
     }
 
     /**
-     * Ambil nama operator (Telkomsel, XL Axiata, Indosat, dll).
-     * Butuh permission READ_PHONE_STATE — dibungkus try-catch.
+     * Ambil nama operator (Telkomsel, XL Axiata, Indosat, Smartfren, By.U, dll).
      */
     @SuppressLint("MissingPermission")
     private fun getCarrierName(context: Context): String {
         return try {
             val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as TelephonyManager
-            val name = tm.networkOperatorName
-            if (name.isNullOrEmpty()) "Cellular" else name
+            val netName = tm.networkOperatorName
+            if (!netName.isNullOrEmpty()) {
+                return netName
+            }
+            val simName = tm.simOperatorName
+            if (!simName.isNullOrEmpty()) {
+                return simName
+            }
+            val mccMnc = tm.networkOperator
+            if (!mccMnc.isNullOrEmpty()) {
+                when (mccMnc) {
+                    "51010", "51089" -> return "Telkomsel"
+                    "51001", "51021" -> return "Indosat"
+                    "51011" -> return "XL Axiata"
+                    "51009", "51028", "51088" -> return "Smartfren"
+                    "51027" -> return "Axis"
+                    "51020" -> return "By.U"
+                    "51003" -> return "Smart Telecom"
+                }
+            }
+            "Mobile Data"
         } catch (_: Exception) {
-            "Cellular"
+            "Mobile Data"
         }
     }
 

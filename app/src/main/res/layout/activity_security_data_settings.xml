@@ -32,17 +32,18 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg_home_overlay" />
 
+    <!-- TOP APP BAR -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#080808"
+        android:background="#090B0F"
         app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
+            android:paddingVertical="10dp">
 
             <FrameLayout
                 android:id="@+id/btnBack"
@@ -56,51 +57,72 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/accent_teal"
+                    app:tint="@color/white"
                     android:contentDescription="Back" />
             </FrameLayout>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="Security &amp; Data Management"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/btnBack"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.02"
+                    android:text="Security &amp; Data Management"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="App lock, biometrics, history retention, backups &amp; recovery"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- SCROLL CONTENT -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="32dp"
+        android:paddingBottom="40dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
-            <!-- Security Status Card -->
+            <!-- Security Status Summary Card -->
             <eightbitlab.com.blurview.BlurView
                 android:id="@+id/blurSecurityStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -112,7 +134,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="SECURITY STATUS"
+                        android:letterSpacing="0.04"
+                        android:text="SECURITY SYSTEM STATUS"
                         android:textColor="@color/accent_teal"
                         android:textSize="11sp"
                         android:textStyle="bold" />
@@ -123,7 +146,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
                         android:fontFamily="@font/times_new_roman_regular"
-                        android:text="Status: Normal • Biometrics Supported • Protection Active"
+                        android:text="Status: Active Protection • Biometrics Enabled • History Logging Active"
                         android:textColor="@color/text_primary"
                         android:textSize="13sp" />
                 </LinearLayout>
@@ -134,8 +157,13 @@
                 android:id="@+id/blurSecurityCenterCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -147,7 +175,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="SECURITY CENTER"
+                        android:text="SECURITY CENTER &amp; AUTHENTICATION"
                         android:textColor="@color/accent_teal"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -157,40 +185,53 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Enable App Lock (PIN)"
-                        android:textColor="@color/text_primary" />
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Enable App Lock PIN Protection"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnAutoLockTimeout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Auto-Lock Timeout: 1 Minute (30s / 1m / 5m)" />
+                        android:text="Auto-Lock Timeout: 1 Minute (30s / 1m / 5m)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchBiometric"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Biometric Unlock (Fingerprint / Face)"
-                        android:textColor="@color/text_primary" />
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Biometric Unlock (Fingerprint / Face ID)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchPrivacyShield"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Privacy Shield (Recent Apps Blur)"
-                        android:textColor="@color/text_primary" />
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Privacy Shield (Blur content in Recent Apps)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchScreenshotProtection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Screenshot Protection"
-                        android:textColor="@color/text_primary" />
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Screenshot Protection on Sensitive Screens"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -199,8 +240,13 @@
                 android:id="@+id/blurHistoryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -212,7 +258,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="HISTORY &amp; ACTIVITY MANAGEMENT"
+                        android:text="HISTORY &amp; ACTIVITY RETENTION"
                         android:textColor="@color/accent_teal"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -222,16 +268,23 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="@font/times_new_roman_regular"
                         android:text="Enable History Logging"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnAutoCleanup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Automatic History Cleanup: 30 Days (7d / 30d / 90d / Disabled)" />
+                        android:text="Automatic History Cleanup: 30 Days (7d / 30d / 90d / Off)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -245,7 +298,13 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginEnd="4dp"
-                            android:text="Export CSV" />
+                            android:minHeight="42dp"
+                            android:paddingVertical="8dp"
+                            android:backgroundTint="@color/bg_card_elevated"
+                            android:text="Export CSV"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
 
                         <Button
                             android:id="@+id/btnExportJson"
@@ -253,16 +312,27 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:layout_marginStart="4dp"
-                            android:text="Export JSON" />
+                            android:minHeight="42dp"
+                            android:paddingVertical="8dp"
+                            android:backgroundTint="@color/bg_card_elevated"
+                            android:text="Export JSON"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp" />
                     </LinearLayout>
 
                     <Button
                         android:id="@+id/btnClearHistory"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="42dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/accent_muted_red"
-                        android:text="Clear All History Records" />
+                        android:text="Clear All Activity History Records"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -271,8 +341,13 @@
                 android:id="@+id/blurStorageCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -304,7 +379,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Clear Cache &amp; Clean Temporary Files" />
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Clear Cache &amp; Clean Temporary Files"
+                        android:textAllCaps="false"
+                        android:textColor="@color/accent_gold"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -313,8 +394,13 @@
                 android:id="@+id/blurBackupCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -336,14 +422,26 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Create Encrypted Backup File" />
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Create Encrypted Backup File"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnRestoreBackup"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Restore &amp; Validate Backup File" />
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Restore &amp; Validate Backup File"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -352,8 +450,13 @@
                 android:id="@+id/blurToolSafetyCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -375,16 +478,20 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:fontFamily="@font/times_new_roman_regular"
                         android:text="Execution Confirmation for Sensitive Tools"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchTargetConfirmation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
                         android:text="Target Confirmation Reminder"
-                        android:textColor="@color/text_primary" />
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -393,8 +500,13 @@
                 android:id="@+id/blurRecoveryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -416,24 +528,39 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Manage Android App Permissions" />
+                        android:text="Manage Android App Permissions"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnResetPreferences"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Reset Visual &amp; App Preferences" />
+                        android:text="Reset Visual &amp; App Preferences"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnResetAppData"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/accent_muted_red"
-                        android:text="Reset All App Data &amp; Security Settings" />
+                        android:text="Reset All App Data &amp; Security Settings"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 

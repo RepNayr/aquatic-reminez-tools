@@ -25,6 +25,7 @@ import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import com.repp.aquaticremineztools.data.ToolData
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.home.HomeActivity
@@ -44,7 +45,6 @@ class SearchActivity : AppCompatActivity() {
     private lateinit var btnMenu: FrameLayout
     private lateinit var rvSearchResults: RecyclerView
     private lateinit var emptyState: LinearLayout
-    private lateinit var cgCategories: ChipGroup
     private lateinit var tvResultCount: TextView
 
     private lateinit var adapter: SearchResultAdapter
@@ -76,11 +76,9 @@ class SearchActivity : AppCompatActivity() {
 
     private var selectedCategories: Set<ToolData.Category>? = null
     private var currentQuery = ""
-
-    private data class SearchCategoryChip(
-        val label: String,
-        val categories: Set<ToolData.Category>?
-    )
+    private enum class SortMode { AZ, ZA }
+    private var currentSortMode = SortMode.AZ
+    private lateinit var btnSort: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,8 +112,8 @@ class SearchActivity : AppCompatActivity() {
         btnMenu = findViewById(R.id.btnMenu)
         rvSearchResults = findViewById(R.id.rvSearchResults)
         emptyState = findViewById(R.id.emptyState)
-        cgCategories = findViewById(R.id.cgCategories)
         tvResultCount = findViewById(R.id.tvResultCount)
+        btnSort = findViewById(R.id.btnSort)
 
         // Bottom Nav
         tabHome = findViewById(R.id.tabHome)
@@ -149,43 +147,32 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupCategoryChips() {
-        val context = this
-        cgCategories.setOnCheckedStateChangeListener(null)
-        cgCategories.removeAllViews()
+        val rvSearchCategories = findViewById<RecyclerView>(R.id.rvSearchCategories)
 
-        val chipItems = listOf(
-            SearchCategoryChip("All Tools", null),
-            SearchCategoryChip("🔧 Utility", setOf(ToolData.Category.UTILITY)),
-            SearchCategoryChip("🔐 Security & Generate", setOf(ToolData.Category.SECURITY_GEN)),
-            SearchCategoryChip("📁 File & System", setOf(ToolData.Category.FILE)),
-            SearchCategoryChip("🌐 Cyber Tools", setOf(ToolData.Category.NETWORK, ToolData.Category.OFFENSIVE, ToolData.Category.DEFENSIVE)),
-            SearchCategoryChip("🎨 Media", setOf(ToolData.Category.MEDIA)),
-            SearchCategoryChip("🧰 Dev Tools", setOf(ToolData.Category.DEV)),
-            SearchCategoryChip("🔍 Forensic", setOf(ToolData.Category.FORENSIC)),
-            SearchCategoryChip("🛡️ Security", setOf(ToolData.Category.SECURITY)),
-            SearchCategoryChip("🎮 Games", setOf(ToolData.Category.GAMES)),
+        val categoryItems = listOf(
+            SearchCategoryItem("All Tools", R.drawable.ic_home, null),
+            SearchCategoryItem("Utility", R.drawable.ic_utility, setOf(ToolData.Category.UTILITY)),
+            SearchCategoryItem("Security & Gen", R.drawable.ic_security_gen, setOf(ToolData.Category.SECURITY_GEN)),
+            SearchCategoryItem("File & System", R.drawable.ic_file, setOf(ToolData.Category.FILE)),
+            SearchCategoryItem("Cyber Tools", R.drawable.ic_network_cat, setOf(ToolData.Category.NETWORK, ToolData.Category.OFFENSIVE, ToolData.Category.DEFENSIVE)),
+            SearchCategoryItem("Media", R.drawable.ic_media, setOf(ToolData.Category.MEDIA)),
+            SearchCategoryItem("Dev Tools", R.drawable.ic_dev, setOf(ToolData.Category.DEV)),
+            SearchCategoryItem("Forensic", R.drawable.ic_forensic, setOf(ToolData.Category.FORENSIC)),
+            SearchCategoryItem("Security", R.drawable.ic_security, setOf(ToolData.Category.SECURITY)),
+            SearchCategoryItem("Games", R.drawable.ic_games, setOf(ToolData.Category.GAMES)),
         )
 
-        chipItems.forEachIndexed { index, item ->
-            val chip = Chip(context).apply {
-                id = View.generateViewId()
-                text = item.label
-                tag = item.categories
-                isCheckable = true
-                isChecked = index == 0
-                setChipBackgroundColorResource(R.color.bg_card)
-                setTextColor(ContextCompat.getColor(context, R.color.text_primary))
-            }
-            cgCategories.addView(chip)
-        }
-
-        cgCategories.setOnCheckedStateChangeListener { group, checkedIds ->
-            val checkedId = checkedIds.firstOrNull()
-            val chip = if (checkedId != null) group.findViewById<Chip>(checkedId) else null
-            @Suppress("UNCHECKED_CAST")
-            selectedCategories = chip?.tag as? Set<ToolData.Category>
+        val categoryAdapter = SearchCategoryAdapter(
+            blurTarget = homeBlurTarget,
+            frameClearDrawable = window.decorView.background,
+            items = categoryItems
+        ) { categories ->
+            selectedCategories = categories
             updateResults()
         }
+
+        rvSearchCategories.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvSearchCategories.adapter = categoryAdapter
     }
 
     private fun setupRecyclerView() {
@@ -210,6 +197,20 @@ class SearchActivity : AppCompatActivity() {
             etSearch.setText("")
         }
 
+        btnSort.setOnClickListener {
+            currentSortMode = when (currentSortMode) {
+                SortMode.AZ -> {
+                    btnSort.text = "Sort: Z-A"
+                    SortMode.ZA
+                }
+                SortMode.ZA -> {
+                    btnSort.text = "Sort: A-Z"
+                    SortMode.AZ
+                }
+            }
+            updateResults()
+        }
+
         etSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -228,7 +229,12 @@ class SearchActivity : AppCompatActivity() {
             results = results.filter { it.category in categories }
         }
 
-        adapter.updateResults(results)
+        results = when (currentSortMode) {
+            SortMode.AZ -> results.sortedBy { it.name }
+            SortMode.ZA -> results.sortedByDescending { it.name }
+        }
+
+        adapter.updateResults(results, currentQuery)
         tvResultCount.text = "${results.size} tools"
 
         if (results.isEmpty()) {
@@ -311,61 +317,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
-            closeDrawer()
-        }
-
-        findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
-            closeDrawer()
-            val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuFavorites).setNavigatorClick {
-            closeDrawer()
-            Toast.makeText(this, "Favorites - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuCategories).setNavigatorClick {
-            closeDrawer()
-            Toast.makeText(this, "Categories - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
-            closeDrawer()
-            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
-        }
-
-        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
-            val intent = Intent(this, AboutActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
-            closeDrawer()
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.settings.SettingsActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-    }
-
-    private fun View.setNavigatorClick(action: () -> Unit) {
-        setOnClickListener {
-            closeDrawer()
-            action()
-        }
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(blurSearchBar))
     }
 
     private fun closeDrawer() {

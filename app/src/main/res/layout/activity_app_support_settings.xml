@@ -32,17 +32,18 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg_home_overlay" />
 
+    <!-- TOP APP BAR -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#080808"
+        android:background="#090B0F"
         app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
+            android:paddingVertical="10dp">
 
             <FrameLayout
                 android:id="@+id/btnBack"
@@ -56,51 +57,72 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/accent_violet"
+                    app:tint="@color/white"
                     android:contentDescription="Back" />
             </FrameLayout>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="App Info, Updates &amp; Support"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/btnBack"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.02"
+                    android:text="App Info, Games &amp; Support"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Build details, game preferences, update center &amp; developer support"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- MAIN SCROLL CONTENT -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="32dp"
+        android:paddingBottom="40dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <!-- 1. App & Device Information Card -->
             <eightbitlab.com.blurview.BlurView
                 android:id="@+id/blurAppInfoCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -121,7 +143,7 @@
                         android:id="@+id/tvAppVersionInfo"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
                         android:fontFamily="@font/times_new_roman_regular"
                         android:text="Aquatic Reminez Tools v1.0.0 (Build 11-10-2026)\nAndroid 14 (API 34) • arm64-v8a • 108 Tools Available"
                         android:textColor="@color/text_secondary"
@@ -132,7 +154,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Copy Redacted Debug Information" />
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Copy Redacted Debug Information"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -141,8 +169,13 @@
                 android:id="@+id/blurGameCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -154,7 +187,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="GAME PREFERENCES"
+                        android:text="GAME PREFERENCES &amp; SOUND"
                         android:textColor="@color/accent_violet"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -164,31 +197,46 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Default Game Sound"
-                        android:textColor="@color/text_primary" />
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Enable Default Game Sound Effects"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <androidx.appcompat.widget.SwitchCompat
                         android:id="@+id/switchGameVibration"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Game Vibration"
-                        android:textColor="@color/text_primary" />
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Enable Game Haptic Vibration"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnGameDisplayMode"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Game Display Mode: Fullscreen" />
+                        android:text="Game Display Mode: Fullscreen"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnResetHighScores"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Reset High Scores &amp; Game Data" />
+                        android:layout_marginTop="6dp"
+                        android:minHeight="42dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/accent_muted_red"
+                        android:text="Reset High Scores &amp; Game Progress"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="12sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -197,8 +245,13 @@
                 android:id="@+id/blurUpdateCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -210,7 +263,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="UPDATE CENTER"
+                        android:text="UPDATE CENTER &amp; RELEASE NOTES"
                         android:textColor="@color/accent_violet"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -220,6 +273,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
+                        android:fontFamily="@font/times_new_roman_regular"
                         android:text="Status: Application is up to date (v1.0.0)"
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
@@ -229,7 +283,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Check for Updates &amp; What's New" />
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Check for Updates &amp; What's New"
+                        android:textAllCaps="false"
+                        android:textColor="@color/accent_violet"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -238,8 +298,13 @@
                 android:id="@+id/blurSupportCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -251,7 +316,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="SUPPORT &amp; FEEDBACK"
+                        android:text="DEVELOPER SUPPORT &amp; FEEDBACK"
                         android:textColor="@color/accent_violet"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -261,22 +326,39 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Report a Bug / Request Feature" />
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Report a Bug / Request Feature"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnContactDeveloper"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Contact Developer (Reep Malefitz)" />
+                        android:text="Contact Developer (Reep Malefitz)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
 
                     <Button
                         android:id="@+id/btnDocumentation"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="Documentation &amp; FAQ / Troubleshooting" />
+                        android:layout_marginTop="6dp"
+                        android:minHeight="44dp"
+                        android:paddingVertical="8dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Documentation &amp; FAQ / Troubleshooting"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 

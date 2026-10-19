@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     tools:context=".presentation.settings.SettingsActivity">
 
-    <!-- ========== KONTEN UTAMA ========== -->
+    <!-- MAIN CONTENT -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:id="@+id/mainContent"
         android:layout_width="match_parent"
@@ -40,12 +40,12 @@
             android:layout_height="match_parent"
             android:background="@drawable/bg_home_overlay" />
 
-        <!-- APP BAR -->
+        <!-- TOP APP BAR -->
         <com.google.android.material.appbar.AppBarLayout
             android:id="@+id/appBarSettings"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#080808"
+            android:background="#090B0F"
             android:fitsSystemWindows="true"
             app:elevation="4dp">
 
@@ -53,8 +53,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp">
+                android:paddingTop="10dp"
+                android:paddingBottom="10dp">
 
                 <FrameLayout
                     android:id="@+id/btnMenu"
@@ -73,27 +73,39 @@
                         android:layout_gravity="center"
                         android:src="@drawable/ic_menu"
                         android:contentDescription="@string/menu"
-                        app:tint="@color/accent_cyan" />
+                        app:tint="@color/white" />
                 </FrameLayout>
 
-                <TextView
-                    android:id="@+id/tvSettingsToolbarTitle"
+                <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
                     android:layout_marginEnd="12dp"
-                    android:fontFamily="@font/times_new_roman_bold"
-                    android:letterSpacing="0.02"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    android:text="SETTINGS"
-                    android:textColor="@color/text_primary"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
+                    android:orientation="vertical"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintStart_toEndOf="@id/btnMenu"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                    <TextView
+                        android:id="@+id/tvSettingsToolbarTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:letterSpacing="0.02"
+                        android:text="Settings"
+                        android:textColor="@color/white"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Control Center"
+                        android:textColor="@color/white"
+                        android:textSize="12sp" />
+                </LinearLayout>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -105,9 +117,9 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:clipToPadding="false"
-            android:paddingHorizontal="12dp"
+            android:paddingHorizontal="14dp"
             android:paddingTop="12dp"
-            android:paddingBottom="75dp"
+            android:paddingBottom="85dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
             <LinearLayout
@@ -115,7 +127,30 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- 1. SEARCH & QUICK STATUS BAR -->
+                <!-- 0. SETTINGS BANNER IMAGE CONTAINER -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurSettingsBannerCard"
+                    android:layout_width="match_parent"
+                    android:layout_height="125dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <ImageView
+                        android:id="@+id/ivSettingsBanner"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/settings_banner_img"
+                        android:contentDescription="Settings Banner" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#44090B0F" />
+
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 1. SEARCH SETTINGS -->
                 <eightbitlab.com.blurview.BlurView
                     android:id="@+id/blurSearchHeader"
                     android:layout_width="match_parent"
@@ -141,16 +176,17 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="14dp">
 
                         <EditText
                             android:id="@+id/etSearchSettings"
                             android:layout_width="match_parent"
                             android:layout_height="46dp"
-                            android:background="@drawable/bg_input_field"
-                            android:drawableStart="@drawable/ic_categories"
+                            android:background="@drawable/bg_card_dark"
+                            android:drawableStart="@drawable/ic_search"
+                            android:drawableTint="@color/white"
                             android:drawablePadding="12dp"
-                            android:hint="Search preferences..."
+                            android:hint="Search preferences, tools &amp; settings..."
                             android:imeOptions="actionSearch"
                             android:inputType="text"
                             android:paddingHorizontal="16dp"
@@ -158,11 +194,11 @@
                             android:textColorHint="@color/text_muted"
                             android:textSize="13sp" />
 
-                        <!-- Quick Status Chips -->
+                        <!-- Quick Status Summary Bar -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="10dp"
                             android:orientation="horizontal"
                             android:baselineAligned="false"
                             android:weightSum="3">
@@ -192,7 +228,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
                                     android:fontFamily="@font/times_new_roman_regular"
-                                    android:text="Theme"
+                                    android:text="Theme Mode"
                                     android:textColor="@color/text_muted"
                                     android:textSize="11sp" />
                             </LinearLayout>
@@ -260,7 +296,7 @@
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
-                <!-- 2. APPEARANCE & PERSONALIZATION -->
+                <!-- 2. CURRENT APPEARANCE SPOTLIGHT -->
                 <eightbitlab.com.blurview.BlurView
                     android:id="@+id/blurAppearance"
                     android:layout_width="match_parent"
@@ -302,14 +338,27 @@
                                 android:contentDescription="Appearance" />
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
+                                android:layout_weight="1"
                                 android:layout_marginStart="8dp"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Appearance &amp; Personalization"
+                                android:text="Current Appearance Spotlight"
                                 android:textColor="@color/accent_cyan"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvActivePresetBadge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_info_chip"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="3dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Ocean Cyber"
+                                android:textColor="@color/accent_cyan"
+                                android:textSize="11sp" />
                         </LinearLayout>
 
                         <TextView
@@ -317,68 +366,93 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Customize theme, accent colors, wallpaper, fonts &amp; glass presets."
+                            android:text="Dark glassmorphic cyber theme with cyan accents &amp; Times New Roman typography."
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
-                        <!-- Quick Accent Presets -->
+                        <!-- Quick Accent Presets Grid (2x2) -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
-                            android:orientation="horizontal">
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
 
-                            <Button
-                                android:id="@+id/btnQuickOcean"
-                                android:layout_width="0dp"
-                                android:layout_height="36dp"
-                                android:layout_weight="1"
-                                android:layout_marginEnd="4dp"
-                                android:backgroundTint="@color/bg_card_elevated"
-                                android:text="Ocean"
-                                android:textColor="@color/accent_cyan"
-                                android:textSize="11sp" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
 
-                            <Button
-                                android:id="@+id/btnQuickNeon"
-                                android:layout_width="0dp"
-                                android:layout_height="36dp"
-                                android:layout_weight="1"
-                                android:layout_marginHorizontal="2dp"
-                                android:backgroundTint="@color/bg_card_elevated"
-                                android:text="Neon"
-                                android:textColor="@color/accent_violet"
-                                android:textSize="11sp" />
+                                <Button
+                                    android:id="@+id/btnQuickOcean"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Ocean Cyber"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/accent_cyan"
+                                    android:textSize="12sp" />
 
-                            <Button
-                                android:id="@+id/btnQuickEmerald"
-                                android:layout_width="0dp"
-                                android:layout_height="36dp"
-                                android:layout_weight="1"
-                                android:layout_marginHorizontal="2dp"
-                                android:backgroundTint="@color/bg_card_elevated"
-                                android:text="Emerald"
-                                android:textColor="@color/status_online"
-                                android:textSize="11sp" />
+                                <Button
+                                    android:id="@+id/btnQuickNeon"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Neon Violet"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/accent_violet"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
 
-                            <Button
-                                android:id="@+id/btnQuickClean"
-                                android:layout_width="0dp"
-                                android:layout_height="36dp"
-                                android:layout_weight="1"
-                                android:layout_marginStart="4dp"
-                                android:backgroundTint="@color/bg_card_elevated"
-                                android:text="Light"
-                                android:textColor="@color/text_primary"
-                                android:textSize="11sp" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:orientation="horizontal">
+
+                                <Button
+                                    android:id="@+id/btnQuickEmerald"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Emerald"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/status_online"
+                                    android:textSize="12sp" />
+
+                                <Button
+                                    android:id="@+id/btnQuickClean"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Clean Light"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
                         </LinearLayout>
 
-                        <!-- Deep Link -->
+                        <!-- Deep Link Row -->
                         <LinearLayout
                             android:id="@+id/rowAppearanceDeep"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="10dp"
                             android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
@@ -390,7 +464,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Detailed Theme, Font, Language &amp; Glass Settings"
+                                android:text="Open Appearance &amp; Personalization Studio"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp" />
 
@@ -399,15 +473,15 @@
                                 android:layout_height="18dp"
                                 android:src="@drawable/ic_chevron_right"
                                 app:tint="@color/text_muted"
-                                android:contentDescription="More" />
+                                android:contentDescription="Open" />
                         </LinearLayout>
 
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
-                <!-- 3. SECURITY & PRIVACY -->
+                <!-- 3. QUICK CONTROLS GRID -->
                 <eightbitlab.com.blurview.BlurView
-                    android:id="@+id/blurSecurity"
+                    android:id="@+id/blurQuickControls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="12dp"
@@ -444,38 +518,84 @@
                                 android:layout_height="20dp"
                                 android:src="@drawable/ic_activity"
                                 app:tint="@color/accent_teal"
-                                android:contentDescription="Security" />
+                                android:contentDescription="Quick Controls" />
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Security &amp; Privacy"
+                                android:text="Quick Controls &amp; Security Toggles"
                                 android:textColor="@color/accent_teal"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switchQuickAppLock"
+                        <!-- 2-Column Toggle Grid -->
+                        <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Enable App Lock PIN Protection"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp" />
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
 
-                        <androidx.appcompat.widget.SwitchCompat
-                            android:id="@+id/switchQuickPrivacyShield"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Privacy Shield in Recent Apps"
-                            android:textColor="@color/text_primary"
-                            android:textSize="13sp" />
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchQuickAppLock"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="6dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="App Lock"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchQuickPrivacyShield"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="6dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Privacy Shield"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:orientation="horizontal">
+
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchQuickHistoryLogging"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="6dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="History Logging"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <androidx.appcompat.widget.SwitchCompat
+                                    android:id="@+id/switchQuickHighContrast"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="6dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="High Contrast"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+                            </LinearLayout>
+
+                        </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/rowSecurityDeep"
@@ -493,7 +613,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Biometrics, Backup, Cleanup &amp; Recovery Center"
+                                android:text="Security Center, Biometrics, Backups &amp; Privacy"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp" />
 
@@ -508,7 +628,121 @@
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
-                <!-- 4. STORAGE & DATA MANAGEMENT -->
+                <!-- 4. PERSONALIZATION SHORTCUTS -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurPersonalizationShortcuts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:text="Personalization Shortcuts"
+                            android:textColor="@color/accent_cyan"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <!-- Grid 2x2 of shortcuts -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <Button
+                                    android:id="@+id/btnShortcutThemeAccent"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="6dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Theme &amp; Accent"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+
+                                <Button
+                                    android:id="@+id/btnShortcutWallpaperGlass"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="6dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Wallpaper &amp; Glass"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:orientation="horizontal">
+
+                                <Button
+                                    android:id="@+id/btnShortcutDisplayTypography"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="6dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Display &amp; Font"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+
+                                <Button
+                                    android:id="@+id/btnShortcutLanguageRegion"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="4dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="6dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Language &amp; Region"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="12sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 5. STORAGE & ACTIVITY -->
                 <eightbitlab.com.blurview.BlurView
                     android:id="@+id/blurStorage"
                     android:layout_width="match_parent"
@@ -554,37 +788,79 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Storage &amp; Data Cleanup"
+                                android:text="Storage &amp; Data Activity"
                                 android:textColor="@color/accent_gold"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Kelola cache aplikasi, ekspor histori aktivitas, dan pembersihan penyimpanan lokal."
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvStorageOverviewSummary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Cache: 14.2 MB • Database: 1.8 MB (108 entries) • Backup: Encrypted JSON"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="10dp"
                             android:orientation="horizontal">
 
                             <Button
                                 android:id="@+id/btnQuickClearCache"
                                 android:layout_width="0dp"
-                                android:layout_height="38dp"
+                                android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginEnd="6dp"
+                                android:layout_marginEnd="4dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
                                 android:backgroundTint="@color/bg_card_elevated"
                                 android:text="Clear Cache"
+                                android:textAllCaps="false"
                                 android:textColor="@color/accent_gold"
                                 android:textSize="12sp" />
 
                             <Button
                                 android:id="@+id/btnQuickExportHistory"
                                 android:layout_width="0dp"
-                                android:layout_height="38dp"
+                                android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="6dp"
+                                android:layout_marginHorizontal="2dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
                                 android:backgroundTint="@color/bg_card_elevated"
                                 android:text="Export CSV/JSON"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp" />
+
+                            <Button
+                                android:id="@+id/btnQuickStorageOverview"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="4dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Storage Manager"
+                                android:textAllCaps="false"
                                 android:textColor="@color/text_primary"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -592,7 +868,7 @@
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
-                <!-- 5. TOOL WORKSPACE & WORKFLOWS -->
+                <!-- 6. WORKSPACE SUMMARY -->
                 <eightbitlab.com.blurview.BlurView
                     android:id="@+id/blurWorkspace"
                     android:layout_width="match_parent"
@@ -638,22 +914,31 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="8dp"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Tool Workspace &amp; Workflows"
+                                android:text="Workspace Profile &amp; Customization"
                                 android:textColor="@color/accent_blue"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Atur profil ruang kerja aktif, koleksi favorit, preset tool, dan manajemen dashboard."
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
                         <LinearLayout
                             android:id="@+id/rowWorkspaceProfile"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="10dp"
                             android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
                             android:gravity="center_vertical"
-                            android:paddingVertical="8dp">
+                            android:paddingVertical="6dp">
 
                             <LinearLayout
                                 android:layout_width="0dp"
@@ -675,7 +960,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="2dp"
                                     android:fontFamily="@font/times_new_roman_regular"
-                                    android:text="Default (School / Dev / Home)"
+                                    android:text="Default (School Lab / Dev / Home)"
                                     android:textColor="@color/text_secondary"
                                     android:textSize="11sp" />
                             </LinearLayout>
@@ -685,14 +970,51 @@
                                 android:layout_height="18dp"
                                 android:src="@drawable/ic_chevron_right"
                                 app:tint="@color/text_muted"
-                                android:contentDescription="Select" />
+                                android:contentDescription="Select Profile" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal">
+
+                            <Button
+                                android:id="@+id/btnWorkspaceFavorites"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="4dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Favorites Grid"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp" />
+
+                            <Button
+                                android:id="@+id/btnWorkspaceCollections"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="4dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="Custom Collections"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp" />
                         </LinearLayout>
 
                         <LinearLayout
                             android:id="@+id/rowWorkspaceDeep"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_marginTop="6dp"
                             android:background="?attr/selectableItemBackground"
                             android:clickable="true"
                             android:focusable="true"
@@ -704,7 +1026,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
-                                android:text="Custom Collections, Tool Presets &amp; Workflows"
+                                android:text="Tool Presets, Workflow Builder &amp; Dashboard Manager"
                                 android:textColor="@color/text_primary"
                                 android:textSize="13sp" />
 
@@ -719,12 +1041,164 @@
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
-                <!-- 6. APP INFO, UPDATES & SUPPORT -->
+                <!-- 7. TOOL MANAGEMENT SHORTCUTS -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurToolManagement"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:text="Tool Workspace Management"
+                            android:textColor="@color/accent_blue"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="Manajer perpustakaan tool, pintasan Android, pembangun alur kerja, dan preset."
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <Button
+                                    android:id="@+id/btnToolLibraryManager"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="3dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Tool Library"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+
+                                <Button
+                                    android:id="@+id/btnFavoritesQuickAccess"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginHorizontal="2dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Favorites"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+
+                                <Button
+                                    android:id="@+id/btnToolProfilesPresets"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="3dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Tool Presets"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:orientation="horizontal">
+
+                                <Button
+                                    android:id="@+id/btnWorkflowBuilder"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginEnd="3dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Workflows"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+
+                                <Button
+                                    android:id="@+id/btnAndroidShortcuts"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginHorizontal="2dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Shortcuts"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+
+                                <Button
+                                    android:id="@+id/btnHomeWorkspaceManager"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:layout_marginStart="3dp"
+                                    android:minHeight="42dp"
+                                    android:paddingVertical="8dp"
+                                    android:paddingHorizontal="4dp"
+                                    android:backgroundTint="@color/bg_card_elevated"
+                                    android:text="Dashboard"
+                                    android:textAllCaps="false"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 8. UPDATES & SUPPORT -->
                 <eightbitlab.com.blurview.BlurView
                     android:id="@+id/blurAppSupport"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="16dp"
+                    android:layout_marginBottom="12dp"
                     android:background="@drawable/bg_glass_card_clip">
 
                     <View
@@ -771,44 +1245,322 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
 
+                        <TextView
+                            android:id="@+id/tvAppVersionSummary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="v1.0.0 (Build 11-10-2026) • Android 14 • Developer: Reep Malefitz"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="12dp"
+                            android:layout_marginTop="10dp"
                             android:orientation="horizontal">
 
                             <Button
                                 android:id="@+id/btnCheckUpdates"
                                 android:layout_width="0dp"
-                                android:layout_height="38dp"
+                                android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginEnd="4dp"
+                                android:layout_marginEnd="3dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
                                 android:backgroundTint="@color/bg_card_elevated"
-                                android:text="Check Updates"
+                                android:text="Updates"
+                                android:textAllCaps="false"
                                 android:textColor="@color/accent_violet"
                                 android:textSize="11sp" />
 
                             <Button
                                 android:id="@+id/btnCopyDebugInfo"
                                 android:layout_width="0dp"
-                                android:layout_height="38dp"
+                                android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:layout_marginHorizontal="2dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
                                 android:backgroundTint="@color/bg_card_elevated"
                                 android:text="Copy Debug"
+                                android:textAllCaps="false"
                                 android:textColor="@color/text_primary"
                                 android:textSize="11sp" />
 
                             <Button
                                 android:id="@+id/btnBugReport"
                                 android:layout_width="0dp"
-                                android:layout_height="38dp"
+                                android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:layout_marginStart="4dp"
+                                android:layout_marginHorizontal="2dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
                                 android:backgroundTint="@color/bg_card_elevated"
                                 android:text="Report Bug"
+                                android:textAllCaps="false"
                                 android:textColor="@color/text_primary"
                                 android:textSize="11sp" />
+
+                            <Button
+                                android:id="@+id/btnDocumentation"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="3dp"
+                                android:minHeight="42dp"
+                                android:paddingVertical="8dp"
+                                android:paddingHorizontal="4dp"
+                                android:backgroundTint="@color/bg_card_elevated"
+                                android:text="FAQ &amp; Docs"
+                                android:textAllCaps="false"
+                                android:textColor="@color/text_primary"
+                                android:textSize="11sp" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+                </eightbitlab.com.blurview.BlurView>
+
+                <!-- 9. ALL SETTINGS CATEGORIES OVERVIEW -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurAllCategories"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:text="All Settings Categories"
+                            android:textColor="@color/text_primary"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <!-- Category 1 -->
+                        <LinearLayout
+                            android:id="@+id/cardCatAppearance"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:padding="12dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_categories"
+                                app:tint="@color/accent_cyan"
+                                android:contentDescription="Appearance" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="1. Appearance &amp; Personalization"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Themes, accent colors, wallpaper, fonts &amp; glass presets"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Open" />
+                        </LinearLayout>
+
+                        <!-- Category 2 -->
+                        <LinearLayout
+                            android:id="@+id/cardCatSecurity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:padding="12dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_activity"
+                                app:tint="@color/accent_teal"
+                                android:contentDescription="Security" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="2. Security &amp; Data Management"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="App lock, biometrics, history, storage, backups &amp; recovery"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Open" />
+                        </LinearLayout>
+
+                        <!-- Category 3 -->
+                        <LinearLayout
+                            android:id="@+id/cardCatAppSupport"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:padding="12dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_favorite"
+                                app:tint="@color/accent_violet"
+                                android:contentDescription="Support" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="3. App Information, Games &amp; Support"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="System build details, game settings, update center &amp; feedback"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Open" />
+                        </LinearLayout>
+
+                        <!-- Category 4 -->
+                        <LinearLayout
+                            android:id="@+id/cardCatWorkspace"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:padding="12dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_dev"
+                                app:tint="@color/accent_blue"
+                                android:contentDescription="Workspace" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="12dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="4. Tool Workspace &amp; Workflows"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Library manager, quick access grid, collections &amp; workflows"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Open" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -856,7 +1608,7 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!-- ========== DRAWER ========== -->
+    <!-- DRAWER -->
     <include
         android:id="@+id/drawerContent"
         layout="@layout/view_drawer"

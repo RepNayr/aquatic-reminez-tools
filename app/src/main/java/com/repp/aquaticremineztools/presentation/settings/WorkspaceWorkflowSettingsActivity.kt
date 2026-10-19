@@ -49,23 +49,22 @@ class WorkspaceWorkflowSettingsActivity : AppCompatActivity() {
 
     private fun setupGlassCards() {
         val frameClearDrawable = window.decorView.background
-        val blurToolLibraryCard: BlurView = findViewById(R.id.blurToolLibraryCard)
-        val blurFavoritesCard: BlurView = findViewById(R.id.blurFavoritesCard)
-        val blurCollectionsCard: BlurView = findViewById(R.id.blurCollectionsCard)
-        val blurPresetsCard: BlurView = findViewById(R.id.blurPresetsCard)
-        val blurWorkflowCard: BlurView = findViewById(R.id.blurWorkflowCard)
-        val blurDashboardCard: BlurView = findViewById(R.id.blurDashboardCard)
-        val blurShortcutsCard: BlurView = findViewById(R.id.blurShortcutsCard)
-        val blurProfilesCard: BlurView = findViewById(R.id.blurProfilesCard)
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurToolLibraryCard),
+            findViewById(R.id.blurFavoritesCard),
+            findViewById(R.id.blurCollectionsCard),
+            findViewById(R.id.blurPresetsCard),
+            findViewById(R.id.blurWorkflowCard),
+            findViewById(R.id.blurDashboardCard),
+            findViewById(R.id.blurShortcutsCard),
+            findViewById(R.id.blurProfilesCard)
+        )
 
-        GlassBlurHelper.setupBlur(blurToolLibraryCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurFavoritesCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurCollectionsCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurPresetsCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurWorkflowCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurDashboardCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurShortcutsCard, workspaceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurProfilesCard, workspaceBlurTarget, frameClearDrawable)
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, workspaceBlurTarget, frameClearDrawable)
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -78,12 +77,12 @@ class WorkspaceWorkflowSettingsActivity : AppCompatActivity() {
                 .setMultiChoiceItems(categories, booleanArrayOf(true, true, true, true, true, true, true)) { _, which, isChecked ->
                     Toast.makeText(this, "${categories[which]}: ${if (isChecked) "Visible" else "Hidden"}", Toast.LENGTH_SHORT).show()
                 }
-                .setPositiveButton("Save", null)
+                .setPositiveButton("Save Preferences", null)
                 .show()
         }
 
         btnManageFavorites.setOnClickListener {
-            Toast.makeText(this, "Quick Access: 3-column Home Grid updated with top favorite tools", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Quick Access: 3-column Home Grid updated with favorite tools", Toast.LENGTH_SHORT).show()
         }
 
         btnManageCollections.setOnClickListener {

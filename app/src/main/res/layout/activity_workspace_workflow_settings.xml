@@ -32,17 +32,18 @@
         android:layout_height="match_parent"
         android:background="@drawable/bg_home_overlay" />
 
+    <!-- TOP APP BAR -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#080808"
+        android:background="#090B0F"
         app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
-            android:paddingVertical="12dp">
+            android:paddingVertical="10dp">
 
             <FrameLayout
                 android:id="@+id/btnBack"
@@ -56,51 +57,72 @@
                 app:layout_constraintTop_toTopOf="parent">
 
                 <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_arrow_back"
-                    app:tint="@color/accent_blue"
+                    app:tint="@color/white"
                     android:contentDescription="Back" />
             </FrameLayout>
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="12dp"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="Tool Workspace &amp; Workflows"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold"
+                android:orientation="vertical"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toEndOf="@id/btnBack"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.02"
+                    android:text="Tool Workspace &amp; Workflows"
+                    android:textColor="@color/text_primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Library manager, 3-column quick access, custom collections &amp; workflows"
+                    android:textColor="@color/white"
+                    android:textSize="11sp" />
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
+    <!-- SCROLL CONTENT -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
-        android:paddingBottom="32dp"
+        android:paddingBottom="40dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="14dp">
 
             <!-- 1. Tool Library Manager Card -->
             <eightbitlab.com.blurview.BlurView
                 android:id="@+id/blurToolLibraryCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -122,7 +144,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Manage Visible Tools &amp; Implemented Status" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Manage Visible Tools &amp; Implemented Status"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -131,8 +160,13 @@
                 android:id="@+id/blurFavoritesCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -154,7 +188,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Pin Tools to Home 3-Column Quick Grid" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Pin Tools to Home 3-Column Quick Grid"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -163,8 +204,13 @@
                 android:id="@+id/blurCollectionsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -186,7 +232,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Collections: School Lab / Network / Dev Toolkit" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Manage Collections (School Lab / Network / Dev)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -195,8 +248,13 @@
                 android:id="@+id/blurPresetsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -218,7 +276,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Save &amp; Preview Tool Configuration Presets" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Save &amp; Preview Tool Configuration Presets"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -227,8 +292,13 @@
                 android:id="@+id/blurWorkflowCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -250,7 +320,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Network Troubleshooting Workflow (4 Steps)" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Network Troubleshooting Workflow (4 Steps)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -259,8 +336,13 @@
                 android:id="@+id/blurDashboardCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -282,8 +364,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
                         android:backgroundTint="@color/bg_card_elevated"
-                        android:text="Manage Visible Info Cards &amp; Dashboard Sections" />
+                        android:text="Manage Visible Info Cards &amp; Dashboard Sections"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -292,8 +380,13 @@
                 android:id="@+id/blurShortcutsCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -315,7 +408,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Add Favorite Tool Shortcut to Android Home Screen" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Add Favorite Tool Shortcut to Android Home Screen"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
@@ -324,8 +424,13 @@
                 android:id="@+id/blurProfilesCard"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_glass_card_clip">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -347,7 +452,14 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Switch Profile (School Lab / Home Net / Dev)" />
+                        android:minHeight="48dp"
+                        android:paddingVertical="10dp"
+                        android:paddingHorizontal="14dp"
+                        android:backgroundTint="@color/bg_card_elevated"
+                        android:text="Switch Profile (School Lab / Home Net / Dev)"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp" />
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 

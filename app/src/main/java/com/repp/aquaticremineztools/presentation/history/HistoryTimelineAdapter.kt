@@ -183,24 +183,27 @@ class HistoryTimelineAdapter(
                 }
             }
 
-            // Selection mode
+            // Selection mode & visual indicator highlight
             if (selectionMode) {
                 cbSelect.visibility = View.VISIBLE
                 cbSelect.isChecked = item.isSelected
                 btnOverflow.visibility = View.GONE
+                if (item.isSelected) {
+                    cardContent.setBackgroundColor(ContextCompat.getColor(context, R.color.accent_primary_transparent))
+                } else {
+                    cardContent.setBackgroundResource(R.drawable.bg_glass_card_overlay)
+                }
             } else {
                 cbSelect.visibility = View.GONE
                 btnOverflow.visibility = View.VISIBLE
-            }
-
-            cbSelect.setOnClickListener {
-                onCheckBoxChanged(entity, cbSelect.isChecked)
+                cardContent.setBackgroundResource(android.R.attr.selectableItemBackground)
             }
 
             cardContent.setOnClickListener {
                 if (selectionMode) {
-                    cbSelect.isChecked = !cbSelect.isChecked
-                    onCheckBoxChanged(entity, cbSelect.isChecked)
+                    val newState = !item.isSelected
+                    cbSelect.isChecked = newState
+                    onCheckBoxChanged(entity, newState)
                 } else {
                     onItemClick(entity)
                 }

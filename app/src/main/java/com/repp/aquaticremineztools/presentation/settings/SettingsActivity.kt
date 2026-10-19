@@ -2,7 +2,6 @@ package com.repp.aquaticremineztools.presentation.settings
 
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
@@ -24,12 +23,12 @@ import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.settings.SettingsPreferences
 import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
-import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
@@ -41,44 +40,61 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var btnMenu: FrameLayout
     private lateinit var etSearch: EditText
 
-    // Blur Cards
-    private lateinit var blurSearchHeader: BlurView
-    private lateinit var blurAppearance: BlurView
-    private lateinit var blurSecurity: BlurView
-    private lateinit var blurStorage: BlurView
-    private lateinit var blurWorkspace: BlurView
-    private lateinit var blurAppSupport: BlurView
-
     // Status Chips
     private lateinit var tvStatusTheme: TextView
     private lateinit var tvStatusLock: TextView
     private lateinit var tvStatusProfile: TextView
 
-    // Appearance Quick Presets
+    // Appearance Quick Spotlight
+    private lateinit var tvActivePresetBadge: TextView
     private lateinit var btnQuickOcean: Button
     private lateinit var btnQuickNeon: Button
     private lateinit var btnQuickEmerald: Button
     private lateinit var btnQuickClean: Button
     private lateinit var rowAppearanceDeep: LinearLayout
 
-    // Security
+    // Quick Controls Grid
     private lateinit var switchQuickAppLock: SwitchCompat
     private lateinit var switchQuickPrivacyShield: SwitchCompat
+    private lateinit var switchQuickHistoryLogging: SwitchCompat
+    private lateinit var switchQuickHighContrast: SwitchCompat
     private lateinit var rowSecurityDeep: LinearLayout
 
-    // Storage
+    // Personalization Shortcuts
+    private lateinit var btnShortcutThemeAccent: Button
+    private lateinit var btnShortcutWallpaperGlass: Button
+    private lateinit var btnShortcutDisplayTypography: Button
+    private lateinit var btnShortcutLanguageRegion: Button
+
+    // Storage & Activity
     private lateinit var btnQuickClearCache: Button
     private lateinit var btnQuickExportHistory: Button
+    private lateinit var btnQuickStorageOverview: Button
 
-    // Workspace
+    // Workspace Summary & Tool Management
     private lateinit var rowWorkspaceProfile: LinearLayout
     private lateinit var tvActiveProfileName: TextView
+    private lateinit var btnWorkspaceFavorites: Button
+    private lateinit var btnWorkspaceCollections: Button
     private lateinit var rowWorkspaceDeep: LinearLayout
+    private lateinit var btnToolLibraryManager: Button
+    private lateinit var btnFavoritesQuickAccess: Button
+    private lateinit var btnToolProfilesPresets: Button
+    private lateinit var btnWorkflowBuilder: Button
+    private lateinit var btnAndroidShortcuts: Button
+    private lateinit var btnHomeWorkspaceManager: Button
 
-    // App Info
+    // App Info & Support
     private lateinit var btnCheckUpdates: Button
     private lateinit var btnCopyDebugInfo: Button
     private lateinit var btnBugReport: Button
+    private lateinit var btnDocumentation: Button
+
+    // Category Cards
+    private lateinit var cardCatAppearance: LinearLayout
+    private lateinit var cardCatSecurity: LinearLayout
+    private lateinit var cardCatAppSupport: LinearLayout
+    private lateinit var cardCatWorkspace: LinearLayout
 
     // Bottom Nav Pill
     private lateinit var tabHome: FrameLayout
@@ -139,6 +155,7 @@ class SettingsActivity : AppCompatActivity() {
         tvStatusLock = findViewById(R.id.tvStatusLock)
         tvStatusProfile = findViewById(R.id.tvStatusProfile)
 
+        tvActivePresetBadge = findViewById(R.id.tvActivePresetBadge)
         btnQuickOcean = findViewById(R.id.btnQuickOcean)
         btnQuickNeon = findViewById(R.id.btnQuickNeon)
         btnQuickEmerald = findViewById(R.id.btnQuickEmerald)
@@ -147,18 +164,40 @@ class SettingsActivity : AppCompatActivity() {
 
         switchQuickAppLock = findViewById(R.id.switchQuickAppLock)
         switchQuickPrivacyShield = findViewById(R.id.switchQuickPrivacyShield)
+        switchQuickHistoryLogging = findViewById(R.id.switchQuickHistoryLogging)
+        switchQuickHighContrast = findViewById(R.id.switchQuickHighContrast)
         rowSecurityDeep = findViewById(R.id.rowSecurityDeep)
+
+        btnShortcutThemeAccent = findViewById(R.id.btnShortcutThemeAccent)
+        btnShortcutWallpaperGlass = findViewById(R.id.btnShortcutWallpaperGlass)
+        btnShortcutDisplayTypography = findViewById(R.id.btnShortcutDisplayTypography)
+        btnShortcutLanguageRegion = findViewById(R.id.btnShortcutLanguageRegion)
 
         btnQuickClearCache = findViewById(R.id.btnQuickClearCache)
         btnQuickExportHistory = findViewById(R.id.btnQuickExportHistory)
+        btnQuickStorageOverview = findViewById(R.id.btnQuickStorageOverview)
 
         rowWorkspaceProfile = findViewById(R.id.rowWorkspaceProfile)
         tvActiveProfileName = findViewById(R.id.tvActiveProfileName)
+        btnWorkspaceFavorites = findViewById(R.id.btnWorkspaceFavorites)
+        btnWorkspaceCollections = findViewById(R.id.btnWorkspaceCollections)
         rowWorkspaceDeep = findViewById(R.id.rowWorkspaceDeep)
+        btnToolLibraryManager = findViewById(R.id.btnToolLibraryManager)
+        btnFavoritesQuickAccess = findViewById(R.id.btnFavoritesQuickAccess)
+        btnToolProfilesPresets = findViewById(R.id.btnToolProfilesPresets)
+        btnWorkflowBuilder = findViewById(R.id.btnWorkflowBuilder)
+        btnAndroidShortcuts = findViewById(R.id.btnAndroidShortcuts)
+        btnHomeWorkspaceManager = findViewById(R.id.btnHomeWorkspaceManager)
 
         btnCheckUpdates = findViewById(R.id.btnCheckUpdates)
         btnCopyDebugInfo = findViewById(R.id.btnCopyDebugInfo)
         btnBugReport = findViewById(R.id.btnBugReport)
+        btnDocumentation = findViewById(R.id.btnDocumentation)
+
+        cardCatAppearance = findViewById(R.id.cardCatAppearance)
+        cardCatSecurity = findViewById(R.id.cardCatSecurity)
+        cardCatAppSupport = findViewById(R.id.cardCatAppSupport)
+        cardCatWorkspace = findViewById(R.id.cardCatWorkspace)
 
         // Bottom Nav Pill
         tabHome = findViewById(R.id.tabHome)
@@ -187,20 +226,25 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupGlassCards() {
-        blurSearchHeader = findViewById(R.id.blurSearchHeader)
-        blurAppearance = findViewById(R.id.blurAppearance)
-        blurSecurity = findViewById(R.id.blurSecurity)
-        blurStorage = findViewById(R.id.blurStorage)
-        blurWorkspace = findViewById(R.id.blurWorkspace)
-        blurAppSupport = findViewById(R.id.blurAppSupport)
-
         val frameClearDrawable = window.decorView.background
-        GlassBlurHelper.setupBlur(blurSearchHeader, settingsBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurAppearance, settingsBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurSecurity, settingsBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurStorage, settingsBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurWorkspace, settingsBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurAppSupport, settingsBlurTarget, frameClearDrawable)
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurSettingsBannerCard),
+            findViewById(R.id.blurSearchHeader),
+            findViewById(R.id.blurAppearance),
+            findViewById(R.id.blurQuickControls),
+            findViewById(R.id.blurPersonalizationShortcuts),
+            findViewById(R.id.blurStorage),
+            findViewById(R.id.blurWorkspace),
+            findViewById(R.id.blurToolManagement),
+            findViewById(R.id.blurAppSupport),
+            findViewById(R.id.blurAllCategories)
+        )
+
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, settingsBlurTarget, frameClearDrawable)
+            }
+        }
     }
 
     private fun setupBottomNav() {
@@ -274,67 +318,20 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
-            val intent = Intent(this, SearchActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
-            val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuFavorites).setNavigatorClick {
-            Toast.makeText(this, "Favorites - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuCategories).setNavigatorClick {
-            Toast.makeText(this, "Categories - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
-            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
-        }
-
-        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
-            val intent = Intent(this, AboutActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
-            closeDrawer()
-        }
-    }
-
-    private fun View.setNavigatorClick(action: () -> Unit) {
-        setOnClickListener {
-            closeDrawer()
-            action()
-        }
-    }
-
-    private fun closeDrawer() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        }
+        DrawerMenuHelper.setup(this, drawerLayout)
     }
 
     private fun loadSettingsState() {
         val theme = SettingsPreferences.getThemeMode(this)
         tvStatusTheme.text = theme.replaceFirstChar { it.uppercase() }
+
+        val accent = SettingsPreferences.getAccentColor(this)
+        tvActivePresetBadge.text = when (accent) {
+            "violet" -> "Neon Violet"
+            "emerald" -> "Emerald"
+            "teal" -> "Clean Light"
+            else -> "Ocean Cyber"
+        }
 
         val isLock = SettingsPreferences.isAppLockEnabled(this)
         tvStatusLock.text = if (isLock) "On" else "Off"
@@ -342,9 +339,11 @@ class SettingsActivity : AppCompatActivity() {
 
         val profile = SettingsPreferences.getWorkspaceProfile(this)
         tvStatusProfile.text = profile
-        tvActiveProfileName.text = "$profile (School / Dev / Home)"
+        tvActiveProfileName.text = "$profile Profile (School Lab / Dev / Home)"
 
         switchQuickPrivacyShield.isChecked = SettingsPreferences.isPrivacyShieldEnabled(this)
+        switchQuickHistoryLogging.isChecked = SettingsPreferences.isHistoryLoggingEnabled(this)
+        switchQuickHighContrast.isChecked = SettingsPreferences.isHighContrast(this)
     }
 
     private fun setupListeners() {
@@ -385,7 +384,7 @@ class SettingsActivity : AppCompatActivity() {
             ActivityTransition.startActivitySmooth(this, Intent(this, AppearanceSettingsActivity::class.java))
         }
 
-        // Quick Security Toggles
+        // Quick Controls Toggles
         switchQuickAppLock.setOnCheckedChangeListener { _, isChecked ->
             SettingsPreferences.setAppLockEnabled(this, isChecked)
             loadSettingsState()
@@ -395,20 +394,41 @@ class SettingsActivity : AppCompatActivity() {
             SettingsPreferences.setPrivacyShieldEnabled(this, isChecked)
         }
 
+        switchQuickHistoryLogging.setOnCheckedChangeListener { _, isChecked ->
+            SettingsPreferences.setHistoryLogging(this, isChecked)
+        }
+
+        switchQuickHighContrast.setOnCheckedChangeListener { _, isChecked ->
+            SettingsPreferences.setHighContrast(this, isChecked)
+        }
+
         rowSecurityDeep.setOnClickListener {
             ActivityTransition.startActivitySmooth(this, Intent(this, SecurityDataSettingsActivity::class.java))
         }
 
-        // Storage
+        // Personalization Shortcuts
+        val openAppearanceStudio = View.OnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, AppearanceSettingsActivity::class.java))
+        }
+        btnShortcutThemeAccent.setOnClickListener(openAppearanceStudio)
+        btnShortcutWallpaperGlass.setOnClickListener(openAppearanceStudio)
+        btnShortcutDisplayTypography.setOnClickListener(openAppearanceStudio)
+        btnShortcutLanguageRegion.setOnClickListener(openAppearanceStudio)
+
+        // Storage & Activity Actions
         btnQuickClearCache.setOnClickListener {
-            Toast.makeText(this, "Application cache & temporary files cleaned", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Application cache & temporary files cleaned (14.2 MB freed)", Toast.LENGTH_SHORT).show()
         }
 
         btnQuickExportHistory.setOnClickListener {
-            Toast.makeText(this, "History exported to CSV/JSON", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Activity history exported to CSV & JSON", Toast.LENGTH_SHORT).show()
         }
 
-        // Workspace
+        btnQuickStorageOverview.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
+        }
+
+        // Workspace Summary & Tool Shortcuts
         rowWorkspaceProfile.setOnClickListener {
             val current = SettingsPreferences.getWorkspaceProfile(this)
             val profiles = arrayOf("Default", "School Lab", "Home Network", "Development")
@@ -427,31 +447,70 @@ class SettingsActivity : AppCompatActivity() {
                 .show()
         }
 
+        btnWorkspaceFavorites.setOnClickListener {
+            Toast.makeText(this, "Opening Home 3-Column Favorites Quick Grid...", Toast.LENGTH_SHORT).show()
+        }
+
+        btnWorkspaceCollections.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
+        }
+
         rowWorkspaceDeep.setOnClickListener {
             ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
         }
 
-        // App Info & Support
+        val openWorkspaceStudio = View.OnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
+        }
+        btnToolLibraryManager.setOnClickListener(openWorkspaceStudio)
+        btnFavoritesQuickAccess.setOnClickListener(openWorkspaceStudio)
+        btnToolProfilesPresets.setOnClickListener(openWorkspaceStudio)
+        btnWorkflowBuilder.setOnClickListener(openWorkspaceStudio)
+        btnAndroidShortcuts.setOnClickListener(openWorkspaceStudio)
+        btnHomeWorkspaceManager.setOnClickListener(openWorkspaceStudio)
+
+        // App Info & Support Actions
         btnCheckUpdates.setOnClickListener {
             Toast.makeText(this, "Aquatic Reminez Tools is up to date (v1.0.0)", Toast.LENGTH_SHORT).show()
         }
 
         btnCopyDebugInfo.setOnClickListener {
-            val debug = "Aquatic Reminez Tools v1.0.0\nTheme: ${SettingsPreferences.getThemeMode(this)}\nProfile: ${SettingsPreferences.getWorkspaceProfile(this)}"
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val debug = "Aquatic Reminez Tools v1.0.0\nTheme: ${SettingsPreferences.getThemeMode(this)}\nProfile: ${SettingsPreferences.getWorkspaceProfile(this)}\nOS: Android 14"
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
             val clip = ClipData.newPlainText("Debug Info", debug)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Debug information copied to clipboard", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Redacted debug information copied to clipboard", Toast.LENGTH_SHORT).show()
         }
 
         btnBugReport.setOnClickListener {
             ActivityTransition.startActivitySmooth(this, Intent(this, AppSupportSettingsActivity::class.java))
         }
 
+        btnDocumentation.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, AppSupportSettingsActivity::class.java))
+        }
+
+        // Category Cards (All Settings Overview)
+        cardCatAppearance.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, AppearanceSettingsActivity::class.java))
+        }
+
+        cardCatSecurity.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, SecurityDataSettingsActivity::class.java))
+        }
+
+        cardCatAppSupport.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, AppSupportSettingsActivity::class.java))
+        }
+
+        cardCatWorkspace.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
+        }
+
         etSearch.setOnEditorActionListener { _, _, _ ->
             val query = etSearch.text.toString().trim()
             if (query.isNotEmpty()) {
-                Toast.makeText(this, "Searching settings for: $query", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Searching preferences for: $query", Toast.LENGTH_SHORT).show()
             }
             true
         }

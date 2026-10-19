@@ -197,21 +197,18 @@
                     android:textSize="10.5sp"
                     android:textStyle="bold" />
 
-                <!-- CATEGORY FILTER CHIPS -->
-                <HorizontalScrollView
+                <!-- CATEGORY FILTER HORIZONTAL RECYCLERVIEW -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvSearchCategories"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none">
-
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/cgCategories"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:singleSelection="true"
-                        app:selectionRequired="true"
-                        app:singleLine="true">
-                    </com.google.android.material.chip.ChipGroup>
-                </HorizontalScrollView>
+                    android:orientation="horizontal"
+                    android:clipToPadding="false"
+                    android:paddingVertical="4dp"
+                    android:scrollbars="none"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:itemCount="5"
+                    tools:listitem="@layout/item_search_category_pill" />
 
                 <!-- SECTION HEADER FOR RESULTS -->
                 <LinearLayout
@@ -231,6 +228,22 @@
                         android:letterSpacing="0.08"
                         android:text="ALL TOOLS"
                         android:textColor="@color/text_secondary"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnSort"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_info_chip"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="Sort: A-Z"
+                        android:textColor="@color/accent_cyan"
                         android:textSize="10.5sp"
                         android:textStyle="bold" />
 

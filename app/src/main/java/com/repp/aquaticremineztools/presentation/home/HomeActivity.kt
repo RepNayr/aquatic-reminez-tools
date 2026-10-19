@@ -50,6 +50,7 @@ import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 import org.json.JSONObject
@@ -317,78 +318,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        findViewById<LinearLayout>(R.id.menuHome).setOnClickListener {
-            closeDrawer()
-        }
-
-        findViewById<LinearLayout>(R.id.menuSearch).setOnClickListener {
-            closeDrawer()
-            val intent = Intent(this, SearchActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuHistory).setOnClickListener {
-            closeDrawer()
-            val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuFavorites).setOnClickListener {
-            closeDrawer()
-            Toast.makeText(this, "Favorites - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuCategories).setOnClickListener {
-            closeDrawer()
-            Toast.makeText(this, "Categories - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuTiktok).setOnClickListener {
-            openUrl(getString(R.string.drawer_tiktok_url))
-        }
-
-        findViewById<LinearLayout>(R.id.menuInstagram).setOnClickListener {
-            openUrl(getString(R.string.drawer_instagram_url))
-        }
-
-        findViewById<LinearLayout>(R.id.menuGames).setOnClickListener {
-            closeDrawer()
-            Toast.makeText(this, "Games - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuStorage).setOnClickListener {
-            closeDrawer()
-            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
-        }
-
-        findViewById<LinearLayout>(R.id.menuPassword).setOnClickListener {
-            closeDrawer()
-            if (PinManager.hasPin(this)) {
-                showPasswordOptionsDialog()
-            } else {
-                startActivity(Intent(this, PinSetupActivity::class.java))
-            }
-        }
-
-        findViewById<LinearLayout>(R.id.menuAbout).setOnClickListener {
-            closeDrawer()
-            val intent = Intent(this, AboutActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSettings).setOnClickListener {
-            closeDrawer()
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.settings.SettingsActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur))
     }
 
     private fun closeDrawer() {
@@ -508,6 +438,18 @@ class HomeActivity : AppCompatActivity() {
                     "Connected"
                 } else {
                     conn.detail
+                }
+
+                val ivConnectionIcon = findViewById<ImageView>(R.id.ivConnectionIcon)
+                if (conn.type == "WI-FI") {
+                    ivConnectionIcon?.setImageResource(R.drawable.ic_wifi)
+                    ivConnectionIcon?.imageTintList = ContextCompat.getColorStateList(this, R.color.accent_teal)
+                } else if (conn.type == "DATA SELULER") {
+                    ivConnectionIcon?.setImageResource(R.drawable.ic_network_cat)
+                    ivConnectionIcon?.imageTintList = ContextCompat.getColorStateList(this, R.color.accent_cyan)
+                } else {
+                    ivConnectionIcon?.setImageResource(R.drawable.ic_network)
+                    ivConnectionIcon?.imageTintList = ContextCompat.getColorStateList(this, R.color.text_secondary)
                 }
             }
         }

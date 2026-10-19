@@ -35,7 +35,7 @@
                 android:id="@+id/ivIpIcon"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:src="@drawable/ic_network"
+                android:src="@drawable/ic_tool_net_ip_info"
                 android:contentDescription="@string/info_ip_address"
                 app:tint="@color/accent_primary"
                 app:layout_constraintTop_toTopOf="parent"

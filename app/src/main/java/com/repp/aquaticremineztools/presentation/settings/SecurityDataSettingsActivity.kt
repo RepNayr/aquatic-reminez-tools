@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
 import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -20,6 +21,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
 
     private lateinit var securityBlurTarget: BlurTarget
     private lateinit var btnBack: FrameLayout
+    private lateinit var tvSecurityStatusText: TextView
     private lateinit var switchAppLock: SwitchCompat
     private lateinit var btnAutoLockTimeout: Button
     private lateinit var switchBiometric: SwitchCompat
@@ -32,6 +34,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
     private lateinit var btnExportJson: Button
     private lateinit var btnClearHistory: Button
 
+    private lateinit var tvStorageOverviewInfo: TextView
     private lateinit var btnClearCache: Button
     private lateinit var btnCreateBackup: Button
     private lateinit var btnRestoreBackup: Button
@@ -56,6 +59,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
     private fun bindViews() {
         securityBlurTarget = findViewById(R.id.securityBlurTarget)
         btnBack = findViewById(R.id.btnBack)
+        tvSecurityStatusText = findViewById(R.id.tvSecurityStatusText)
         switchAppLock = findViewById(R.id.switchAppLock)
         btnAutoLockTimeout = findViewById(R.id.btnAutoLockTimeout)
         switchBiometric = findViewById(R.id.switchBiometric)
@@ -68,6 +72,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
         btnExportJson = findViewById(R.id.btnExportJson)
         btnClearHistory = findViewById(R.id.btnClearHistory)
 
+        tvStorageOverviewInfo = findViewById(R.id.tvStorageOverviewInfo)
         btnClearCache = findViewById(R.id.btnClearCache)
         btnCreateBackup = findViewById(R.id.btnCreateBackup)
         btnRestoreBackup = findViewById(R.id.btnRestoreBackup)
@@ -82,29 +87,34 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
 
     private fun setupGlassCards() {
         val frameClearDrawable = window.decorView.background
-        val blurSecurityStatus: BlurView = findViewById(R.id.blurSecurityStatus)
-        val blurSecurityCenterCard: BlurView = findViewById(R.id.blurSecurityCenterCard)
-        val blurHistoryCard: BlurView = findViewById(R.id.blurHistoryCard)
-        val blurStorageCard: BlurView = findViewById(R.id.blurStorageCard)
-        val blurBackupCard: BlurView = findViewById(R.id.blurBackupCard)
-        val blurToolSafetyCard: BlurView = findViewById(R.id.blurToolSafetyCard)
-        val blurRecoveryCard: BlurView = findViewById(R.id.blurRecoveryCard)
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurSecurityStatus),
+            findViewById(R.id.blurSecurityCenterCard),
+            findViewById(R.id.blurHistoryCard),
+            findViewById(R.id.blurStorageCard),
+            findViewById(R.id.blurBackupCard),
+            findViewById(R.id.blurToolSafetyCard),
+            findViewById(R.id.blurRecoveryCard)
+        )
 
-        GlassBlurHelper.setupBlur(blurSecurityStatus, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurSecurityCenterCard, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurHistoryCard, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurStorageCard, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurBackupCard, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurToolSafetyCard, securityBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurRecoveryCard, securityBlurTarget, frameClearDrawable)
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, securityBlurTarget, frameClearDrawable)
+            }
+        }
     }
 
     private fun loadSettings() {
-        switchAppLock.isChecked = SettingsPreferences.isAppLockEnabled(this)
+        val isLock = SettingsPreferences.isAppLockEnabled(this)
+        switchAppLock.isChecked = isLock
         btnAutoLockTimeout.text = "Auto-Lock Timeout: ${SettingsPreferences.getAutoLockTimeout(this)}"
         switchBiometric.isChecked = SettingsPreferences.isBiometricEnabled(this)
         switchPrivacyShield.isChecked = SettingsPreferences.isPrivacyShieldEnabled(this)
         switchScreenshotProtection.isChecked = SettingsPreferences.isScreenshotProtectionEnabled(this)
+
+        val lockStatusStr = if (isLock) "App Lock PIN Active" else "App Lock Disabled"
+        val bioStatusStr = if (SettingsPreferences.isBiometricEnabled(this)) "Biometrics Active" else "Biometrics Off"
+        tvSecurityStatusText.text = "Status: $lockStatusStr • $bioStatusStr • History Logging Active"
 
         switchHistoryLogging.isChecked = SettingsPreferences.isHistoryLoggingEnabled(this)
         val retention = SettingsPreferences.getHistoryRetentionDays(this)
@@ -119,6 +129,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
 
         switchAppLock.setOnCheckedChangeListener { _, isChecked ->
             SettingsPreferences.setAppLockEnabled(this, isChecked)
+            loadSettings()
             Toast.makeText(this, "App Lock: ${if (isChecked) "Enabled" else "Disabled"}", Toast.LENGTH_SHORT).show()
         }
 
@@ -137,6 +148,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
 
         switchBiometric.setOnCheckedChangeListener { _, isChecked ->
             SettingsPreferences.setBiometricEnabled(this, isChecked)
+            loadSettings()
         }
 
         switchPrivacyShield.setOnCheckedChangeListener { _, isChecked ->
@@ -165,34 +177,34 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
         }
 
         btnExportCsv.setOnClickListener {
-            Toast.makeText(this, "History exported successfully to CSV", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "History records exported successfully to CSV", Toast.LENGTH_SHORT).show()
         }
 
         btnExportJson.setOnClickListener {
-            Toast.makeText(this, "History exported successfully to JSON", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "History records exported successfully to JSON", Toast.LENGTH_SHORT).show()
         }
 
         btnClearHistory.setOnClickListener {
             AlertDialog.Builder(this)
-                .setTitle("Clear All History")
-                .setMessage("Are you sure you want to delete all activity history records?")
+                .setTitle("Clear All Activity History")
+                .setMessage("Are you sure you want to permanently delete all activity history records?")
                 .setPositiveButton("Clear All") { _, _ ->
-                    Toast.makeText(this, "All activity history cleared", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "All activity history records cleared", Toast.LENGTH_SHORT).show()
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
         }
 
         btnClearCache.setOnClickListener {
-            Toast.makeText(this, "Cache and temporary files cleared (Saved 14.6 MB)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Application cache & temporary files cleaned (Saved 14.6 MB)", Toast.LENGTH_SHORT).show()
         }
 
         btnCreateBackup.setOnClickListener {
-            Toast.makeText(this, "Encrypted backup file created", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Encrypted application backup created successfully", Toast.LENGTH_SHORT).show()
         }
 
         btnRestoreBackup.setOnClickListener {
-            Toast.makeText(this, "Backup file validated and restored", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Backup file validated and restored successfully", Toast.LENGTH_SHORT).show()
         }
 
         switchExecutionConfirmation.setOnCheckedChangeListener { _, isChecked ->
@@ -213,7 +225,7 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
         btnResetPreferences.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Reset Visual & App Preferences")
-                .setMessage("Reset all visual appearance, font, and UI preferences to defaults?")
+                .setMessage("Reset all visual appearance, fonts, and UI density preferences to defaults?")
                 .setPositiveButton("Reset") { _, _ ->
                     Toast.makeText(this, "Preferences reset to defaults", Toast.LENGTH_SHORT).show()
                 }

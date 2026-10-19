@@ -34,6 +34,7 @@ import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.presentation.about.AboutActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import eightbitlab.com.blurview.BlurTarget
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -382,61 +383,7 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        findViewById<LinearLayout>(R.id.menuHome).setNavigatorClick {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSearch).setNavigatorClick {
-            closeDrawer()
-            val intent = Intent(this, SearchActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuHistory).setNavigatorClick {
-            closeDrawer()
-        }
-
-        findViewById<LinearLayout>(R.id.menuFavorites).setNavigatorClick {
-            closeDrawer()
-            Toast.makeText(this, "Favorites - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuCategories).setNavigatorClick {
-            closeDrawer()
-            Toast.makeText(this, "Categories - Coming Soon", Toast.LENGTH_SHORT).show()
-        }
-
-        findViewById<LinearLayout>(R.id.menuStorage).setNavigatorClick {
-            closeDrawer()
-            ActivityTransition.startActivitySmooth(this, Intent(this, StorageActivity::class.java))
-        }
-
-        findViewById<LinearLayout>(R.id.menuAbout).setNavigatorClick {
-            val intent = Intent(this, AboutActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        findViewById<LinearLayout>(R.id.menuSettings).setNavigatorClick {
-            closeDrawer()
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.settings.SettingsActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-    }
-
-    private fun View.setNavigatorClick(action: () -> Unit) {
-        setOnClickListener {
-            closeDrawer()
-            action()
-        }
+        DrawerMenuHelper.setup(this, drawerLayout)
     }
 
     private fun closeDrawer() {

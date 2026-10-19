@@ -125,8 +125,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingHorizontal="16dp"
-                android:paddingTop="8dp"
-                android:paddingBottom="8dp"
+                android:paddingTop="36dp"
+                android:paddingBottom="12dp"
                 android:visibility="gone"
                 android:background="#12151A">
 

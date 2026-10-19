@@ -60,15 +60,18 @@ class AppSupportSettingsActivity : AppCompatActivity() {
 
     private fun setupGlassCards() {
         val frameClearDrawable = window.decorView.background
-        val blurAppInfoCard: BlurView = findViewById(R.id.blurAppInfoCard)
-        val blurGameCard: BlurView = findViewById(R.id.blurGameCard)
-        val blurUpdateCard: BlurView = findViewById(R.id.blurUpdateCard)
-        val blurSupportCard: BlurView = findViewById(R.id.blurSupportCard)
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurAppInfoCard),
+            findViewById(R.id.blurGameCard),
+            findViewById(R.id.blurUpdateCard),
+            findViewById(R.id.blurSupportCard)
+        )
 
-        GlassBlurHelper.setupBlur(blurAppInfoCard, appSupportBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurGameCard, appSupportBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurUpdateCard, appSupportBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurSupportCard, appSupportBlurTarget, frameClearDrawable)
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, appSupportBlurTarget, frameClearDrawable)
+            }
+        }
     }
 
     private fun loadSettings() {
@@ -126,7 +129,7 @@ class AppSupportSettingsActivity : AppCompatActivity() {
         }
 
         btnReportBug.setOnClickListener {
-            Toast.makeText(this, "Opening official feedback & bug reporting URL...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Opening official feedback & bug reporting portal...", Toast.LENGTH_SHORT).show()
         }
 
         btnContactDeveloper.setOnClickListener {

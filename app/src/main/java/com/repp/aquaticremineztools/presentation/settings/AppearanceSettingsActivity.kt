@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.RadioGroup
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -19,6 +20,7 @@ class AppearanceSettingsActivity : AppCompatActivity() {
 
     private lateinit var appearanceBlurTarget: BlurTarget
     private lateinit var btnBack: FrameLayout
+    private lateinit var tvPreviewSample: TextView
     private lateinit var rgTheme: RadioGroup
     private lateinit var seekGlassTransparency: SeekBar
     private lateinit var seekBlurIntensity: SeekBar
@@ -47,6 +49,7 @@ class AppearanceSettingsActivity : AppCompatActivity() {
     private fun bindViews() {
         appearanceBlurTarget = findViewById(R.id.appearanceBlurTarget)
         btnBack = findViewById(R.id.btnBack)
+        tvPreviewSample = findViewById(R.id.tvPreviewSample)
         rgTheme = findViewById(R.id.rgTheme)
         seekGlassTransparency = findViewById(R.id.seekGlassTransparency)
         seekBlurIntensity = findViewById(R.id.seekBlurIntensity)
@@ -65,21 +68,21 @@ class AppearanceSettingsActivity : AppCompatActivity() {
 
     private fun setupGlassCards() {
         val frameClearDrawable = window.decorView.background
-        val blurPreviewCard: BlurView = findViewById(R.id.blurPreviewCard)
-        val blurThemeCard: BlurView = findViewById(R.id.blurThemeCard)
-        val blurWallpaperCard: BlurView = findViewById(R.id.blurWallpaperCard)
-        val blurDisplayCard: BlurView = findViewById(R.id.blurDisplayCard)
-        val blurLanguageCard: BlurView = findViewById(R.id.blurLanguageCard)
-        val blurAccessibilityCard: BlurView = findViewById(R.id.blurAccessibilityCard)
-        val blurPresetsCard: BlurView = findViewById(R.id.blurPresetsCard)
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurPreviewCard),
+            findViewById(R.id.blurThemeCard),
+            findViewById(R.id.blurWallpaperCard),
+            findViewById(R.id.blurDisplayCard),
+            findViewById(R.id.blurLanguageCard),
+            findViewById(R.id.blurAccessibilityCard),
+            findViewById(R.id.blurPresetsCard)
+        )
 
-        GlassBlurHelper.setupBlur(blurPreviewCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurThemeCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurWallpaperCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurDisplayCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurLanguageCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurAccessibilityCard, appearanceBlurTarget, frameClearDrawable)
-        GlassBlurHelper.setupBlur(blurPresetsCard, appearanceBlurTarget, frameClearDrawable)
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, appearanceBlurTarget, frameClearDrawable)
+            }
+        }
     }
 
     private fun loadCurrentSettings() {
@@ -89,6 +92,9 @@ class AppearanceSettingsActivity : AppCompatActivity() {
             "system" -> rgTheme.check(R.id.rbSystem)
             else -> rgTheme.check(R.id.rbDark)
         }
+
+        val accent = SettingsPreferences.getAccentColor(this)
+        tvPreviewSample.text = "Aquatic Reminez Tools — Active Theme: ${theme.uppercase()} • Accent: ${accent.uppercase()}"
 
         val glass = SettingsPreferences.getGlassTransparency(this)
         seekGlassTransparency.progress = (glass * 100).toInt()
@@ -119,27 +125,33 @@ class AppearanceSettingsActivity : AppCompatActivity() {
                 else -> "dark"
             }
             SettingsPreferences.setThemeMode(this, mode)
-            Toast.makeText(this, "Theme updated: $mode", Toast.LENGTH_SHORT).show()
+            loadCurrentSettings()
+            Toast.makeText(this, "Theme mode set to: $mode", Toast.LENGTH_SHORT).show()
         }
 
-        findViewById<Button>(R.id.btnAccentCyan).setOnClickListener {
+        findViewById<Button>(R.id.btnAccentCyan)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "cyan")
+            loadCurrentSettings()
             Toast.makeText(this, "Accent: Cyan", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnAccentTeal).setOnClickListener {
+        findViewById<Button>(R.id.btnAccentTeal)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "teal")
+            loadCurrentSettings()
             Toast.makeText(this, "Accent: Teal", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnAccentViolet).setOnClickListener {
+        findViewById<Button>(R.id.btnAccentViolet)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "violet")
+            loadCurrentSettings()
             Toast.makeText(this, "Accent: Violet", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnAccentBlue).setOnClickListener {
+        findViewById<Button>(R.id.btnAccentBlue)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "blue")
+            loadCurrentSettings()
             Toast.makeText(this, "Accent: Blue", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnAccentEmerald).setOnClickListener {
+        findViewById<Button>(R.id.btnAccentEmerald)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "emerald")
+            loadCurrentSettings()
             Toast.makeText(this, "Accent: Emerald", Toast.LENGTH_SHORT).show()
         }
 
@@ -148,7 +160,7 @@ class AppearanceSettingsActivity : AppCompatActivity() {
             AlertDialog.Builder(this)
                 .setTitle("Select Custom Accent Color")
                 .setItems(colors) { _, which ->
-                    val colorHex = when(which) {
+                    val colorHex = when (which) {
                         1 -> "#38BFA1"
                         2 -> "#A78BFA"
                         3 -> "#D6B46A"
@@ -156,13 +168,14 @@ class AppearanceSettingsActivity : AppCompatActivity() {
                         else -> "#43D9E6"
                     }
                     SettingsPreferences.setCustomAccentHex(this, colorHex)
+                    loadCurrentSettings()
                     Toast.makeText(this, "Custom Accent Hex: $colorHex", Toast.LENGTH_SHORT).show()
                 }
                 .show()
         }
 
-        findViewById<Button>(R.id.btnSelectWallpaper).setOnClickListener {
-            Toast.makeText(this, "Wallpaper selection active (Built-in / Gallery)", Toast.LENGTH_SHORT).show()
+        findViewById<Button>(R.id.btnSelectWallpaper)?.setOnClickListener {
+            Toast.makeText(this, "Wallpaper selection active (Built-in / Gallery Photo)", Toast.LENGTH_SHORT).show()
         }
 
         seekGlassTransparency.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -266,25 +279,25 @@ class AppearanceSettingsActivity : AppCompatActivity() {
             SettingsPreferences.setLightweightEffects(this, isChecked)
         }
 
-        findViewById<Button>(R.id.btnPresetOcean).setOnClickListener {
+        findViewById<Button>(R.id.btnPresetOcean)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "cyan")
             SettingsPreferences.setThemeMode(this, "dark")
             loadCurrentSettings()
             Toast.makeText(this, "Preset: Ocean Cyber", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnPresetNeon).setOnClickListener {
+        findViewById<Button>(R.id.btnPresetNeon)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "violet")
             SettingsPreferences.setThemeMode(this, "dark")
             loadCurrentSettings()
             Toast.makeText(this, "Preset: Neon Violet", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnPresetEmerald).setOnClickListener {
+        findViewById<Button>(R.id.btnPresetEmerald)?.setOnClickListener {
             SettingsPreferences.setAccentColor(this, "emerald")
             SettingsPreferences.setThemeMode(this, "dark")
             loadCurrentSettings()
             Toast.makeText(this, "Preset: Emerald", Toast.LENGTH_SHORT).show()
         }
-        findViewById<Button>(R.id.btnPresetClean).setOnClickListener {
+        findViewById<Button>(R.id.btnPresetClean)?.setOnClickListener {
             SettingsPreferences.setThemeMode(this, "light")
             SettingsPreferences.setAccentColor(this, "teal")
             loadCurrentSettings()

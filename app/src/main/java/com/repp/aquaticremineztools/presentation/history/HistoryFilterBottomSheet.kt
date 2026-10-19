@@ -85,8 +85,11 @@ class HistoryFilterBottomSheet(
                 tag = cat
                 isCheckable = true
                 isChecked = (currentFilters.category == cat)
-                setChipBackgroundColorResource(R.color.bg_card)
+                setChipBackgroundColorResource(R.color.bg_card_elevated)
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                chipStrokeColor = ContextCompat.getColorStateList(context, R.color.border)
+                chipStrokeWidth = 1f
+                checkedIconTint = ContextCompat.getColorStateList(context, R.color.accent_primary)
             }
             cgCategory.addView(chip)
         }
@@ -98,8 +101,11 @@ class HistoryFilterBottomSheet(
                 tag = type
                 isCheckable = true
                 isChecked = (currentFilters.activityType == type)
-                setChipBackgroundColorResource(R.color.bg_card)
+                setChipBackgroundColorResource(R.color.bg_card_elevated)
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                chipStrokeColor = ContextCompat.getColorStateList(context, R.color.border)
+                chipStrokeWidth = 1f
+                checkedIconTint = ContextCompat.getColorStateList(context, R.color.accent_primary)
             }
             cgType.addView(chip)
         }
@@ -111,8 +117,11 @@ class HistoryFilterBottomSheet(
                 tag = st
                 isCheckable = true
                 isChecked = (currentFilters.status == st)
-                setChipBackgroundColorResource(R.color.bg_card)
+                setChipBackgroundColorResource(R.color.bg_card_elevated)
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                chipStrokeColor = ContextCompat.getColorStateList(context, R.color.border)
+                chipStrokeWidth = 1f
+                checkedIconTint = ContextCompat.getColorStateList(context, R.color.accent_primary)
             }
             cgStatus.addView(chip)
         }
@@ -123,8 +132,11 @@ class HistoryFilterBottomSheet(
                 tag = key
                 isCheckable = true
                 isChecked = (currentFilters.dateRange == key)
-                setChipBackgroundColorResource(R.color.bg_card)
+                setChipBackgroundColorResource(R.color.bg_card_elevated)
                 setTextColor(ContextCompat.getColor(context, R.color.text_primary))
+                chipStrokeColor = ContextCompat.getColorStateList(context, R.color.border)
+                chipStrokeWidth = 1f
+                checkedIconTint = ContextCompat.getColorStateList(context, R.color.accent_primary)
             }
             cgDate.addView(chip)
         }
