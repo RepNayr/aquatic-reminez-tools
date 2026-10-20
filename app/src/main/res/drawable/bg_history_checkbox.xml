@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Checked state: filled circle with checkmark ic_check -->
+    <item android:state_checked="true">
+        <layer-list>
+            <item>
+                <shape android:shape="oval">
+                    <solid android:color="@color/accent_primary" />
+                </shape>
+            </item>
+            <item android:gravity="center" android:width="16dp" android:height="16dp">
+                <bitmap android:src="@drawable/ic_check" android:tint="@color/bg_primary" />
+            </item>
+        </layer-list>
+    </item>
+    <!-- Unchecked state: empty circle outline -->
+    <item android:state_checked="false">
+        <shape android:shape="oval">
+            <solid android:color="@color/bg_card" />
+            <stroke android:width="2dp" android:color="@color/text_muted" />
+        </shape>
+    </item>
+</selector>

@@ -178,21 +178,23 @@
                         android:orientation="vertical"
                         android:padding="14dp">
 
-                        <EditText
-                            android:id="@+id/etSearchSettings"
+                        <TextView
                             android:layout_width="match_parent"
-                            android:layout_height="46dp"
-                            android:background="@drawable/bg_card_dark"
-                            android:drawableStart="@drawable/ic_search"
-                            android:drawableTint="@color/white"
-                            android:drawablePadding="12dp"
-                            android:hint="Search preferences, tools &amp; settings..."
-                            android:imeOptions="actionSearch"
-                            android:inputType="text"
-                            android:paddingHorizontal="16dp"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:text="Preferences &amp; Control Center"
                             android:textColor="@color/text_primary"
-                            android:textColorHint="@color/text_muted"
-                            android:textSize="13sp" />
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="@string/settings_header_desc"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
 
                         <!-- Quick Status Summary Bar -->
                         <LinearLayout
@@ -366,7 +368,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Dark glassmorphic cyber theme with cyan accents &amp; Times New Roman typography."
+                            android:text="@string/settings_appearance_desc"
                             android:textColor="@color/text_secondary"
                             android:textSize="12sp" />
 
@@ -531,6 +533,15 @@
                                 android:textStyle="bold" />
                         </LinearLayout>
 
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="@string/settings_quick_controls_desc"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
                         <!-- 2-Column Toggle Grid -->
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -657,6 +668,15 @@
                             android:textColor="@color/accent_cyan"
                             android:textSize="15sp"
                             android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text="@string/settings_personalization_desc"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
 
                         <!-- Grid 2x2 of shortcuts -->
                         <LinearLayout
@@ -799,7 +819,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Kelola cache aplikasi, ekspor histori aktivitas, dan pembersihan penyimpanan lokal."
+                            android:text="@string/settings_storage_desc"
                             android:textColor="@color/text_muted"
                             android:textSize="11sp" />
 
@@ -925,7 +945,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Atur profil ruang kerja aktif, koleksi favorit, preset tool, dan manajemen dashboard."
+                            android:text="@string/settings_workspace_desc"
                             android:textColor="@color/text_muted"
                             android:textSize="11sp" />
 
@@ -1076,7 +1096,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/times_new_roman_regular"
-                            android:text="Manajer perpustakaan tool, pintasan Android, pembangun alur kerja, dan preset."
+                            android:text="@string/settings_tool_mgmt_desc"
                             android:textColor="@color/text_muted"
                             android:textSize="11sp" />
 

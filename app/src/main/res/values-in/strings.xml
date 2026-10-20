@@ -338,4 +338,15 @@
     <string name="delete_pin_message">Kamu akan kehilangan PIN dan pertanyaan keamanan</string>
     <string name="developer_badge">DEVELOPER</string>
 
+    <!-- SETTINGS DESCRIPTIONS -->
+    <string name="settings_header_desc">Kustomisasi preferensi, tampilan, keamanan, dukungan aplikasi, dan alur kerja ruang kerja.</string>
+    <string name="settings_appearance_desc">Tema cyber glassmorphic gelap dengan aksen cyan &amp; tipografi Times New Roman.</string>
+    <string name="settings_storage_desc">Kelola cache aplikasi, ekspor riwayat aktivitas, dan pembersihan penyimpanan lokal.</string>
+    <string name="settings_workspace_desc">Atur profil ruang kerja aktif, koleksi favorit, preset alat, dan tata letak dasbor.</string>
+    <string name="settings_tool_mgmt_desc">Manajer pustaka alat, pintasan Android, pembangun alur kerja, dan preset.</string>
+    <string name="settings_security_desc">Kunci aplikasi, biometrik, riwayat, penyimpanan, cadangan &amp; pemulihan.</string>
+    <string name="settings_app_support_desc">Detail rilis sistem, pengaturan game, pusat pembaruan &amp; umpan balik.</string>
+    <string name="settings_quick_controls_desc">Langsung aktifkan kunci aplikasi, pelindung privasi, pencatatan riwayat, dan mode kontras tinggi.</string>
+    <string name="settings_personalization_desc">Pintasan cepat untuk aksen tema, wallpaper kaca, tipografi, dan pengaturan wilayah.</string>
+
 </resources>

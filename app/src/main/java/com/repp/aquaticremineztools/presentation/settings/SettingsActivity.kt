@@ -7,7 +7,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.View
 import android.widget.Button
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -38,7 +37,6 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var settingsBlurTarget: BlurTarget
     private lateinit var btnMenu: FrameLayout
-    private lateinit var etSearch: EditText
 
     // Status Chips
     private lateinit var tvStatusTheme: TextView
@@ -149,7 +147,6 @@ class SettingsActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         settingsBlurTarget = findViewById(R.id.settingsBlurTarget)
         btnMenu = findViewById(R.id.btnMenu)
-        etSearch = findViewById(R.id.etSearchSettings)
 
         tvStatusTheme = findViewById(R.id.tvStatusTheme)
         tvStatusLock = findViewById(R.id.tvStatusLock)
@@ -505,14 +502,6 @@ class SettingsActivity : AppCompatActivity() {
 
         cardCatWorkspace.setOnClickListener {
             ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
-        }
-
-        etSearch.setOnEditorActionListener { _, _, _ ->
-            val query = etSearch.text.toString().trim()
-            if (query.isNotEmpty()) {
-                Toast.makeText(this, "Searching preferences for: $query", Toast.LENGTH_SHORT).show()
-            }
-            true
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.repp.aquaticremineztools.presentation.home
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,17 +8,20 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.card.MaterialCardView
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.QuickCategory
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 
 class QuickCategoryAdapter(
     private val categories: List<QuickCategory>,
+    private val blurTarget: BlurTarget,
+    private val frameClearDrawable: Drawable?,
     private val onCategoryClick: (QuickCategory) -> Unit,
 ) : RecyclerView.Adapter<QuickCategoryAdapter.CategoryViewHolder>() {
 
     class CategoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val cardRoot: MaterialCardView = itemView.findViewById(R.id.cardCategory)
+        val blurCard: BlurView = itemView as BlurView
         val ivIcon: ImageView = itemView.findViewById(R.id.ivIcon)
         val tvName: TextView = itemView.findViewById(R.id.tvName)
         val tvCount: TextView = itemView.findViewById(R.id.tvCount)
@@ -33,6 +37,8 @@ class QuickCategoryAdapter(
         val category = categories[position]
         val context = holder.itemView.context
 
+        GlassBlurHelper.setupBlur(holder.blurCard, blurTarget, frameClearDrawable)
+
         holder.ivIcon.setImageResource(category.iconRes)
         holder.tvName.setText(category.nameRes)
         holder.tvCount.text = "${category.count} tools"
@@ -43,7 +49,7 @@ class QuickCategoryAdapter(
         // Tint icon with category accent color
         holder.ivIcon.setColorFilter(accentColor)
 
-        holder.cardRoot.setOnClickListener {
+        holder.blurCard.setOnClickListener {
             onCategoryClick(category)
         }
     }

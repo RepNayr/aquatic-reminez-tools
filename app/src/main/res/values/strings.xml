@@ -338,4 +338,15 @@
     <string name="delete_pin_message">You will lose your PIN and security question</string>
     <string name="developer_badge">DEVELOPER</string>
 
+    <!-- SETTINGS DESCRIPTIONS -->
+    <string name="settings_header_desc">Customize preferences, appearance, security, app support, and workspace workflows.</string>
+    <string name="settings_appearance_desc">Dark glassmorphic cyber theme with cyan accents &amp; Times New Roman typography.</string>
+    <string name="settings_storage_desc">Manage app cache, export activity history, and local storage cleanup.</string>
+    <string name="settings_workspace_desc">Manage active workspace profile, favorite collections, tool presets, and dashboard layout.</string>
+    <string name="settings_tool_mgmt_desc">Tool library manager, Android shortcuts, workflow builder, and presets.</string>
+    <string name="settings_security_desc">App lock, biometrics, history, storage, backups &amp; recovery.</string>
+    <string name="settings_app_support_desc">System build details, game settings, update center &amp; feedback.</string>
+    <string name="settings_quick_controls_desc">Instantly toggle app lock, privacy shield, history logging, and high contrast mode.</string>
+    <string name="settings_personalization_desc">Quick shortcuts for theme accents, wallpaper glass, typography, and regional settings.</string>
+
 </resources>

@@ -405,7 +405,10 @@ class HistoryActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
+        val frameClearDrawable = window.decorView.background
         timelineAdapter = HistoryTimelineAdapter(
+            blurTarget = homeBlurTarget,
+            frameClearDrawable = frameClearDrawable,
             onItemClick = { entity ->
                 if (!isFinishing && !isDestroyed && !supportFragmentManager.isStateSaved) {
                     val detailSheet = HistoryDetailBottomSheet.newInstance(
@@ -433,13 +436,16 @@ class HistoryActivity : AppCompatActivity() {
                     enterSelectionMode(entity.id)
                 }
             },
-            onCheckBoxChanged = { entity, isChecked ->
-                if (isChecked) {
-                    selectedIds.add(entity.id)
+            onCheckBoxChanged = { _, _ -> },
+            onCardClick = { cardItem, position ->
+                timelineAdapter.toggleItemSelection(position)
+                val newState = !cardItem.isSelected
+                if (newState) {
+                    selectedIds.add(cardItem.entity.id)
                 } else {
-                    selectedIds.remove(entity.id)
+                    selectedIds.remove(cardItem.entity.id)
                 }
-                updateSelectionUI()
+                updateSelectionUIOnly()
             },
             onOverflowClick = { entity, view ->
                 val popup = PopupMenu(this, view)
@@ -526,7 +532,7 @@ class HistoryActivity : AppCompatActivity() {
         tvRecordCount.text = "${allHistory.size} records"
 
         val timelineItems = buildTimelineItems(filteredHistory)
-        timelineAdapter.submitItems(timelineItems)
+        timelineAdapter.submitItems(timelineItems, searchQuery)
 
         if (allHistory.isEmpty()) {
             emptyStateContainer.visibility = View.VISIBLE
@@ -614,6 +620,11 @@ class HistoryActivity : AppCompatActivity() {
         }
     }
 
+    private fun refreshTimelineItems() {
+        val timelineItems = buildTimelineItems(filteredHistory)
+        timelineAdapter.submitItems(timelineItems, searchQuery)
+    }
+
     private fun enterSelectionMode(initialId: Long) {
         isSelectionMode = true
         timelineAdapter.isSelectionMode = true
@@ -622,8 +633,8 @@ class HistoryActivity : AppCompatActivity() {
 
         normalToolbar.visibility = View.GONE
         selectionToolbar.visibility = View.VISIBLE
+        refreshTimelineItems()
         updateSelectionUI()
-        timelineAdapter.notifyDataSetChanged()
     }
 
     private fun exitSelectionMode() {
@@ -633,14 +644,20 @@ class HistoryActivity : AppCompatActivity() {
 
         normalToolbar.visibility = View.VISIBLE
         selectionToolbar.visibility = View.GONE
-        timelineAdapter.notifyDataSetChanged()
+        refreshTimelineItems()
+    }
+
+    private fun updateSelectionUIOnly() {
+        val count = selectedIds.size
+        tvSelectionCount.text = "$count selected"
+        btnSelectAll.text = if (count == filteredHistory.size && filteredHistory.isNotEmpty()) "Deselect All" else "Select All"
     }
 
     private fun updateSelectionUI() {
         val count = selectedIds.size
         tvSelectionCount.text = "$count selected"
         btnSelectAll.text = if (count == filteredHistory.size && filteredHistory.isNotEmpty()) "Deselect All" else "Select All"
-        timelineAdapter.notifyDataSetChanged()
+        refreshTimelineItems()
     }
 
     private fun confirmDeleteSelected() {
