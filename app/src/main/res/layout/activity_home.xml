@@ -176,6 +176,13 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp" />
 
+                <include
+                    android:id="@+id/prayerScheduleInclude"
+                    layout="@layout/view_prayer_schedule"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
             </LinearLayout>
 
         </androidx.core.widget.NestedScrollView>

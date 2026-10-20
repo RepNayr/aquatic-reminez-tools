@@ -45,10 +45,24 @@
     <string name="home_quick_menu">QUICK MENU</string>
     <string name="home_favorites">FAVORITES</string>
     <string name="home_recent">RECENT</string>
-    <string name="home_prayer_times">PRAYER TIMES</string>
+    <string name="home_prayer_times">JADWAL SHOLAT</string>
     <string name="home_market">MARKET</string>
     <string name="home_info">INFO</string>
     <string name="home_tools_count">%1$d tools</string>
+
+    <!-- PRAYER SCHEDULE -->
+    <string name="prayer_title">JADWAL SHOLAT</string>
+    <string name="prayer_imsak">Imsak</string>
+    <string name="prayer_subuh">Subuh</string>
+    <string name="prayer_dzuhur">Dzuhur</string>
+    <string name="prayer_ashar">Ashar</string>
+    <string name="prayer_maghrib">Maghrib</string>
+    <string name="prayer_isya">Isya</string>
+    <string name="prayer_next_label">Sholat Berikutnya: %1$s</string>
+    <string name="prayer_towards_label">Menuju: %1$s</string>
+    <string name="prayer_countdown_combined">Menuju %1$s · %2$s</string>
+    <string name="prayer_offline_notice">Offline Data (%1$s)</string>
+    <string name="prayer_error_notice">Gagal Memuat Jadwal</string>
 
     <!-- USER -->
     <string name="user_name">ReeP</string>

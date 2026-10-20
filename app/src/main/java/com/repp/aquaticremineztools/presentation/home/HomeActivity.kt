@@ -31,6 +31,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
+import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -41,6 +42,7 @@ import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.network.InfoCardHelper
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
+import com.repp.aquaticremineztools.core.settings.PrayerPreferences
 import com.repp.aquaticremineztools.data.QuickCategory
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
@@ -95,6 +97,29 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var cardIpBlur: BlurView
     private lateinit var cardConnectionBlur: BlurView
     private lateinit var cardPingBlur: BlurView
+
+    // Prayer Schedule Widget
+    private lateinit var prayerViewModel: PrayerViewModel
+    private lateinit var cardPrayerBlur: BlurView
+    private lateinit var tvCurrentPrayer: TextView
+    private lateinit var tvImsakTime: TextView
+    private lateinit var tvSubuhTime: TextView
+    private lateinit var tvDzuhurTime: TextView
+    private lateinit var tvAsharTime: TextView
+    private lateinit var tvMaghribTime: TextView
+    private lateinit var tvNextPrayer: TextView
+    private lateinit var tvCountdown: TextView
+    private lateinit var tvPrayerStatusIndicator: TextView
+
+    private val prayerCountdownHandler = Handler(Looper.getMainLooper())
+    private val prayerCountdownRunnable = object : Runnable {
+        override fun run() {
+            if (::prayerViewModel.isInitialized) {
+                prayerViewModel.tickCountdown()
+            }
+            prayerCountdownHandler.postDelayed(this, 1000L)
+        }
+    }
 
     private lateinit var tvPasswordLabel: TextView
 
@@ -171,8 +196,11 @@ class HomeActivity : AppCompatActivity() {
 
         lastLocationFetch = 0L
 
+        prayerViewModel = ViewModelProvider(this)[PrayerViewModel::class.java]
+
         bindViews()
         setupGlassCards()
+        setupPrayerSchedule()
         setupClicks()
         setupDrawerMenuClicks()
         setupBottomNav()
@@ -210,6 +238,18 @@ class HomeActivity : AppCompatActivity() {
         tvConnectionLabel = findViewById(R.id.tvConnectionLabel)
         tvConnectionValue = findViewById(R.id.tvConnectionValue)
         tvPingValue = findViewById(R.id.tvPingValue)
+
+        // Prayer Schedule Widget
+        cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
+        tvCurrentPrayer = findViewById(R.id.tvCurrentPrayer)
+        tvImsakTime = findViewById(R.id.tvImsakTime)
+        tvSubuhTime = findViewById(R.id.tvSubuhTime)
+        tvDzuhurTime = findViewById(R.id.tvDzuhurTime)
+        tvAsharTime = findViewById(R.id.tvAsharTime)
+        tvMaghribTime = findViewById(R.id.tvMaghribTime)
+        tvNextPrayer = findViewById(R.id.tvNextPrayer)
+        tvCountdown = findViewById(R.id.tvCountdown)
+        tvPrayerStatusIndicator = findViewById(R.id.tvPrayerStatusIndicator)
 
         tvPasswordLabel = findViewById(R.id.tvPasswordLabel)
 
@@ -318,7 +358,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur))
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur))
     }
 
     private fun closeDrawer() {
@@ -381,12 +421,63 @@ class HomeActivity : AppCompatActivity() {
         cardIpBlur = findViewById(R.id.cardIp)
         cardConnectionBlur = findViewById(R.id.cardConnection)
         cardPingBlur = findViewById(R.id.cardPing)
+        cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
 
         val frameClearDrawable = window.decorView.background
 
         GlassBlurHelper.setupBlur(cardIpBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardConnectionBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPingBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(cardPrayerBlur, homeBlurTarget, frameClearDrawable)
+    }
+
+    // ============================
+    // PRAYER SCHEDULE WIDGET
+    // ============================
+    private fun setupPrayerSchedule() {
+        prayerViewModel.uiState.observe(this) { state ->
+            when (state) {
+                is PrayerUiState.Loading -> {
+                    tvPrayerStatusIndicator.visibility = View.GONE
+                }
+                is PrayerUiState.Success -> {
+                    val s = state.schedule
+                    tvImsakTime.text = s.imsak
+                    tvSubuhTime.text = s.subuh
+                    tvDzuhurTime.text = s.dzuhur
+                    tvAsharTime.text = s.ashar
+                    tvMaghribTime.text = s.maghrib
+
+                    val nextInfo = state.nextPrayerInfo
+                    tvCurrentPrayer.text = "Waktu sholat sekarang: ${nextInfo.currentPrayerName}"
+                    tvNextPrayer.text = "Sholat berikutnya: ${nextInfo.prayerName}"
+                    tvCountdown.text = nextInfo.countdownText
+                    tvPrayerStatusIndicator.visibility = View.GONE
+                }
+                is PrayerUiState.Error -> {
+                    if (state.cachedSchedule != null) {
+                        val s = state.cachedSchedule
+                        tvImsakTime.text = s.imsak
+                        tvSubuhTime.text = s.subuh
+                        tvDzuhurTime.text = s.dzuhur
+                        tvAsharTime.text = s.ashar
+                        tvMaghribTime.text = s.maghrib
+
+                        if (state.nextPrayerInfo != null) {
+                            val nextInfo = state.nextPrayerInfo
+                            tvCurrentPrayer.text = "Waktu sholat sekarang: ${nextInfo.currentPrayerName}"
+                            tvNextPrayer.text = "Sholat berikutnya: ${nextInfo.prayerName}"
+                            tvCountdown.text = nextInfo.countdownText
+                        }
+                        tvPrayerStatusIndicator.text = "Data Offline (${s.cityName})"
+                        tvPrayerStatusIndicator.visibility = View.VISIBLE
+                    } else {
+                        tvPrayerStatusIndicator.text = "Gagal Memuat Jadwal"
+                        tvPrayerStatusIndicator.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
     }
 
     // ============================
@@ -633,7 +724,10 @@ class HomeActivity : AppCompatActivity() {
                 executor.execute {
                     val cityName = getCityName(lat, lon)
                     if (cityName != "Unknown" && cityName.isNotEmpty()) {
-                        runOnUiThread { tvLocation.text = cityName }
+                        runOnUiThread {
+                            tvLocation.text = cityName
+                            prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cityName)
+                        }
                     } else {
                         fetchLocationFromIp()
                     }
@@ -650,7 +744,10 @@ class HomeActivity : AppCompatActivity() {
                         executor.execute {
                             val cityName = getCityName(lat, lon)
                             if (cityName != "Unknown" && cityName.isNotEmpty()) {
-                                runOnUiThread { tvLocation.text = cityName }
+                                runOnUiThread {
+                                    tvLocation.text = cityName
+                                    prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cityName)
+                                }
                             }
                         }
                         fetchWeather(lat, lon)
@@ -697,14 +794,26 @@ class HomeActivity : AppCompatActivity() {
                     if (cleanedCity.isNotEmpty() && cleanedCity != "Unknown") {
                         runOnUiThread {
                             tvLocation.text = cleanedCity
+                            if (lat != 0.0 && lon != 0.0) {
+                                prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cleanedCity)
+                            }
+                        }
+                    } else {
+                        if (lat != 0.0 && lon != 0.0) {
+                            prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, "Jakarta")
+                        } else {
+                            prayerViewModel.loadSchedule(this@HomeActivity)
                         }
                     }
                     if (lat != 0.0 && lon != 0.0) {
                         fetchWeather(lat, lon)
                     }
+                } else {
+                    prayerViewModel.loadSchedule(this@HomeActivity)
                 }
             } catch (e: Exception) {
                 Log.e("WEATHER_DEBUG", "IP location error: ${e.message}", e)
+                prayerViewModel.loadSchedule(this@HomeActivity)
             }
         }
     }
@@ -822,6 +931,7 @@ class HomeActivity : AppCompatActivity() {
         cardPlayer?.play()
         updatePasswordLabel()
         selectNavTab(0)
+        prayerCountdownHandler.post(prayerCountdownRunnable)
 
         if (PinManager.hasPin(this) && AppLockManager.shouldLock(this)) {
             AppLockManager.redirectToVerify(this, PinVerifyActivity::class.java)
@@ -840,6 +950,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         cardPlayer?.pause()
+        prayerCountdownHandler.removeCallbacks(prayerCountdownRunnable)
         AppLockManager.onActivityPaused()
     }
 
@@ -847,6 +958,7 @@ class HomeActivity : AppCompatActivity() {
         super.onDestroy()
         clockHandler.removeCallbacks(clockRunnable)
         pingHandler.removeCallbacks(pingRunnable)
+        prayerCountdownHandler.removeCallbacks(prayerCountdownRunnable)
         try { unregisterReceiver(batteryReceiver) } catch (_: Exception) {}
         cardPlayer?.release()
         cardPlayer = null
