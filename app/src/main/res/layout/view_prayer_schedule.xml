@@ -30,13 +30,15 @@
         app:layout_constraintStart_toEndOf="@id/sectionLinePrayer"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- GLASS CARD -->
+    <!-- GLASS CARD (UNIFIED SINGLE CARD) -->
     <eightbitlab.com.blurview.BlurView
         android:id="@+id/cardPrayerSchedule"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:background="@drawable/bg_glass_card_clip"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginEnd="3dp"
+        android:background="@drawable/bg_prayer_card_clip"
         app:layout_constraintTop_toBottomOf="@id/tvPrayerTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -44,23 +46,23 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/bg_glass_card_overlay" />
+            android:background="@drawable/bg_prayer_card_overlay" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@drawable/bg_glass_card_specular" />
+            android:background="@drawable/bg_prayer_card_specular" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:baselineAligned="false"
-            android:paddingHorizontal="8dp"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp">
+            android:paddingHorizontal="14dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="14dp">
 
-            <!-- 5 EVENLY DISTRIBUTED COLUMNS (Tighter spacing) -->
+            <!-- 5 EVENLY DISTRIBUTED COLUMNS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -79,8 +81,8 @@
 
                     <ImageView
                         android:id="@+id/ivImsakIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/prayer_imsak"
                         android:src="@drawable/ic_prayer_imsak"
                         app:tint="@color/accent_yellow" />
@@ -89,7 +91,7 @@
                         android:id="@+id/tvImsakLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="@string/prayer_imsak"
                         android:textColor="@color/text_secondary"
@@ -99,11 +101,11 @@
                         android:id="@+id/tvImsakTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="04:51"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -118,8 +120,8 @@
 
                     <ImageView
                         android:id="@+id/ivSubuhIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/prayer_subuh"
                         android:src="@drawable/ic_prayer_subuh"
                         app:tint="@color/accent_yellow" />
@@ -128,7 +130,7 @@
                         android:id="@+id/tvSubuhLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="@string/prayer_subuh"
                         android:textColor="@color/text_secondary"
@@ -138,11 +140,11 @@
                         android:id="@+id/tvSubuhTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="05:01"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -157,8 +159,8 @@
 
                     <ImageView
                         android:id="@+id/ivDzuhurIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/prayer_dzuhur"
                         android:src="@drawable/ic_prayer_dzuhur"
                         app:tint="@color/accent_yellow" />
@@ -167,7 +169,7 @@
                         android:id="@+id/tvDzuhurLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="@string/prayer_dzuhur"
                         android:textColor="@color/text_secondary"
@@ -177,11 +179,11 @@
                         android:id="@+id/tvDzuhurTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="11:56"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -196,8 +198,8 @@
 
                     <ImageView
                         android:id="@+id/ivAsharIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/prayer_ashar"
                         android:src="@drawable/ic_prayer_ashar"
                         app:tint="@color/accent_yellow" />
@@ -206,7 +208,7 @@
                         android:id="@+id/tvAsharLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="@string/prayer_ashar"
                         android:textColor="@color/text_secondary"
@@ -216,11 +218,11 @@
                         android:id="@+id/tvAsharTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="15:18"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
@@ -235,8 +237,8 @@
 
                     <ImageView
                         android:id="@+id/ivMaghribIcon"
-                        android:layout_width="18dp"
-                        android:layout_height="18dp"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
                         android:contentDescription="@string/prayer_maghrib"
                         android:src="@drawable/ic_prayer_maghrib"
                         app:tint="@color/accent_yellow" />
@@ -245,7 +247,7 @@
                         android:id="@+id/tvMaghribLabel"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
+                        android:layout_marginTop="10dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="@string/prayer_maghrib"
                         android:textColor="@color/text_secondary"
@@ -255,87 +257,154 @@
                         android:id="@+id/tvMaghribTime"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="1dp"
+                        android:layout_marginTop="2dp"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="17:55"
                         android:textColor="@color/text_primary"
-                        android:textSize="11sp"
+                        android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
 
             </LinearLayout>
 
-            <!-- DIVIDER LINE -->
+            <!-- SUBTLE 1DP DIVIDER LINE -->
             <View
+                android:id="@+id/dividerPrayer"
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="6dp"
+                android:layout_marginVertical="14dp"
                 android:background="#1AFFFFFF" />
 
-            <!-- WAKTU SHOLAT SEKARANG & SHOLAT BERIKUTNYA -->
-            <LinearLayout
+            <!-- CURRENT PRAYER & COUNTDOWN PANEL -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/layoutCountdownPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="2dp">
+                android:paddingTop="2dp">
 
-                <!-- Waktu sholat sekarang -->
-                <TextView
-                    android:id="@+id/tvCurrentPrayer"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/times_new_roman_bold"
-                    android:text="Waktu sholat sekarang: Isya"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp" />
+                <!-- ICON TILE -->
+                <FrameLayout
+                    android:id="@+id/cardCurrentPrayerIcon"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_prayer_icon_tile"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent">
 
-                <!-- Sholat berikutnya + Countdown (Yellow time) -->
+                    <ImageView
+                        android:id="@+id/ivCurrentPrayerIcon"
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_prayer_maghrib"
+                        android:contentDescription="@string/prayer_current_icon_desc"
+                        app:tint="@color/accent_yellow" />
+
+                </FrameLayout>
+
+                <!-- CURRENT PRAYER INFO -->
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/layoutCurrentPrayerInfo"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:orientation="vertical"
+                    app:layout_constraintTop_toTopOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintStart_toEndOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintEnd_toStartOf="@id/layoutNextPrayerInfo">
 
                     <TextView
-                        android:id="@+id/tvNextPrayer"
-                        android:layout_width="0dp"
+                        android:id="@+id/tvCurrentPrayerHeader"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:maxLines="1"
-                        android:text="Sholat berikutnya: Shubuh"
+                        android:letterSpacing="0.05"
+                        android:text="@string/prayer_ongoing_header"
                         android:textColor="@color/accent_gold"
-                        android:textSize="11sp"
+                        android:textSize="9sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCurrentPrayer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="@string/prayer_maghrib"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- NEXT PRAYER & COUNTDOWN INFO -->
+                <LinearLayout
+                    android:id="@+id/layoutNextPrayerInfo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:orientation="vertical"
+                    app:layout_constraintTop_toTopOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintBottom_toBottomOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintEnd_toEndOf="parent">
 
                     <TextView
                         android:id="@+id/tvCountdown"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="01:24:35"
+                        android:text="00:00:00"
                         android:textColor="@color/accent_yellow"
-                        android:textSize="12sp"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvNextPrayer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:letterSpacing="0.05"
+                        android:text="MENUJU -"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="9sp"
                         android:textStyle="bold" />
 
                 </LinearLayout>
 
-            </LinearLayout>
+                <!-- PROGRESS BAR -->
+                <ProgressBar
+                    android:id="@+id/pbPrayerProgress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="4dp"
+                    android:layout_marginTop="12dp"
+                    android:max="1000"
+                    android:progress="0"
+                    android:progressDrawable="@drawable/bg_prayer_progress"
+                    app:layout_constraintTop_toBottomOf="@id/cardCurrentPrayerIcon"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
 
-            <!-- OFFLINE / STATUS INDICATOR -->
-            <TextView
-                android:id="@+id/tvPrayerStatusIndicator"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:gravity="center"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:text="Data Offline"
-                android:textColor="@color/status_warning"
-                android:textSize="9sp"
-                android:visibility="gone" />
+                <!-- STATUS INDICATOR -->
+                <TextView
+                    android:id="@+id/tvPrayerStatusIndicator"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:text="Data Offline"
+                    android:textColor="@color/status_warning"
+                    android:textSize="9sp"
+                    android:visibility="gone"
+                    app:layout_constraintTop_toBottomOf="@id/pbPrayerProgress"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
         </LinearLayout>
 

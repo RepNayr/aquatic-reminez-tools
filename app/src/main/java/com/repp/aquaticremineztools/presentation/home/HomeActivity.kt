@@ -22,6 +22,7 @@ import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -101,6 +102,7 @@ class HomeActivity : AppCompatActivity() {
     // Prayer Schedule Widget
     private lateinit var prayerViewModel: PrayerViewModel
     private lateinit var cardPrayerBlur: BlurView
+    private lateinit var ivCurrentPrayerIcon: ImageView
     private lateinit var tvCurrentPrayer: TextView
     private lateinit var tvImsakTime: TextView
     private lateinit var tvSubuhTime: TextView
@@ -109,6 +111,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvMaghribTime: TextView
     private lateinit var tvNextPrayer: TextView
     private lateinit var tvCountdown: TextView
+    private lateinit var pbPrayerProgress: ProgressBar
     private lateinit var tvPrayerStatusIndicator: TextView
 
     private val prayerCountdownHandler = Handler(Looper.getMainLooper())
@@ -241,6 +244,7 @@ class HomeActivity : AppCompatActivity() {
 
         // Prayer Schedule Widget
         cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
+        ivCurrentPrayerIcon = findViewById(R.id.ivCurrentPrayerIcon)
         tvCurrentPrayer = findViewById(R.id.tvCurrentPrayer)
         tvImsakTime = findViewById(R.id.tvImsakTime)
         tvSubuhTime = findViewById(R.id.tvSubuhTime)
@@ -249,6 +253,7 @@ class HomeActivity : AppCompatActivity() {
         tvMaghribTime = findViewById(R.id.tvMaghribTime)
         tvNextPrayer = findViewById(R.id.tvNextPrayer)
         tvCountdown = findViewById(R.id.tvCountdown)
+        pbPrayerProgress = findViewById(R.id.pbPrayerProgress)
         tvPrayerStatusIndicator = findViewById(R.id.tvPrayerStatusIndicator)
 
         tvPasswordLabel = findViewById(R.id.tvPasswordLabel)
@@ -449,9 +454,18 @@ class HomeActivity : AppCompatActivity() {
                     tvMaghribTime.text = s.maghrib
 
                     val nextInfo = state.nextPrayerInfo
-                    tvCurrentPrayer.text = "Waktu sholat sekarang: ${nextInfo.currentPrayerName}"
-                    tvNextPrayer.text = "Sholat berikutnya: ${nextInfo.prayerName}"
+                    ivCurrentPrayerIcon.setImageResource(nextInfo.currentPrayerIconRes)
+                    tvCurrentPrayer.text = nextInfo.currentPrayerName
+                    tvNextPrayer.text = getString(R.string.prayer_towards_prefix, nextInfo.prayerName.uppercase(Locale.ROOT))
                     tvCountdown.text = nextInfo.countdownText
+
+                    if (nextInfo.hasValidProgress) {
+                        pbPrayerProgress.visibility = View.VISIBLE
+                        pbPrayerProgress.progress = nextInfo.progressPercent
+                    } else {
+                        pbPrayerProgress.visibility = View.GONE
+                    }
+
                     tvPrayerStatusIndicator.visibility = View.GONE
                 }
                 is PrayerUiState.Error -> {
@@ -465,9 +479,17 @@ class HomeActivity : AppCompatActivity() {
 
                         if (state.nextPrayerInfo != null) {
                             val nextInfo = state.nextPrayerInfo
-                            tvCurrentPrayer.text = "Waktu sholat sekarang: ${nextInfo.currentPrayerName}"
-                            tvNextPrayer.text = "Sholat berikutnya: ${nextInfo.prayerName}"
+                            ivCurrentPrayerIcon.setImageResource(nextInfo.currentPrayerIconRes)
+                            tvCurrentPrayer.text = nextInfo.currentPrayerName
+                            tvNextPrayer.text = getString(R.string.prayer_towards_prefix, nextInfo.prayerName.uppercase(Locale.ROOT))
                             tvCountdown.text = nextInfo.countdownText
+
+                            if (nextInfo.hasValidProgress) {
+                                pbPrayerProgress.visibility = View.VISIBLE
+                                pbPrayerProgress.progress = nextInfo.progressPercent
+                            } else {
+                                pbPrayerProgress.visibility = View.GONE
+                            }
                         }
                         tvPrayerStatusIndicator.text = "Data Offline (${s.cityName})"
                         tvPrayerStatusIndicator.visibility = View.VISIBLE

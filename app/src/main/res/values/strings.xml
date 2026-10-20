@@ -58,6 +58,9 @@
     <string name="prayer_ashar">Ashar</string>
     <string name="prayer_maghrib">Maghrib</string>
     <string name="prayer_isya">Isya</string>
+    <string name="prayer_ongoing_header">SEDANG BERLANGSUNG</string>
+    <string name="prayer_towards_prefix">MENUJU %1$s</string>
+    <string name="prayer_current_icon_desc">Current Prayer Icon</string>
     <string name="prayer_next_label">Sholat Berikutnya: %1$s</string>
     <string name="prayer_towards_label">Menuju: %1$s</string>
     <string name="prayer_countdown_combined">Menuju %1$s · %2$s</string>

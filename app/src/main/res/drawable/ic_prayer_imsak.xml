@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Tabler Icons (MIT License) - Moon -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="20dp"
-    android:height="20dp"
+    android:width="24dp"
+    android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="#FFFACC15"
-        android:pathData="M12,3c-4.97,0 -9,4.03 -9,9s4.03,9 9,9c0.83,0 1.63,-0.11 2.39,-0.33c-2.61,-1.28 -4.39,-3.92 -4.39,-6.97s1.78,-5.69 4.39,-6.97C13.63,3.11 12.83,3 12,3z"/>
+        android:fillColor="#00000000"
+        android:strokeColor="@color/accent_yellow"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M12,3c0.132,0 0.263,0 0.393,0a7.5,7.5 0,0,0 7.92,12.446a9,9 0,1,1 -8.313,-12.454z" />
 </vector>
