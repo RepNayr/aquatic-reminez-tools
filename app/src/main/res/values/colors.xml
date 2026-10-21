@@ -31,6 +31,8 @@
 
     <!-- ========== ACCENT ALTERNATIVE ========== -->
     <color name="accent_teal">#38BFA1</color>
+    <color name="accent_light_green">#4ADE80</color>
+    <color name="accent_light_green_transparent">#334ADE80</color>
     <color name="accent_violet">#A78BFA</color>
     <color name="accent_gold">#D6B46A</color>
     <color name="accent_muted_red">#D9535D</color>

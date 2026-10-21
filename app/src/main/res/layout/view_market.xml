@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- SECTION HEADER -->
+    <View
+        android:id="@+id/sectionLineMarket"
+        android:layout_width="3dp"
+        android:layout_height="14dp"
+        android:background="@color/accent_primary"
+        app:layout_constraintTop_toTopOf="@id/tvMarketTitle"
+        app:layout_constraintBottom_toBottomOf="@id/tvMarketTitle"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tvMarketTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:letterSpacing="0.12"
+        android:text="@string/home_market"
+        android:textColor="@color/text_primary"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sectionLineMarket"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- SINGLE UNIFIED GLASS CARD -->
+    <eightbitlab.com.blurview.BlurView
+        android:id="@+id/cardMarket"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="3dp"
+        android:layout_marginEnd="3dp"
+        android:background="@drawable/bg_glass_card_clip"
+        app:layout_constraintTop_toBottomOf="@id/tvMarketTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_glass_card_overlay" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_glass_card_specular" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="14dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp">
+
+            <!-- CRYPTO ROWS CONTAINER -->
+            <LinearLayout
+                android:id="@+id/layoutCryptoRows"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <!-- ATTRIBUTION / STATUS FOOTER -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvMarketStatusIndicator"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/status_warning"
+                    android:textSize="9sp"
+                    android:visibility="gone"
+                    tools:text="Offline Data"
+                    tools:visibility="visible" />
+
+                <TextView
+                    android:id="@+id/tvMarketAttribution"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.02"
+                    android:text="@string/market_attribution"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </eightbitlab.com.blurview.BlurView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

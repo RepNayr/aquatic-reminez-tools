@@ -47,25 +47,32 @@
     <string name="home_recent">RECENT</string>
     <string name="home_prayer_times">JADWAL SHOLAT</string>
     <string name="home_market">MARKET</string>
+
+    <!-- MARKET -->
+    <string name="market_title">MARKET</string>
+    <string name="market_watchlist">WATCHLIST</string>
+    <string name="market_attribution">Data provided by CoinGecko</string>
+    <string name="market_status_offline">Offline Data</string>
+    <string name="market_status_demo">Demo Data</string>
     <string name="home_info">INFO</string>
     <string name="home_tools_count">%1$d tools</string>
 
     <!-- PRAYER SCHEDULE -->
-    <string name="prayer_title">JADWAL SHOLAT</string>
+    <string name="prayer_title">PRAYER TIMES</string>
     <string name="prayer_imsak">Imsak</string>
-    <string name="prayer_subuh">Subuh</string>
-    <string name="prayer_dzuhur">Dzuhur</string>
-    <string name="prayer_ashar">Ashar</string>
+    <string name="prayer_subuh">Fajr</string>
+    <string name="prayer_dzuhur">Dhuhr</string>
+    <string name="prayer_ashar">Asr</string>
     <string name="prayer_maghrib">Maghrib</string>
-    <string name="prayer_isya">Isya</string>
-    <string name="prayer_ongoing_header">SEDANG BERLANGSUNG</string>
-    <string name="prayer_towards_prefix">MENUJU %1$s</string>
+    <string name="prayer_isya">Isha</string>
+    <string name="prayer_ongoing_header">CURRENTLY ONGOING</string>
+    <string name="prayer_towards_prefix">TOWARDS %1$s</string>
     <string name="prayer_current_icon_desc">Current Prayer Icon</string>
-    <string name="prayer_next_label">Sholat Berikutnya: %1$s</string>
-    <string name="prayer_towards_label">Menuju: %1$s</string>
-    <string name="prayer_countdown_combined">Menuju %1$s · %2$s</string>
+    <string name="prayer_next_label">Next Prayer: %1$s</string>
+    <string name="prayer_towards_label">Towards: %1$s</string>
+    <string name="prayer_countdown_combined">Towards %1$s · %2$s</string>
     <string name="prayer_offline_notice">Offline Data (%1$s)</string>
-    <string name="prayer_error_notice">Gagal Memuat Jadwal</string>
+    <string name="prayer_error_notice">Failed to Load Schedule</string>
 
     <!-- USER -->
     <string name="user_name">ReeP</string>

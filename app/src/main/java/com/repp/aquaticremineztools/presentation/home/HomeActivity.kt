@@ -18,6 +18,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -39,12 +40,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.network.InfoCardHelper
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.core.settings.PrayerPreferences
 import com.repp.aquaticremineztools.data.QuickCategory
+import com.repp.aquaticremineztools.data.model.CryptoAsset
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
@@ -113,6 +116,13 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvCountdown: TextView
     private lateinit var pbPrayerProgress: ProgressBar
     private lateinit var tvPrayerStatusIndicator: TextView
+
+    // Market Widget
+    private lateinit var cryptoViewModel: CryptoViewModel
+    private lateinit var cardMarketBlur: BlurView
+    private lateinit var layoutCryptoRows: LinearLayout
+    private lateinit var tvMarketStatusIndicator: TextView
+    private lateinit var tvMarketTitle: TextView
 
     private val prayerCountdownHandler = Handler(Looper.getMainLooper())
     private val prayerCountdownRunnable = object : Runnable {
@@ -200,10 +210,12 @@ class HomeActivity : AppCompatActivity() {
         lastLocationFetch = 0L
 
         prayerViewModel = ViewModelProvider(this)[PrayerViewModel::class.java]
+        cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
 
         bindViews()
         setupGlassCards()
         setupPrayerSchedule()
+        setupMarketSection()
         setupClicks()
         setupDrawerMenuClicks()
         setupBottomNav()
@@ -255,6 +267,12 @@ class HomeActivity : AppCompatActivity() {
         tvCountdown = findViewById(R.id.tvCountdown)
         pbPrayerProgress = findViewById(R.id.pbPrayerProgress)
         tvPrayerStatusIndicator = findViewById(R.id.tvPrayerStatusIndicator)
+
+        // Market Widget
+        cardMarketBlur = findViewById(R.id.cardMarket)
+        layoutCryptoRows = findViewById(R.id.layoutCryptoRows)
+        tvMarketStatusIndicator = findViewById(R.id.tvMarketStatusIndicator)
+        tvMarketTitle = findViewById(R.id.tvMarketTitle)
 
         tvPasswordLabel = findViewById(R.id.tvPasswordLabel)
 
@@ -363,7 +381,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur))
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur, cardMarketBlur))
     }
 
     private fun closeDrawer() {
@@ -427,6 +445,7 @@ class HomeActivity : AppCompatActivity() {
         cardConnectionBlur = findViewById(R.id.cardConnection)
         cardPingBlur = findViewById(R.id.cardPing)
         cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
+        cardMarketBlur = findViewById(R.id.cardMarket)
 
         val frameClearDrawable = window.decorView.background
 
@@ -434,6 +453,7 @@ class HomeActivity : AppCompatActivity() {
         GlassBlurHelper.setupBlur(cardConnectionBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPingBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPrayerBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(cardMarketBlur, homeBlurTarget, frameClearDrawable)
     }
 
     // ============================
@@ -491,13 +511,144 @@ class HomeActivity : AppCompatActivity() {
                                 pbPrayerProgress.visibility = View.GONE
                             }
                         }
-                        tvPrayerStatusIndicator.text = "Data Offline (${s.cityName})"
+                        tvPrayerStatusIndicator.text = getString(R.string.prayer_offline_notice, s.cityName)
                         tvPrayerStatusIndicator.visibility = View.VISIBLE
                     } else {
-                        tvPrayerStatusIndicator.text = "Gagal Memuat Jadwal"
+                        tvPrayerStatusIndicator.text = getString(R.string.prayer_error_notice)
                         tvPrayerStatusIndicator.visibility = View.VISIBLE
                     }
                 }
+            }
+        }
+    }
+
+    // ============================
+    // MARKET WIDGET
+    // ============================
+    private fun setupMarketSection() {
+        tvMarketTitle.setOnClickListener {
+            cryptoViewModel.loadMarketData(this, forceRefresh = true)
+        }
+
+        cryptoViewModel.uiState.observe(this) { state ->
+            when (state) {
+                is CryptoUiState.Loading -> {
+                    // Retain current view state during loading
+                }
+                is CryptoUiState.Success -> {
+                    displayCryptoRows(state.assets)
+
+                    if (state.isDemo) {
+                        tvMarketStatusIndicator.text = getString(R.string.market_status_demo)
+                        tvMarketStatusIndicator.visibility = View.VISIBLE
+                    } else if (state.isCached) {
+                        tvMarketStatusIndicator.text = getString(R.string.market_status_offline)
+                        tvMarketStatusIndicator.visibility = View.VISIBLE
+                    } else {
+                        tvMarketStatusIndicator.visibility = View.GONE
+                    }
+                }
+                is CryptoUiState.Error -> {
+                    tvMarketStatusIndicator.text = state.message
+                    tvMarketStatusIndicator.visibility = View.VISIBLE
+                }
+            }
+        }
+
+        cryptoViewModel.loadMarketData(this)
+    }
+
+    private fun displayCryptoRows(assets: List<CryptoAsset>) {
+        layoutCryptoRows.removeAllViews()
+        val inflater = LayoutInflater.from(this)
+
+        assets.forEachIndexed { index, asset ->
+            val rowView = inflater.inflate(R.layout.item_crypto_row, layoutCryptoRows, false)
+
+            val ivCoinLogo = rowView.findViewById<ImageView>(R.id.ivCoinLogo)
+            val tvLogoFallback = rowView.findViewById<TextView>(R.id.tvLogoFallback)
+            val tvCoinName = rowView.findViewById<TextView>(R.id.tvCoinName)
+            val tvCoinSymbol = rowView.findViewById<TextView>(R.id.tvCoinSymbol)
+            val sparklineView = rowView.findViewById<SparklineView>(R.id.sparklineView)
+            val tvCoinPrice = rowView.findViewById<TextView>(R.id.tvCoinPrice)
+            val tvCoinChange = rowView.findViewById<TextView>(R.id.tvCoinChange)
+
+            tvCoinName.text = asset.name
+            tvCoinSymbol.text = asset.symbol
+
+            // Logo
+            if (!asset.imageUrl.isNullOrEmpty()) {
+                tvLogoFallback.visibility = View.GONE
+                ivCoinLogo.visibility = View.VISIBLE
+                ivCoinLogo.load(asset.imageUrl) {
+                    crossfade(true)
+                    listener(
+                        onError = { _, _ ->
+                            ivCoinLogo.visibility = View.GONE
+                            tvLogoFallback.visibility = View.VISIBLE
+                            tvLogoFallback.text = asset.symbol.take(1)
+                        }
+                    )
+                }
+            } else {
+                ivCoinLogo.visibility = View.GONE
+                tvLogoFallback.visibility = View.VISIBLE
+                tvLogoFallback.text = asset.symbol.take(1)
+            }
+
+            // Price
+            if (asset.currentPriceUsd != null) {
+                val formattedPrice = if (asset.currentPriceUsd >= 1.0) {
+                    String.format(Locale.US, "$%,.2f", asset.currentPriceUsd)
+                } else {
+                    String.format(Locale.US, "$%,.4f", asset.currentPriceUsd)
+                }
+                tvCoinPrice.text = formattedPrice
+                tvCoinPrice.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
+            } else {
+                tvCoinPrice.text = "--"
+                tvCoinPrice.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
+            }
+
+            // 24h Change
+            if (asset.priceChange24h != null) {
+                val isPositive = asset.priceChange24h >= 0
+                val changeText = if (isPositive) {
+                    String.format(Locale.US, "+%.2f%%", asset.priceChange24h)
+                } else {
+                    String.format(Locale.US, "%.2f%%", asset.priceChange24h)
+                }
+                tvCoinChange.text = changeText
+                val colorRes = if (isPositive) R.color.accent_teal else R.color.accent_muted_red
+                tvCoinChange.setTextColor(ContextCompat.getColor(this, colorRes))
+                tvCoinChange.visibility = View.VISIBLE
+            } else {
+                tvCoinChange.text = "--"
+                tvCoinChange.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
+            }
+
+            // Sparkline
+            if (!asset.sparklinePrices.isNullOrEmpty() && asset.sparklinePrices.size >= 2) {
+                val isPositive = (asset.priceChange24h ?: 0.0) >= 0
+                sparklineView.setSparklineData(asset.sparklinePrices, isPositive)
+                sparklineView.visibility = View.VISIBLE
+            } else {
+                sparklineView.setSparklineData(null, true)
+                sparklineView.visibility = View.INVISIBLE
+            }
+
+            layoutCryptoRows.addView(rowView)
+
+            // Divider except after the last item
+            if (index < assets.size - 1) {
+                val divider = View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        (1 * resources.displayMetrics.density).toInt()
+                    )
+                    setBackgroundColor(Color.parseColor("#1AFFFFFF"))
+                }
+                layoutCryptoRows.addView(divider)
             }
         }
     }
