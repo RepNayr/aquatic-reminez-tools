@@ -74,6 +74,25 @@
     <string name="prayer_offline_notice">Data Offline (%1$s)</string>
     <string name="prayer_error_notice">Gagal Memuat Jadwal</string>
 
+    <!-- CALENDAR -->
+    <string name="calendar_title">KALENDER</string>
+    <string name="calendar_subtitle">Gregorian · Hijriah Indonesia</string>
+    <string name="calendar_prev_month">Bulan Sebelumnya</string>
+    <string name="calendar_next_month">Bulan Berikutnya</string>
+    <string name="calendar_today_button">Hari Ini</string>
+    <string name="calendar_detail_header">DETAIL TANGGAL</string>
+    <string name="calendar_neutral_prompt">Pilih tanggal untuk melihat detail.</string>
+    <string name="calendar_status_online">Online · Data terbaru</string>
+    <string name="calendar_status_offline">Offline · Data tersimpan</string>
+    <string name="calendar_status_unavailable">Data Hijriah belum tersedia</string>
+    <string name="day_sen">SEN</string>
+    <string name="day_sel">SEL</string>
+    <string name="day_rab">RAB</string>
+    <string name="day_kam">KAM</string>
+    <string name="day_jum">JUM</string>
+    <string name="day_sab">SAB</string>
+    <string name="day_min">MIN</string>
+
     <!-- USER -->
     <string name="user_name">ReeP</string>
     <string name="user_created">Dibuat: 11-10-2026</string>

@@ -117,6 +117,23 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var pbPrayerProgress: ProgressBar
     private lateinit var tvPrayerStatusIndicator: TextView
 
+    // Gregorian-Hijri Calendar Widget
+    private lateinit var calendarViewModel: CalendarViewModel
+    private lateinit var cardCalendarBlur: BlurView
+    private lateinit var rvCalendarGrid: RecyclerView
+    private lateinit var tvGregorianMonth: TextView
+    private lateinit var tvHijriMonth: TextView
+    private lateinit var btnPrevMonth: FrameLayout
+    private lateinit var btnNextMonth: FrameLayout
+    private lateinit var btnToday: FrameLayout
+    private lateinit var tvDetailGregorianDate: TextView
+    private lateinit var tvDetailHijriDate: TextView
+    private lateinit var tvDetailObservance: TextView
+    private lateinit var tvNeutralPrompt: TextView
+    private lateinit var layoutActiveDetail: LinearLayout
+    private lateinit var tvCalendarStatus: TextView
+    private lateinit var calendarDayAdapter: CalendarDayAdapter
+
     // Market Widget
     private lateinit var cryptoViewModel: CryptoViewModel
     private lateinit var cardMarketBlur: BlurView
@@ -211,10 +228,12 @@ class HomeActivity : AppCompatActivity() {
 
         prayerViewModel = ViewModelProvider(this)[PrayerViewModel::class.java]
         cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
+        calendarViewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
 
         bindViews()
         setupGlassCards()
         setupPrayerSchedule()
+        setupCalendarSection()
         setupMarketSection()
         setupClicks()
         setupDrawerMenuClicks()
@@ -267,6 +286,21 @@ class HomeActivity : AppCompatActivity() {
         tvCountdown = findViewById(R.id.tvCountdown)
         pbPrayerProgress = findViewById(R.id.pbPrayerProgress)
         tvPrayerStatusIndicator = findViewById(R.id.tvPrayerStatusIndicator)
+
+        // Calendar Widget
+        cardCalendarBlur = findViewById(R.id.cardCalendar)
+        rvCalendarGrid = findViewById(R.id.rvCalendarGrid)
+        tvGregorianMonth = findViewById(R.id.tvGregorianMonth)
+        tvHijriMonth = findViewById(R.id.tvHijriMonth)
+        btnPrevMonth = findViewById(R.id.btnPrevMonth)
+        btnNextMonth = findViewById(R.id.btnNextMonth)
+        btnToday = findViewById(R.id.btnToday)
+        tvDetailGregorianDate = findViewById(R.id.tvDetailGregorianDate)
+        tvDetailHijriDate = findViewById(R.id.tvDetailHijriDate)
+        tvDetailObservance = findViewById(R.id.tvDetailObservance)
+        tvNeutralPrompt = findViewById(R.id.tvNeutralPrompt)
+        layoutActiveDetail = findViewById(R.id.layoutActiveDetail)
+        tvCalendarStatus = findViewById(R.id.tvCalendarStatus)
 
         // Market Widget
         cardMarketBlur = findViewById(R.id.cardMarket)
@@ -381,7 +415,7 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupDrawerMenuClicks() {
-        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur, cardMarketBlur))
+        DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur, cardCalendarBlur, cardMarketBlur))
     }
 
     private fun closeDrawer() {
@@ -445,6 +479,7 @@ class HomeActivity : AppCompatActivity() {
         cardConnectionBlur = findViewById(R.id.cardConnection)
         cardPingBlur = findViewById(R.id.cardPing)
         cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
+        cardCalendarBlur = findViewById(R.id.cardCalendar)
         cardMarketBlur = findViewById(R.id.cardMarket)
 
         val frameClearDrawable = window.decorView.background
@@ -453,6 +488,7 @@ class HomeActivity : AppCompatActivity() {
         GlassBlurHelper.setupBlur(cardConnectionBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPingBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardPrayerBlur, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(cardCalendarBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardMarketBlur, homeBlurTarget, frameClearDrawable)
     }
 
@@ -520,6 +556,65 @@ class HomeActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    // ============================
+    // GREGORIAN-HIJRI CALENDAR WIDGET
+    // ============================
+    private fun setupCalendarSection() {
+        rvCalendarGrid.layoutManager = GridLayoutManager(this, 7)
+        calendarDayAdapter = CalendarDayAdapter { selectedDay ->
+            calendarViewModel.onSelectDay(this, selectedDay)
+        }
+        rvCalendarGrid.adapter = calendarDayAdapter
+
+        btnPrevMonth.setOnClickListener {
+            calendarViewModel.onPrevMonth(this)
+        }
+
+        btnNextMonth.setOnClickListener {
+            calendarViewModel.onNextMonth(this)
+        }
+
+        btnToday.setOnClickListener {
+            calendarViewModel.onGoToToday(this)
+        }
+
+        calendarViewModel.monthData.observe(this) { monthData ->
+            if (::cardCalendarBlur.isInitialized) {
+                android.transition.TransitionManager.beginDelayedTransition(
+                    cardCalendarBlur,
+                    android.transition.AutoTransition().apply { duration = 150 }
+                )
+            }
+
+            tvGregorianMonth.text = monthData.gregorianMonthTitle
+            tvHijriMonth.text = monthData.hijriMonthSubtitle
+            tvCalendarStatus.text = monthData.statusText
+
+            calendarDayAdapter.submitList(monthData.days)
+
+            val selected = monthData.selectedDay
+            if (selected != null) {
+                layoutActiveDetail.visibility = View.VISIBLE
+                tvNeutralPrompt.visibility = View.GONE
+
+                tvDetailGregorianDate.text = selected.fullGregorianFormatted
+                tvDetailHijriDate.text = selected.fullHijriFormatted
+
+                if (!selected.observance.isNullOrEmpty()) {
+                    tvDetailObservance.text = "⭐ ${selected.observance}"
+                    tvDetailObservance.visibility = View.VISIBLE
+                } else {
+                    tvDetailObservance.visibility = View.GONE
+                }
+            } else {
+                layoutActiveDetail.visibility = View.GONE
+                tvNeutralPrompt.visibility = View.VISIBLE
+            }
+        }
+
+        calendarViewModel.initCalendar(this)
     }
 
     // ============================

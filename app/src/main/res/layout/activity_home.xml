@@ -184,6 +184,13 @@
                     android:layout_marginTop="8dp" />
 
                 <include
+                    android:id="@+id/calendarInclude"
+                    layout="@layout/view_calendar"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp" />
+
+                <include
                     android:id="@+id/marketInclude"
                     layout="@layout/view_market"
                     android:layout_width="match_parent"
