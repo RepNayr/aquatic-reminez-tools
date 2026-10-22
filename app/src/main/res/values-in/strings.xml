@@ -43,13 +43,16 @@
     <string name="home_subtitle">100 tools siap dipake</string>
     <string name="home_search_placeholder">Cari tool…</string>
     <string name="home_quick_menu">QUICK MENU</string>
+    <string name="home_quick_menu_desc">Akses cepat · Alat Anda</string>
     <string name="home_favorites">FAVORIT</string>
     <string name="home_recent">TERBARU</string>
     <string name="home_prayer_times">JADWAL SHOLAT</string>
+    <string name="home_prayer_desc">Sholat harian · Waktu lokal</string>
     <string name="home_market">PASAR</string>
 
     <!-- MARKET -->
     <string name="market_title">PASAR</string>
+    <string name="market_desc">Pasar crypto · Harga live</string>
     <string name="market_watchlist">WATCHLIST</string>
     <string name="market_attribution">Data disediakan oleh CoinGecko</string>
     <string name="market_status_offline">Data Offline</string>
@@ -79,9 +82,9 @@
     <string name="calendar_subtitle">Gregorian · Hijriah Indonesia</string>
     <string name="calendar_prev_month">Bulan Sebelumnya</string>
     <string name="calendar_next_month">Bulan Berikutnya</string>
-    <string name="calendar_today_button">Hari Ini</string>
     <string name="calendar_detail_header">DETAIL TANGGAL</string>
     <string name="calendar_neutral_prompt">Pilih tanggal untuk melihat detail.</string>
+    <string name="calendar_javanese_pasaran">Pasaran Jawa: %1$s</string>
     <string name="calendar_status_online">Online · Data terbaru</string>
     <string name="calendar_status_offline">Offline · Data tersimpan</string>
     <string name="calendar_status_unavailable">Data Hijriah belum tersedia</string>

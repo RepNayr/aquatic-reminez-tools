@@ -45,7 +45,16 @@ class CalendarViewModel : ViewModel() {
     }
 
     fun onSelectDay(context: Context, day: CalendarDay) {
-        if (!day.isInCurrentMonth) return
+        if (!day.isInCurrentMonth) {
+            if (day.dayOfMonth > 20) {
+                activeCalendar.add(Calendar.MONTH, -1)
+            } else {
+                activeCalendar.add(Calendar.MONTH, 1)
+            }
+            selectedDayNum = day.dayOfMonth
+            loadCurrentMonth(context)
+            return
+        }
         selectedDayNum = day.dayOfMonth
         loadCurrentMonth(context)
     }
@@ -59,13 +68,6 @@ class CalendarViewModel : ViewModel() {
     fun onPrevMonth(context: Context) {
         activeCalendar.add(Calendar.MONTH, -1)
         selectedDayNum = null
-        loadCurrentMonth(context)
-    }
-
-    fun onGoToToday(context: Context) {
-        val today = Calendar.getInstance()
-        activeCalendar.timeInMillis = today.timeInMillis
-        selectedDayNum = today.get(Calendar.DAY_OF_MONTH)
         loadCurrentMonth(context)
     }
 }

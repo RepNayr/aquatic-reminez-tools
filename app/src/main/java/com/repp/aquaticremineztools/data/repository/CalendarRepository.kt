@@ -127,30 +127,107 @@ class CalendarRepository(context: Context) {
         val firstDayOfWeek = cal.get(Calendar.DAY_OF_WEEK)
         val firstDayColumnIndex = (firstDayOfWeek + 5) % 7 // 0 = Monday, 6 = Sunday
 
+        // Previous month info
+        val prevCal = Calendar.getInstance()
+        prevCal.set(Calendar.YEAR, year)
+        prevCal.set(Calendar.MONTH, month1Based - 1)
+        prevCal.add(Calendar.MONTH, -1)
+        val prevYear = prevCal.get(Calendar.YEAR)
+        val prevMonth1Based = prevCal.get(Calendar.MONTH) + 1
+        val prevMonthMaxDays = prevCal.getActualMaximum(Calendar.DAY_OF_MONTH)
+
+        // Next month info
+        val nextCal = Calendar.getInstance()
+        nextCal.set(Calendar.YEAR, year)
+        nextCal.set(Calendar.MONTH, month1Based - 1)
+        nextCal.add(Calendar.MONTH, 1)
+        val nextYear = nextCal.get(Calendar.YEAR)
+        val nextMonth1Based = nextCal.get(Calendar.MONTH) + 1
+
         var activeSelectedDay: CalendarDay? = null
 
         for (i in 0 until 42) {
             val isColumnSunday = (i % 7 == 6)
+            val isColumnFriday = (i % 7 == 4)
 
-            if (i < firstDayColumnIndex || i >= firstDayColumnIndex + daysInMonth) {
-                // Blank cell
-                daysInGrid.add(
-                    CalendarDay(
-                        dayOfMonth = 0,
-                        gregorianDateKey = "",
-                        fullGregorianFormatted = "",
-                        hijriDay = "",
-                        hijriMonthNumber = 0,
-                        hijriMonthName = "",
-                        hijriYear = "",
-                        fullHijriFormatted = "",
-                        isToday = false,
-                        isSelected = false,
-                        isInCurrentMonth = false,
-                        isSunday = isColumnSunday,
-                        observance = null
-                    )
+            if (i < firstDayColumnIndex) {
+                // Trailing days of previous month
+                val dayNum = prevMonthMaxDays - (firstDayColumnIndex - 1 - i)
+                val gCal = Calendar.getInstance()
+                gCal.set(prevYear, prevMonth1Based - 1, dayNum)
+                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
+                val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", prevYear, prevMonth1Based, dayNum)
+                val pasaran = HijriCalendarHelper.getJavanesePasaran(prevYear, prevMonth1Based, dayNum)
+
+                val calc = HijriCalendarHelper.convertGregorianToHijri(prevYear, prevMonth1Based, dayNum)
+                val hDayStr = calc.day.toString()
+                val hMonthNum = calc.monthNumber
+                val hMonthName = calc.monthName
+                val hYearStr = calc.year
+                val fullHDate = "$hDayStr $hMonthName $hYearStr H"
+                val obs = HijriCalendarHelper.getVerifiedObservance(calc.day, hMonthNum, hYearStr)
+                    ?: HijriCalendarHelper.getGregorianHoliday(prevYear, prevMonth1Based, dayNum)
+
+                val isToday = (prevYear == todayYear && prevMonth1Based == todayMonth && dayNum == todayDayNum)
+                val isSelected = false
+
+                val dayObj = CalendarDay(
+                    dayOfMonth = dayNum,
+                    gregorianDateKey = gDateKey,
+                    fullGregorianFormatted = fullGDate,
+                    hijriDay = hDayStr,
+                    hijriMonthNumber = hMonthNum,
+                    hijriMonthName = hMonthName,
+                    hijriYear = hYearStr,
+                    fullHijriFormatted = fullHDate,
+                    isToday = isToday,
+                    isSelected = isSelected,
+                    isInCurrentMonth = false,
+                    isSunday = isColumnSunday,
+                    isFriday = isColumnFriday,
+                    javanesePasaran = pasaran,
+                    observance = obs
                 )
+                daysInGrid.add(dayObj)
+            } else if (i >= firstDayColumnIndex + daysInMonth) {
+                // Leading days of next month
+                val dayNum = i - (firstDayColumnIndex + daysInMonth) + 1
+                val gCal = Calendar.getInstance()
+                gCal.set(nextYear, nextMonth1Based - 1, dayNum)
+                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
+                val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", nextYear, nextMonth1Based, dayNum)
+                val pasaran = HijriCalendarHelper.getJavanesePasaran(nextYear, nextMonth1Based, dayNum)
+
+                val calc = HijriCalendarHelper.convertGregorianToHijri(nextYear, nextMonth1Based, dayNum)
+                val hDayStr = calc.day.toString()
+                val hMonthNum = calc.monthNumber
+                val hMonthName = calc.monthName
+                val hYearStr = calc.year
+                val fullHDate = "$hDayStr $hMonthName $hYearStr H"
+                val obs = HijriCalendarHelper.getVerifiedObservance(calc.day, hMonthNum, hYearStr)
+                    ?: HijriCalendarHelper.getGregorianHoliday(nextYear, nextMonth1Based, dayNum)
+
+                val isToday = (nextYear == todayYear && nextMonth1Based == todayMonth && dayNum == todayDayNum)
+                val isSelected = false
+
+                val dayObj = CalendarDay(
+                    dayOfMonth = dayNum,
+                    gregorianDateKey = gDateKey,
+                    fullGregorianFormatted = fullGDate,
+                    hijriDay = hDayStr,
+                    hijriMonthNumber = hMonthNum,
+                    hijriMonthName = hMonthName,
+                    hijriYear = hYearStr,
+                    fullHijriFormatted = fullHDate,
+                    isToday = isToday,
+                    isSelected = isSelected,
+                    isInCurrentMonth = false,
+                    isSunday = isColumnSunday,
+                    isFriday = isColumnFriday,
+                    javanesePasaran = pasaran,
+                    observance = obs
+                )
+                daysInGrid.add(dayObj)
             } else {
                 val dayNum = i - firstDayColumnIndex + 1
 
@@ -158,6 +235,7 @@ class CalendarRepository(context: Context) {
                 gCal.set(year, month1Based - 1, dayNum)
                 val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
                 val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", year, month1Based, dayNum)
+                val pasaran = HijriCalendarHelper.getJavanesePasaran(year, month1Based, dayNum)
 
                 val rawData = apiDaysMap?.get(dayNum)
                 val hijriDayStr: String
@@ -171,7 +249,7 @@ class CalendarRepository(context: Context) {
                     hijriMonthNum = rawData.hijriMonthNumber
                     hijriMonthName = rawData.hijriMonthName
                     hijriYearStr = rawData.hijriYear
-                    obs = rawData.observance
+                    obs = rawData.observance ?: HijriCalendarHelper.getGregorianHoliday(year, month1Based, dayNum)
                 } else {
                     val calc = HijriCalendarHelper.convertGregorianToHijri(year, month1Based, dayNum)
                     hijriDayStr = calc.day.toString()
@@ -179,6 +257,7 @@ class CalendarRepository(context: Context) {
                     hijriMonthName = calc.monthName
                     hijriYearStr = calc.year
                     obs = HijriCalendarHelper.getVerifiedObservance(calc.day, calc.monthNumber, calc.year)
+                        ?: HijriCalendarHelper.getGregorianHoliday(year, month1Based, dayNum)
                 }
 
                 val fullHDate = "$hijriDayStr $hijriMonthName $hijriYearStr H"
@@ -198,6 +277,8 @@ class CalendarRepository(context: Context) {
                     isSelected = isSelected,
                     isInCurrentMonth = true,
                     isSunday = isColumnSunday,
+                    isFriday = isColumnFriday,
+                    javanesePasaran = pasaran,
                     observance = obs
                 )
 

@@ -6,29 +6,57 @@
     android:layout_height="wrap_content">
 
     <!-- SECTION HEADER -->
+    <LinearLayout
+        android:id="@+id/layoutPrayerHeaderTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/ivPrayerHeaderIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_clock"
+            app:tint="@color/accent_primary" />
+
+        <TextView
+            android:id="@+id/tvPrayerTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.12"
+            android:text="@string/prayer_title"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvPrayerSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="@string/home_prayer_desc"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
     <View
         android:id="@+id/sectionLinePrayer"
         android:layout_width="3dp"
         android:layout_height="14dp"
         android:background="@color/accent_primary"
-        app:layout_constraintTop_toTopOf="@id/tvPrayerTitle"
-        app:layout_constraintBottom_toBottomOf="@id/tvPrayerTitle"
+        app:layout_constraintTop_toTopOf="@id/layoutPrayerHeaderTitle"
+        app:layout_constraintBottom_toBottomOf="@id/layoutPrayerHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvPrayerTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:letterSpacing="0.12"
-        android:text="@string/prayer_title"
-        android:textColor="@color/text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/sectionLinePrayer"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- GLASS CARD (UNIFIED SINGLE CARD) -->
     <eightbitlab.com.blurview.BlurView
@@ -39,7 +67,7 @@
         android:layout_marginStart="3dp"
         android:layout_marginEnd="3dp"
         android:background="@drawable/bg_prayer_card_clip"
-        app:layout_constraintTop_toBottomOf="@id/tvPrayerTitle"
+        app:layout_constraintTop_toBottomOf="@id/layoutPrayerHeaderTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -85,7 +113,7 @@
                         android:layout_height="22dp"
                         android:contentDescription="@string/prayer_imsak"
                         android:src="@drawable/ic_prayer_imsak"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:id="@+id/tvImsakLabel"
@@ -124,7 +152,7 @@
                         android:layout_height="22dp"
                         android:contentDescription="@string/prayer_subuh"
                         android:src="@drawable/ic_prayer_subuh"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:id="@+id/tvSubuhLabel"
@@ -163,7 +191,7 @@
                         android:layout_height="22dp"
                         android:contentDescription="@string/prayer_dzuhur"
                         android:src="@drawable/ic_prayer_dzuhur"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:id="@+id/tvDzuhurLabel"
@@ -202,7 +230,7 @@
                         android:layout_height="22dp"
                         android:contentDescription="@string/prayer_ashar"
                         android:src="@drawable/ic_prayer_ashar"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:id="@+id/tvAsharLabel"
@@ -241,7 +269,7 @@
                         android:layout_height="22dp"
                         android:contentDescription="@string/prayer_maghrib"
                         android:src="@drawable/ic_prayer_maghrib"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:id="@+id/tvMaghribLabel"
@@ -298,7 +326,7 @@
                         android:layout_gravity="center"
                         android:src="@drawable/ic_prayer_maghrib"
                         android:contentDescription="@string/prayer_current_icon_desc"
-                        app:tint="@color/accent_yellow" />
+                        app:tint="@color/accent_cyan" />
 
                 </FrameLayout>
 
@@ -322,7 +350,7 @@
                         android:fontFamily="@font/times_new_roman_bold"
                         android:letterSpacing="0.05"
                         android:text="@string/prayer_ongoing_header"
-                        android:textColor="@color/accent_gold"
+                        android:textColor="@color/accent_cyan"
                         android:textSize="9sp"
                         android:textStyle="bold" />
 
@@ -356,7 +384,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
                         android:text="00:00:00"
-                        android:textColor="@color/accent_yellow"
+                        android:textColor="@color/accent_cyan"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 

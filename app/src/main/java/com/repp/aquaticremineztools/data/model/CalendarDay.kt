@@ -13,5 +13,7 @@ data class CalendarDay(
     val isSelected: Boolean,
     val isInCurrentMonth: Boolean,
     val isSunday: Boolean,
+    val isFriday: Boolean,
+    val javanesePasaran: String,
     val observance: String? = null
 )

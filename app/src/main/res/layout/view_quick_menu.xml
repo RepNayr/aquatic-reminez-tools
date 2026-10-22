@@ -6,38 +6,66 @@
     android:layout_height="wrap_content">
 
     <!-- SECTION HEADER -->
+    <LinearLayout
+        android:id="@+id/layoutQuickMenuHeaderTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/ivQuickMenuHeaderIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_categories"
+            app:tint="@color/accent_primary" />
+
+        <TextView
+            android:id="@+id/tvQuickMenuTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.12"
+            android:text="@string/home_quick_menu"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvQuickMenuSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="@string/home_quick_menu_desc"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
     <View
         android:id="@+id/sectionLine"
         android:layout_width="3dp"
         android:layout_height="14dp"
         android:background="@color/accent_primary"
-        app:layout_constraintTop_toTopOf="@id/tvQuickMenuTitle"
-        app:layout_constraintBottom_toBottomOf="@id/tvQuickMenuTitle"
+        app:layout_constraintTop_toTopOf="@id/layoutQuickMenuHeaderTitle"
+        app:layout_constraintBottom_toBottomOf="@id/layoutQuickMenuHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvQuickMenuTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:letterSpacing="0.12"
-        android:text="@string/home_quick_menu"
-        android:textColor="@color/text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/sectionLine"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- GRID -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvQuickMenu"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="8dp"
         android:nestedScrollingEnabled="false"
-        app:layout_constraintTop_toBottomOf="@id/tvQuickMenuTitle"
+        app:layout_constraintTop_toBottomOf="@id/layoutQuickMenuHeaderTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -46,6 +46,8 @@ import com.repp.aquaticremineztools.core.network.InfoCardHelper
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.core.settings.PrayerPreferences
+import com.repp.aquaticremineztools.core.settings.SettingsPreferences
+import com.repp.aquaticremineztools.core.util.HijriCalendarHelper
 import com.repp.aquaticremineztools.data.QuickCategory
 import com.repp.aquaticremineztools.data.model.CryptoAsset
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
@@ -125,10 +127,11 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvHijriMonth: TextView
     private lateinit var btnPrevMonth: FrameLayout
     private lateinit var btnNextMonth: FrameLayout
-    private lateinit var btnToday: FrameLayout
     private lateinit var tvDetailGregorianDate: TextView
     private lateinit var tvDetailHijriDate: TextView
+    private lateinit var tvDetailJavanesePasaran: TextView
     private lateinit var tvDetailObservance: TextView
+    private lateinit var tvDetailObservanceDesc: TextView
     private lateinit var tvNeutralPrompt: TextView
     private lateinit var layoutActiveDetail: LinearLayout
     private lateinit var tvCalendarStatus: TextView
@@ -294,10 +297,11 @@ class HomeActivity : AppCompatActivity() {
         tvHijriMonth = findViewById(R.id.tvHijriMonth)
         btnPrevMonth = findViewById(R.id.btnPrevMonth)
         btnNextMonth = findViewById(R.id.btnNextMonth)
-        btnToday = findViewById(R.id.btnToday)
         tvDetailGregorianDate = findViewById(R.id.tvDetailGregorianDate)
         tvDetailHijriDate = findViewById(R.id.tvDetailHijriDate)
+        tvDetailJavanesePasaran = findViewById(R.id.tvDetailJavanesePasaran)
         tvDetailObservance = findViewById(R.id.tvDetailObservance)
+        tvDetailObservanceDesc = findViewById(R.id.tvDetailObservanceDesc)
         tvNeutralPrompt = findViewById(R.id.tvNeutralPrompt)
         layoutActiveDetail = findViewById(R.id.layoutActiveDetail)
         tvCalendarStatus = findViewById(R.id.tvCalendarStatus)
@@ -576,10 +580,6 @@ class HomeActivity : AppCompatActivity() {
             calendarViewModel.onNextMonth(this)
         }
 
-        btnToday.setOnClickListener {
-            calendarViewModel.onGoToToday(this)
-        }
-
         calendarViewModel.monthData.observe(this) { monthData ->
             if (::cardCalendarBlur.isInitialized) {
                 android.transition.TransitionManager.beginDelayedTransition(
@@ -601,12 +601,24 @@ class HomeActivity : AppCompatActivity() {
 
                 tvDetailGregorianDate.text = selected.fullGregorianFormatted
                 tvDetailHijriDate.text = selected.fullHijriFormatted
+                tvDetailJavanesePasaran.text = getString(R.string.calendar_javanese_pasaran, selected.javanesePasaran)
 
+                val isEng = SettingsPreferences.getLanguage(this) != "id"
                 if (!selected.observance.isNullOrEmpty()) {
-                    tvDetailObservance.text = "⭐ ${selected.observance}"
-                    tvDetailObservance.visibility = View.VISIBLE
+                    val details = HijriCalendarHelper.getHolidayDetails(selected.observance, isEng)
+                    if (details != null) {
+                        tvDetailObservance.text = "⭐ ${details.first}"
+                        tvDetailObservance.visibility = View.VISIBLE
+                        tvDetailObservanceDesc.text = details.second
+                        tvDetailObservanceDesc.visibility = View.VISIBLE
+                    } else {
+                        tvDetailObservance.text = "⭐ ${selected.observance}"
+                        tvDetailObservance.visibility = View.VISIBLE
+                        tvDetailObservanceDesc.visibility = View.GONE
+                    }
                 } else {
                     tvDetailObservance.visibility = View.GONE
+                    tvDetailObservanceDesc.visibility = View.GONE
                 }
             } else {
                 layoutActiveDetail.visibility = View.GONE

@@ -37,49 +37,66 @@ class CalendarDayAdapter(
         private val containerDay: FrameLayout = itemView.findViewById(R.id.containerDay)
         private val tvGregorianDay: TextView = itemView.findViewById(R.id.tvGregorianDay)
         private val tvHijriDay: TextView = itemView.findViewById(R.id.tvHijriDay)
+        private val tvJavanesePasaran: TextView = itemView.findViewById(R.id.tvJavanesePasaran)
+        private val viewUnderline: View = itemView.findViewById(R.id.viewUnderline)
 
         fun bind(day: CalendarDay) {
-            if (!day.isInCurrentMonth) {
-                // Blank cell outside active month
-                containerDay.background = ContextCompat.getDrawable(itemView.context, R.drawable.bg_calendar_day_normal)
-                containerDay.isClickable = false
-                containerDay.isFocusable = false
-                tvGregorianDay.visibility = View.INVISIBLE
-                tvHijriDay.visibility = View.INVISIBLE
-                itemView.setOnClickListener(null)
-                return
-            }
-
-            // Valid day in current month
             tvGregorianDay.visibility = View.VISIBLE
             tvHijriDay.visibility = View.VISIBLE
+            tvJavanesePasaran.visibility = View.VISIBLE
             containerDay.isClickable = true
             containerDay.isFocusable = true
 
             tvGregorianDay.text = day.dayOfMonth.toString()
             tvHijriDay.text = day.hijriDay
+            tvJavanesePasaran.text = day.javanesePasaran
 
-            // Background drawable based on states
-            val bgRes = when {
-                day.isToday && day.isSelected -> R.drawable.bg_calendar_day_today_selected
-                day.isToday -> R.drawable.bg_calendar_day_today
-                day.isSelected -> R.drawable.bg_calendar_day_selected
-                else -> R.drawable.bg_calendar_day_normal
-            }
-            containerDay.background = ContextCompat.getDrawable(itemView.context, bgRes)
+            val hasHoliday = !day.observance.isNullOrBlank()
 
-            // Text colors
-            if (day.isToday) {
-                // Today uses solid cyan fill, so text must be dark #090B0F
-                tvGregorianDay.setTextColor(Color.parseColor("#090B0F"))
-                tvHijriDay.setTextColor(Color.parseColor("#1B232A"))
+            if (!day.isInCurrentMonth) {
+                // Neighbor month days rendered dimmed
+                containerDay.background = ContextCompat.getDrawable(itemView.context, R.drawable.bg_calendar_day_normal)
+                tvGregorianDay.setTextColor(Color.parseColor("#55FFFFFF"))
+                tvHijriDay.setTextColor(Color.parseColor("#33FFFFFF"))
+                tvJavanesePasaran.setTextColor(Color.parseColor("#33FFFFFF"))
+                viewUnderline.visibility = View.GONE
             } else {
-                if (day.isSunday) {
-                    tvGregorianDay.setTextColor(Color.parseColor("#FF6B6B"))
-                } else {
-                    tvGregorianDay.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
+                // Background drawable based on states
+                val bgRes = when {
+                    day.isToday && day.isSelected -> R.drawable.bg_calendar_day_today_selected
+                    day.isToday -> R.drawable.bg_calendar_day_today
+                    day.isSelected -> R.drawable.bg_calendar_day_selected
+                    else -> R.drawable.bg_calendar_day_normal
                 }
-                tvHijriDay.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_secondary))
+                containerDay.background = ContextCompat.getDrawable(itemView.context, bgRes)
+
+                // Text colors
+                if (day.isToday) {
+                    tvGregorianDay.setTextColor(Color.parseColor("#090B0F"))
+                    tvHijriDay.setTextColor(Color.parseColor("#1B232A"))
+                    tvJavanesePasaran.setTextColor(Color.parseColor("#1B232A"))
+                } else {
+                    when {
+                        hasHoliday || day.isSunday -> {
+                            tvGregorianDay.setTextColor(Color.parseColor("#FF6B6B"))
+                        }
+                        day.isFriday -> {
+                            tvGregorianDay.setTextColor(Color.parseColor("#4ECCA3"))
+                        }
+                        else -> {
+                            tvGregorianDay.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
+                        }
+                    }
+                    val secondaryColor = ContextCompat.getColor(itemView.context, R.color.text_secondary)
+                    tvHijriDay.setTextColor(secondaryColor)
+                    tvJavanesePasaran.setTextColor(secondaryColor)
+                }
+
+                if (day.isSelected || day.isToday) {
+                    viewUnderline.visibility = View.VISIBLE
+                } else {
+                    viewUnderline.visibility = View.GONE
+                }
             }
 
             itemView.setOnClickListener {

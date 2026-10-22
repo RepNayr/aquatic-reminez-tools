@@ -43,13 +43,16 @@
     <string name="home_subtitle">100 tools ready to use</string>
     <string name="home_search_placeholder">Search tool…</string>
     <string name="home_quick_menu">QUICK MENU</string>
+    <string name="home_quick_menu_desc">Quick access · Your tools</string>
     <string name="home_favorites">FAVORITES</string>
     <string name="home_recent">RECENT</string>
-    <string name="home_prayer_times">JADWAL SHOLAT</string>
+    <string name="home_prayer_times">PRAYER SCHEDULE</string>
+    <string name="home_prayer_desc">Daily prayers · Local timings</string>
     <string name="home_market">MARKET</string>
 
     <!-- MARKET -->
     <string name="market_title">MARKET</string>
+    <string name="market_desc">Crypto market · Live prices</string>
     <string name="market_watchlist">WATCHLIST</string>
     <string name="market_attribution">Data provided by CoinGecko</string>
     <string name="market_status_offline">Offline Data</string>
@@ -58,7 +61,7 @@
     <string name="home_tools_count">%1$d tools</string>
 
     <!-- PRAYER SCHEDULE -->
-    <string name="prayer_title">PRAYER TIMES</string>
+    <string name="prayer_title">PRAYER SCHEDULE</string>
     <string name="prayer_imsak">Imsak</string>
     <string name="prayer_subuh">Fajr</string>
     <string name="prayer_dzuhur">Dhuhr</string>
@@ -75,23 +78,23 @@
     <string name="prayer_error_notice">Failed to Load Schedule</string>
 
     <!-- CALENDAR -->
-    <string name="calendar_title">KALENDER</string>
-    <string name="calendar_subtitle">Gregorian · Hijriah Indonesia</string>
-    <string name="calendar_prev_month">Bulan Sebelumnya</string>
-    <string name="calendar_next_month">Bulan Berikutnya</string>
-    <string name="calendar_today_button">Hari Ini</string>
-    <string name="calendar_detail_header">DETAIL TANGGAL</string>
-    <string name="calendar_neutral_prompt">Pilih tanggal untuk melihat detail.</string>
-    <string name="calendar_status_online">Online · Data terbaru</string>
-    <string name="calendar_status_offline">Offline · Data tersimpan</string>
-    <string name="calendar_status_unavailable">Data Hijriah belum tersedia</string>
-    <string name="day_sen">SEN</string>
-    <string name="day_sel">SEL</string>
-    <string name="day_rab">RAB</string>
-    <string name="day_kam">KAM</string>
-    <string name="day_jum">JUM</string>
-    <string name="day_sab">SAB</string>
-    <string name="day_min">MIN</string>
+    <string name="calendar_title">CALENDAR</string>
+    <string name="calendar_subtitle">Gregorian · Hijri Indonesia</string>
+    <string name="calendar_prev_month">Previous Month</string>
+    <string name="calendar_next_month">Next Month</string>
+    <string name="calendar_detail_header">DATE DETAIL</string>
+    <string name="calendar_neutral_prompt">Select a date to view details.</string>
+    <string name="calendar_javanese_pasaran">Javanese Pasaran: %1$s</string>
+    <string name="calendar_status_online">Online · Latest data</string>
+    <string name="calendar_status_offline">Offline · Saved data</string>
+    <string name="calendar_status_unavailable">Hijri data unavailable</string>
+    <string name="day_sen">MON</string>
+    <string name="day_sel">TUE</string>
+    <string name="day_rab">WED</string>
+    <string name="day_kam">THU</string>
+    <string name="day_jum">FRI</string>
+    <string name="day_sab">SAT</string>
+    <string name="day_min">SUN</string>
 
     <!-- USER -->
     <string name="user_name">ReeP</string>

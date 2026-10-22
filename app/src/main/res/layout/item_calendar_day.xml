@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:paddingVertical="2dp">
+        android:paddingVertical="1dp">
 
         <TextView
             android:id="@+id/tvGregorianDay"
@@ -22,18 +22,36 @@
             android:fontFamily="@font/times_new_roman_bold"
             android:includeFontPadding="false"
             android:textColor="@color/text_primary"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvHijriDay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="1dp"
+            android:layout_marginTop="0.5dp"
             android:fontFamily="@font/times_new_roman_bold"
             android:includeFontPadding="false"
             android:textColor="@color/text_secondary"
-            android:textSize="9sp" />
+            android:textSize="8sp" />
+
+        <TextView
+            android:id="@+id/tvJavanesePasaran"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0.5dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:includeFontPadding="false"
+            android:textColor="@color/accent_cyan"
+            android:textSize="7sp" />
+
+        <View
+            android:id="@+id/viewUnderline"
+            android:layout_width="12dp"
+            android:layout_height="1dp"
+            android:layout_marginTop="0.5dp"
+            android:background="@color/accent_cyan"
+            android:visibility="gone" />
 
     </LinearLayout>
 

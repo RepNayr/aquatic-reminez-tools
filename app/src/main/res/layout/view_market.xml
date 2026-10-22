@@ -7,29 +7,57 @@
     android:layout_height="wrap_content">
 
     <!-- SECTION HEADER -->
+    <LinearLayout
+        android:id="@+id/layoutMarketHeaderTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="11dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageView
+            android:id="@+id/ivMarketHeaderIcon"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_activity"
+            app:tint="@color/accent_primary" />
+
+        <TextView
+            android:id="@+id/tvMarketTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.12"
+            android:text="@string/market_title"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvMarketSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="@string/market_desc"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp" />
+
+    </LinearLayout>
+
     <View
         android:id="@+id/sectionLineMarket"
         android:layout_width="3dp"
         android:layout_height="14dp"
         android:background="@color/accent_primary"
-        app:layout_constraintTop_toTopOf="@id/tvMarketTitle"
-        app:layout_constraintBottom_toBottomOf="@id/tvMarketTitle"
+        app:layout_constraintTop_toTopOf="@id/layoutMarketHeaderTitle"
+        app:layout_constraintBottom_toBottomOf="@id/layoutMarketHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <TextView
-        android:id="@+id/tvMarketTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:letterSpacing="0.12"
-        android:text="@string/home_market"
-        android:textColor="@color/text_primary"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toEndOf="@id/sectionLineMarket"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- SINGLE UNIFIED GLASS CARD -->
     <eightbitlab.com.blurview.BlurView
@@ -40,7 +68,7 @@
         android:layout_marginStart="3dp"
         android:layout_marginEnd="3dp"
         android:background="@drawable/bg_glass_card_clip"
-        app:layout_constraintTop_toBottomOf="@id/tvMarketTitle"
+        app:layout_constraintTop_toBottomOf="@id/layoutMarketHeaderTitle"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
