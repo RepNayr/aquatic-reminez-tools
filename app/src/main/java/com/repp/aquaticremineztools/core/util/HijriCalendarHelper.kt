@@ -29,44 +29,81 @@ object HijriCalendarHelper {
         }
     }
 
-    fun getIndonesianDayName(dayOfWeek: Int): String {
-        return when (dayOfWeek) {
-            Calendar.SUNDAY -> "Minggu"
-            Calendar.MONDAY -> "Senin"
-            Calendar.TUESDAY -> "Selasa"
-            Calendar.WEDNESDAY -> "Rabu"
-            Calendar.THURSDAY -> "Kamis"
-            Calendar.FRIDAY -> "Jumat"
-            Calendar.SATURDAY -> "Sabtu"
-            else -> ""
+    fun getDayName(dayOfWeek: Int, isEnglish: Boolean): String {
+        return if (isEnglish) {
+            when (dayOfWeek) {
+                Calendar.SUNDAY -> "Sunday"
+                Calendar.MONDAY -> "Monday"
+                Calendar.TUESDAY -> "Tuesday"
+                Calendar.WEDNESDAY -> "Wednesday"
+                Calendar.THURSDAY -> "Thursday"
+                Calendar.FRIDAY -> "Friday"
+                Calendar.SATURDAY -> "Saturday"
+                else -> ""
+            }
+        } else {
+            when (dayOfWeek) {
+                Calendar.SUNDAY -> "Minggu"
+                Calendar.MONDAY -> "Senin"
+                Calendar.TUESDAY -> "Selasa"
+                Calendar.WEDNESDAY -> "Rabu"
+                Calendar.THURSDAY -> "Kamis"
+                Calendar.FRIDAY -> "Jumat"
+                Calendar.SATURDAY -> "Sabtu"
+                else -> ""
+            }
         }
     }
 
-    fun getIndonesianGregorianMonthName(monthIndexZeroBased: Int): String {
-        return when (monthIndexZeroBased) {
-            0 -> "Januari"
-            1 -> "Februari"
-            2 -> "Maret"
-            3 -> "April"
-            4 -> "Mei"
-            5 -> "Juni"
-            6 -> "Juli"
-            7 -> "Agustus"
-            8 -> "September"
-            9 -> "Oktober"
-            10 -> "November"
-            11 -> "Desember"
-            else -> ""
+    fun getIndonesianDayName(dayOfWeek: Int): String = getDayName(dayOfWeek, false)
+
+    fun getGregorianMonthName(monthIndexZeroBased: Int, isEnglish: Boolean): String {
+        return if (isEnglish) {
+            when (monthIndexZeroBased) {
+                0 -> "January"
+                1 -> "February"
+                2 -> "March"
+                3 -> "April"
+                4 -> "May"
+                5 -> "June"
+                6 -> "July"
+                7 -> "August"
+                8 -> "September"
+                9 -> "October"
+                10 -> "November"
+                11 -> "December"
+                else -> ""
+            }
+        } else {
+            when (monthIndexZeroBased) {
+                0 -> "Januari"
+                1 -> "Februari"
+                2 -> "Maret"
+                3 -> "April"
+                4 -> "Mei"
+                5 -> "Juni"
+                6 -> "Juli"
+                7 -> "Agustus"
+                8 -> "September"
+                9 -> "Oktober"
+                10 -> "November"
+                11 -> "Desember"
+                else -> ""
+            }
         }
     }
 
-    fun formatFullGregorianDate(calendar: Calendar): String {
-        val dayName = getIndonesianDayName(calendar.get(Calendar.DAY_OF_WEEK))
+    fun getIndonesianGregorianMonthName(monthIndexZeroBased: Int): String = getGregorianMonthName(monthIndexZeroBased, false)
+
+    fun formatFullGregorianDate(calendar: Calendar, isEnglish: Boolean): String {
+        val dayName = getDayName(calendar.get(Calendar.DAY_OF_WEEK), isEnglish)
         val dayNum = calendar.get(Calendar.DAY_OF_MONTH)
-        val monthName = getIndonesianGregorianMonthName(calendar.get(Calendar.MONTH))
+        val monthName = getGregorianMonthName(calendar.get(Calendar.MONTH), isEnglish)
         val year = calendar.get(Calendar.YEAR)
         return "$dayName, $dayNum $monthName $year"
     }
+
+    fun formatFullGregorianDate(calendar: Calendar): String = formatFullGregorianDate(calendar, false)
 
     fun getJavanesePasaran(year: Int, month1Based: Int, day: Int): String {
         val a = (14 - month1Based) / 12

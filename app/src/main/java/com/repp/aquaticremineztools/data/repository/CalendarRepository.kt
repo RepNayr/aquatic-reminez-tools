@@ -3,6 +3,7 @@ package com.repp.aquaticremineztools.data.repository
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.repp.aquaticremineztools.core.settings.SettingsPreferences
 import com.repp.aquaticremineztools.core.util.HijriCalendarHelper
 import com.repp.aquaticremineztools.data.local.calendar.CalendarDatabase
 import com.repp.aquaticremineztools.data.local.calendar.CalendarEntity
@@ -16,7 +17,8 @@ import java.util.Locale
 
 class CalendarRepository(context: Context) {
 
-    private val calendarDao = CalendarDatabase.getInstance(context).calendarDao()
+    private val appContext = context.applicationContext
+    private val calendarDao = CalendarDatabase.getInstance(appContext).calendarDao()
     private val gson = Gson()
 
     suspend fun getMonthCalendarData(
@@ -24,6 +26,7 @@ class CalendarRepository(context: Context) {
         month1Based: Int,
         selectedDayNumber: Int?
     ): CalendarMonthData = withContext(Dispatchers.IO) {
+        val isEng = SettingsPreferences.getLanguage(appContext) != "id"
         val monthKey = String.format(Locale.US, "%04d-%02d", year, month1Based)
 
         val todayCal = Calendar.getInstance()
@@ -110,9 +113,9 @@ class CalendarRepository(context: Context) {
         }
 
         val statusText = when {
-            isOnline -> "Online · Data terbaru"
-            isCached -> "Offline · Data tersimpan"
-            else -> "Offline · Data tersimpan"
+            isOnline -> if (isEng) "Online · Latest data" else "Online · Data terbaru"
+            isCached -> if (isEng) "Offline · Saved data" else "Offline · Data tersimpan"
+            else -> if (isEng) "Offline · Saved data" else "Offline · Data tersimpan"
         }
 
         // Build grid of 42 cells
@@ -155,7 +158,7 @@ class CalendarRepository(context: Context) {
                 val dayNum = prevMonthMaxDays - (firstDayColumnIndex - 1 - i)
                 val gCal = Calendar.getInstance()
                 gCal.set(prevYear, prevMonth1Based - 1, dayNum)
-                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
+                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal, isEng)
                 val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", prevYear, prevMonth1Based, dayNum)
                 val pasaran = HijriCalendarHelper.getJavanesePasaran(prevYear, prevMonth1Based, dayNum)
 
@@ -194,7 +197,7 @@ class CalendarRepository(context: Context) {
                 val dayNum = i - (firstDayColumnIndex + daysInMonth) + 1
                 val gCal = Calendar.getInstance()
                 gCal.set(nextYear, nextMonth1Based - 1, dayNum)
-                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
+                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal, isEng)
                 val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", nextYear, nextMonth1Based, dayNum)
                 val pasaran = HijriCalendarHelper.getJavanesePasaran(nextYear, nextMonth1Based, dayNum)
 
@@ -233,7 +236,7 @@ class CalendarRepository(context: Context) {
 
                 val gCal = Calendar.getInstance()
                 gCal.set(year, month1Based - 1, dayNum)
-                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal)
+                val fullGDate = HijriCalendarHelper.formatFullGregorianDate(gCal, isEng)
                 val gDateKey = String.format(Locale.US, "%04d-%02d-%02d", year, month1Based, dayNum)
                 val pasaran = HijriCalendarHelper.getJavanesePasaran(year, month1Based, dayNum)
 
@@ -290,7 +293,7 @@ class CalendarRepository(context: Context) {
             }
         }
 
-        val gregorianMonthTitle = "${HijriCalendarHelper.getIndonesianGregorianMonthName(month1Based - 1)} $year"
+        val gregorianMonthTitle = "${HijriCalendarHelper.getGregorianMonthName(month1Based - 1, isEng)} $year"
         val hijriMonthSubtitle = extractHijriMonthSubtitle(daysInGrid)
 
         CalendarMonthData(

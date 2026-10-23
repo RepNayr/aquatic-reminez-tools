@@ -130,7 +130,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvDetailGregorianDate: TextView
     private lateinit var tvDetailHijriDate: TextView
     private lateinit var tvDetailJavanesePasaran: TextView
-    private lateinit var tvDetailObservance: TextView
+    private lateinit var tvDetailStatusBadge: TextView
     private lateinit var tvDetailObservanceDesc: TextView
     private lateinit var tvNeutralPrompt: TextView
     private lateinit var layoutActiveDetail: LinearLayout
@@ -300,7 +300,7 @@ class HomeActivity : AppCompatActivity() {
         tvDetailGregorianDate = findViewById(R.id.tvDetailGregorianDate)
         tvDetailHijriDate = findViewById(R.id.tvDetailHijriDate)
         tvDetailJavanesePasaran = findViewById(R.id.tvDetailJavanesePasaran)
-        tvDetailObservance = findViewById(R.id.tvDetailObservance)
+        tvDetailStatusBadge = findViewById(R.id.tvDetailStatusBadge)
         tvDetailObservanceDesc = findViewById(R.id.tvDetailObservanceDesc)
         tvNeutralPrompt = findViewById(R.id.tvNeutralPrompt)
         layoutActiveDetail = findViewById(R.id.layoutActiveDetail)
@@ -601,24 +601,35 @@ class HomeActivity : AppCompatActivity() {
 
                 tvDetailGregorianDate.text = selected.fullGregorianFormatted
                 tvDetailHijriDate.text = selected.fullHijriFormatted
-                tvDetailJavanesePasaran.text = getString(R.string.calendar_javanese_pasaran, selected.javanesePasaran)
+                tvDetailJavanesePasaran.text = selected.javanesePasaran
 
                 val isEng = SettingsPreferences.getLanguage(this) != "id"
                 if (!selected.observance.isNullOrEmpty()) {
                     val details = HijriCalendarHelper.getHolidayDetails(selected.observance, isEng)
-                    if (details != null) {
-                        tvDetailObservance.text = "⭐ ${details.first}"
-                        tvDetailObservance.visibility = View.VISIBLE
-                        tvDetailObservanceDesc.text = details.second
-                        tvDetailObservanceDesc.visibility = View.VISIBLE
+                    val holidayName = details?.first ?: selected.observance
+                    val holidayDesc = details?.second ?: (if (isEng) "Special national or religious observance day." else "Hari libur atau peringatan khusus.")
+
+                    val lower = selected.observance.lowercase()
+                    val isPublicHoliday = lower.contains("kemerdekaan") || lower.contains("independence") ||
+                            lower.contains("natal") || lower.contains("christmas") ||
+                            lower.contains("idul fitri") || lower.contains("idul adha") ||
+                            lower.contains("tahun baru") || lower.contains("new year") ||
+                            lower.contains("buruh") || lower.contains("pancasila") ||
+                            lower.contains("islamic new year") || lower.contains("maulid")
+
+                    tvDetailStatusBadge.text = if (isPublicHoliday) {
+                        getString(R.string.calendar_status_public_holiday)
                     } else {
-                        tvDetailObservance.text = "⭐ ${selected.observance}"
-                        tvDetailObservance.visibility = View.VISIBLE
-                        tvDetailObservanceDesc.visibility = View.GONE
+                        getString(R.string.calendar_status_observance)
                     }
+                    tvDetailStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.accent_gold))
+                    tvDetailObservanceDesc.text = "$holidayName — $holidayDesc"
+                    tvDetailObservanceDesc.visibility = View.VISIBLE
                 } else {
-                    tvDetailObservance.visibility = View.GONE
-                    tvDetailObservanceDesc.visibility = View.GONE
+                    tvDetailStatusBadge.text = getString(R.string.calendar_status_regular_day)
+                    tvDetailStatusBadge.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+                    tvDetailObservanceDesc.text = getString(R.string.calendar_status_no_record)
+                    tvDetailObservanceDesc.visibility = View.VISIBLE
                 }
             } else {
                 layoutActiveDetail.visibility = View.GONE

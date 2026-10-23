@@ -83,6 +83,12 @@
     <string name="calendar_prev_month">Bulan Sebelumnya</string>
     <string name="calendar_next_month">Bulan Berikutnya</string>
     <string name="calendar_detail_header">DETAIL TANGGAL</string>
+    <string name="calendar_label_hijri_date">TANGGAL HIJRIAH</string>
+    <string name="calendar_label_javanese_pasaran">PASARAN JAWA</string>
+    <string name="calendar_status_regular_day">HARI BIASA</string>
+    <string name="calendar_status_public_holiday">HARI LIBUR NASIONAL</string>
+    <string name="calendar_status_observance">PERINGATAN / PERISTIWA</string>
+    <string name="calendar_status_no_record">Tidak ada informasi hari libur</string>
     <string name="calendar_neutral_prompt">Pilih tanggal untuk melihat detail.</string>
     <string name="calendar_javanese_pasaran">Pasaran Jawa: %1$s</string>
     <string name="calendar_status_online">Online · Data terbaru</string>
