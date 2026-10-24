@@ -1,8 +1,12 @@
 package com.repp.aquaticremineztools
 
+import com.repp.aquaticremineztools.data.model.AlertType
+import com.repp.aquaticremineztools.data.model.MarketAlert
 import com.repp.aquaticremineztools.data.model.MarketCategory
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
+import com.repp.aquaticremineztools.data.model.PortfolioHolding
+import com.repp.aquaticremineztools.data.repository.PortfolioValuationResult
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -11,22 +15,22 @@ import org.junit.Test
 
 class MarketTerminalTest {
 
-    private val sampleCrypto = MarketInstrument(
+    private val sampleLiveCrypto = MarketInstrument(
         id = "bitcoin",
         symbol = "BTC",
         name = "Bitcoin",
         category = MarketCategory.CRYPTO,
-        currentPrice = 65000.0,
-        priceChange24h = 1300.0,
-        priceChangePercentage24h = 2.0,
+        currentPrice = 96000.0,
+        priceChange24h = 2880.0,
+        priceChangePercentage24h = 3.0,
         currency = "USD",
         exchange = "COINGECKO",
-        sparklinePrices = listOf(64000f, 64500f, 65000f),
+        sparklinePrices = listOf(93000f, 94500f, 96000f),
         historicalCandles = null,
         dataStatus = MarketDataStatus.LIVE,
     )
 
-    private val sampleIndex = MarketInstrument(
+    private val sampleSimulatedIndex = MarketInstrument(
         id = "ihsg",
         symbol = "IHSG",
         name = "Jakarta Composite Index",
@@ -41,16 +45,16 @@ class MarketTerminalTest {
         dataStatus = MarketDataStatus.SIMULATED,
     )
 
-    private val sampleNullPrice = MarketInstrument(
-        id = "unknown_stock",
-        symbol = "UNKN",
-        name = "Unknown Stock",
+    private val sampleUnavailableStock = MarketInstrument(
+        id = "bbca",
+        symbol = "BBCA",
+        name = "Bank Central Asia",
         category = MarketCategory.STOCKS,
         currentPrice = null,
         priceChange24h = null,
         priceChangePercentage24h = null,
-        currency = "USD",
-        exchange = "UNKNOWN",
+        currency = "IDR",
+        exchange = "IDX",
         dataStatus = MarketDataStatus.UNAVAILABLE,
     )
 
@@ -59,7 +63,7 @@ class MarketTerminalTest {
         val list = mutableListOf<MarketInstrument>()
         assertEquals(0, list.size)
 
-        list.addAll(listOf(sampleCrypto, sampleIndex))
+        list.addAll(listOf(sampleLiveCrypto, sampleSimulatedIndex))
         assertEquals(2, list.size)
         assertEquals("BTC", list[0].symbol)
         assertEquals("IHSG", list[1].symbol)
@@ -67,7 +71,7 @@ class MarketTerminalTest {
 
     @Test
     fun testOverviewCategoryDisplaysAllInstruments() {
-        val all = listOf(sampleCrypto, sampleIndex)
+        val all = listOf(sampleLiveCrypto, sampleSimulatedIndex, sampleUnavailableStock)
         val overviewCategory = MarketCategory.OVERVIEW
 
         val filtered = all.filter {
@@ -77,69 +81,170 @@ class MarketTerminalTest {
             }
         }
 
-        assertEquals(2, filtered.size)
-        assertTrue(filtered.contains(sampleCrypto))
-        assertTrue(filtered.contains(sampleIndex))
+        assertEquals(3, filtered.size)
+        assertTrue(filtered.contains(sampleLiveCrypto))
+        assertTrue(filtered.contains(sampleSimulatedIndex))
     }
 
     @Test
-    fun testUnsupportedStocksCategoryDisplaysEmptyListWithInformativeState() {
-        val all = listOf(sampleCrypto, sampleIndex)
-        val category = MarketCategory.STOCKS
+    fun testStocksCategoryFiltering() {
+        val all = listOf(sampleLiveCrypto, sampleSimulatedIndex, sampleUnavailableStock)
+        val stocksCategory = MarketCategory.STOCKS
 
-        val filtered = if (category == MarketCategory.STOCKS) {
-            emptyList()
-        } else {
-            all.filter { it.category == category }
-        }
+        val filtered = all.filter { it.category == stocksCategory }
 
-        assertTrue(filtered.isEmpty())
-
-        val emptyStateTitle = "Stocks Data Unavailable"
-        val emptyStateSubtitle = "Stock market data is currently unavailable. Provider integration coming soon."
-
-        assertEquals("Stocks Data Unavailable", emptyStateTitle)
-        assertTrue(emptyStateSubtitle.contains("unavailable"))
+        assertEquals(1, filtered.size)
+        assertEquals("BBCA", filtered[0].symbol)
+        assertNull(filtered[0].currentPrice)
     }
 
     @Test
     fun testDataStatusHonestyPerCategoryAndSource() {
-        // Crypto live status should be LIVE, not falsely marked as whole page Demo
-        assertEquals(MarketDataStatus.LIVE, sampleCrypto.dataStatus)
-        assertFalse(sampleCrypto.isDemo)
-        assertNull(sampleCrypto.historicalCandles) // Live crypto uses sparklines, not fake OHLC candles
+        // Live crypto must have dataStatus = LIVE and no fake candles
+        assertEquals(MarketDataStatus.LIVE, sampleLiveCrypto.dataStatus)
+        assertFalse(sampleLiveCrypto.isDemo)
+        assertNull(sampleLiveCrypto.historicalCandles)
 
-        // Simulated Index status should be SIMULATED
-        assertEquals(MarketDataStatus.SIMULATED, sampleIndex.dataStatus)
-        assertTrue(sampleIndex.isDemo)
+        // Simulated Index must have dataStatus = SIMULATED
+        assertEquals(MarketDataStatus.SIMULATED, sampleSimulatedIndex.dataStatus)
+        assertTrue(sampleSimulatedIndex.isDemo)
 
-        // Banner computation for Overview when Crypto is Live
-        val banner = when (sampleCrypto.dataStatus) {
-            MarketDataStatus.LIVE -> "Crypto: Live · Other Markets: Simulated"
-            MarketDataStatus.CACHED -> "Crypto: Cached · Other Markets: Simulated"
-            else -> "Simulated Market Data (Demo Mode)"
-        }
-
-        assertEquals("Crypto: Live · Other Markets: Simulated", banner)
+        // Unavailable stock must have dataStatus = UNAVAILABLE
+        assertEquals(MarketDataStatus.UNAVAILABLE, sampleUnavailableStock.dataStatus)
+        assertNull(sampleUnavailableStock.currentPrice)
     }
 
     @Test
-    fun testNullPriceDisplaysDashDashAndNotFakePrice() {
-        assertNull(sampleNullPrice.currentPrice)
-        assertNull(sampleNullPrice.priceChangePercentage24h)
-        assertEquals(MarketDataStatus.UNAVAILABLE, sampleNullPrice.dataStatus)
+    fun testNullPriceDisplaysNullAndNotFakeZeroPrice() {
+        assertNull(sampleUnavailableStock.currentPrice)
+        assertNull(sampleUnavailableStock.priceChangePercentage24h)
+        assertEquals(MarketDataStatus.UNAVAILABLE, sampleUnavailableStock.dataStatus)
     }
 
     @Test
-    fun testSearchQueryFiltering() {
-        val all = listOf(sampleCrypto, sampleIndex)
-        val query = "Jakarta"
+    fun testSearchQueryFilteringBySymbolNameExchange() {
+        val all = listOf(sampleLiveCrypto, sampleSimulatedIndex, sampleUnavailableStock)
 
-        val filtered = all.filter {
-            it.name.contains(query, ignoreCase = true) || it.symbol.contains(query, ignoreCase = true)
+        val queryName = "Jakarta"
+        val filteredName = all.filter { it.name.contains(queryName, ignoreCase = true) }
+        assertEquals(1, filteredName.size)
+        assertEquals("IHSG", filteredName[0].symbol)
+
+        val queryExchange = "COINGECKO"
+        val filteredExchange = all.filter { it.exchange.contains(queryExchange, ignoreCase = true) }
+        assertEquals(1, filteredExchange.size)
+        assertEquals("BTC", filteredExchange[0].symbol)
+    }
+
+    @Test
+    fun testPortfolioValuationMultiCurrencySeparation() {
+        val holdings = listOf(
+            PortfolioHolding(id = "1", instrumentId = "bitcoin", symbol = "BTC", name = "Bitcoin", quantity = 0.5, averageCost = 90000.0, currency = "USD"),
+            PortfolioHolding(id = "2", instrumentId = "ihsg", symbol = "IHSG", name = "IHSG ETF", quantity = 100.0, averageCost = 7000.0, currency = "IDR")
+        )
+
+        val instrumentsMap = mapOf(
+            "bitcoin" to sampleLiveCrypto,
+            "ihsg" to sampleSimulatedIndex
+        )
+
+        var totalUsdValuation = 0.0
+        var totalUsdCost = 0.0
+        var totalIdrValuation = 0.0
+        var totalIdrCost = 0.0
+
+        holdings.forEach { holding ->
+            val inst = instrumentsMap[holding.instrumentId]
+            val price = inst?.currentPrice ?: holding.averageCost
+            val valAmount = holding.quantity * price
+            val costAmount = holding.quantity * holding.averageCost
+
+            if (holding.currency == "IDR") {
+                totalIdrValuation += valAmount
+                totalIdrCost += costAmount
+            } else {
+                totalUsdValuation += valAmount
+                totalUsdCost += costAmount
+            }
         }
 
-        assertEquals(1, filtered.size)
-        assertEquals("IHSG", filtered[0].symbol)
+        val result = PortfolioValuationResult(
+            totalValuationUsd = totalUsdValuation,
+            totalCostUsd = totalUsdCost,
+            unrealizedPlUsd = totalUsdValuation - totalUsdCost,
+            unrealizedPlPctUsd = ((totalUsdValuation - totalUsdCost) / totalUsdCost) * 100.0,
+            totalValuationIdr = totalIdrValuation,
+            totalCostIdr = totalIdrCost,
+            unrealizedPlIdr = totalIdrValuation - totalIdrCost,
+            unrealizedPlPctIdr = ((totalIdrValuation - totalIdrCost) / totalIdrCost) * 100.0,
+            hasUnpricedHoldings = false
+        )
+
+        assertEquals(48000.0, result.totalValuationUsd, 0.01) // 0.5 * 96000
+        assertEquals(45000.0, result.totalCostUsd, 0.01) // 0.5 * 90000
+        assertEquals(3000.0, result.unrealizedPlUsd, 0.01)
+
+        assertEquals(732450.0, result.totalValuationIdr, 0.01) // 100 * 7324.50
+        assertEquals(700000.0, result.totalCostIdr, 0.01) // 100 * 7000.0
+        assertEquals(32450.0, result.unrealizedPlIdr, 0.01)
+    }
+
+    @Test
+    fun testAlertEvaluationTriggerConditions() {
+        val alertAbove = MarketAlert(
+            id = "a1",
+            instrumentId = "bitcoin",
+            symbol = "BTC",
+            name = "Bitcoin",
+            targetValue = 90000.0,
+            alertType = AlertType.PRICE_ABOVE,
+            isActive = true
+        )
+
+        val alertBelow = MarketAlert(
+            id = "a2",
+            instrumentId = "bitcoin",
+            symbol = "BTC",
+            name = "Bitcoin",
+            targetValue = 100000.0,
+            alertType = AlertType.PRICE_BELOW,
+            isActive = true
+        )
+
+        val alertPct = MarketAlert(
+            id = "a3",
+            instrumentId = "bitcoin",
+            symbol = "BTC",
+            name = "Bitcoin",
+            targetValue = 2.5,
+            alertType = AlertType.PCT_CHANGE_24H,
+            isActive = true
+        )
+
+        val currentPrice = sampleLiveCrypto.currentPrice!! // 96000.0
+        val pctChange = sampleLiveCrypto.priceChangePercentage24h!! // 3.0%
+
+        assertTrue(currentPrice >= alertAbove.targetValue) // 96000 >= 90000 -> Triggered
+        assertTrue(currentPrice <= alertBelow.targetValue) // 96000 <= 100000 -> Triggered
+        assertTrue(Math.abs(pctChange) >= alertPct.targetValue) // 3.0 >= 2.5 -> Triggered
+    }
+
+    @Test
+    fun testSMAIndicatorCalculation() {
+        val prices = listOf(10f, 20f, 30f, 40f, 50f)
+        val window = 3
+        val smaValues = mutableListOf<Float>()
+
+        for (i in prices.indices) {
+            if (i >= window - 1) {
+                val slice = prices.subList(i - window + 1, i + 1)
+                smaValues.add(slice.average().toFloat())
+            }
+        }
+
+        assertEquals(3, smaValues.size)
+        assertEquals(20f, smaValues[0], 0.01f) // avg(10, 20, 30) = 20
+        assertEquals(30f, smaValues[1], 0.01f) // avg(20, 30, 40) = 30
+        assertEquals(40f, smaValues[2], 0.01f) // avg(30, 40, 50) = 40
     }
 }

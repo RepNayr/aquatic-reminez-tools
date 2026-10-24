@@ -41,15 +41,15 @@
 
             <FrameLayout
                 android:id="@+id/btnMenu"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:src="@drawable/ic_activity"
                     app:tint="@color/accent_primary"
@@ -60,13 +60,38 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="6dp"
                 android:fontFamily="@font/times_new_roman_bold"
-                android:letterSpacing="0.1"
+                android:letterSpacing="0.08"
                 android:text="MARKET TERMINAL"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold" />
+
+            <!-- DEMO MODE TOGGLE BADGE -->
+            <TextView
+                android:id="@+id/btnDemoToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="28dp"
+                android:layout_marginEnd="6dp"
+                android:background="@drawable/bg_info_chip"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:gravity="center"
+                android:paddingHorizontal="8dp"
+                android:text="DEMO: OFF"
+                android:textColor="@color/status_warning"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <ImageView
+                android:id="@+id/btnAlerts"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:padding="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_notification"
+                app:tint="@color/accent_primary"
+                android:contentDescription="Alerts" />
 
             <ImageView
                 android:id="@+id/btnPortfolio"
@@ -84,9 +109,9 @@
         <eightbitlab.com.blurview.BlurView
             android:id="@+id/blurSearchBar"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="44dp"
             android:layout_marginHorizontal="14dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="2dp"
             android:background="@drawable/bg_glass_card_clip"
             app:layout_constraintTop_toBottomOf="@id/layoutToolbar"
             app:layout_constraintStart_toStartOf="parent"
@@ -119,7 +144,7 @@
                     android:layout_marginStart="8dp"
                     android:background="@null"
                     android:fontFamily="@font/times_new_roman_regular"
-                    android:hint="Search indices, stocks, forex, crypto..."
+                    android:hint="Search symbol, name, exchange..."
                     android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:maxLines="1"
@@ -145,7 +170,7 @@
             android:id="@+id/scrollCategories"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:scrollbars="none"
             app:layout_constraintTop_toBottomOf="@id/blurSearchBar"
             app:layout_constraintStart_toStartOf="parent"
@@ -166,28 +191,30 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="14dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:background="@drawable/bg_glass_card_overlay"
             android:fontFamily="@font/times_new_roman_bold"
-            android:padding="8dp"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp"
             android:textColor="@color/status_warning"
             android:textSize="11sp"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/scrollCategories"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Crypto: Live · Other Markets: Simulated" />
+            tools:text="Crypto: Live · Other Markets: Demo Mode"
+            tools:visibility="visible" />
 
         <!-- INSTRUMENTS RECYCLERVIEW -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvMarketInstruments"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:clipToPadding="false"
-            android:paddingBottom="12dp"
+            android:paddingBottom="16dp"
             app:layout_constraintTop_toBottomOf="@id/tvMarketStatusBanner"
-            app:layout_constraintBottom_toTopOf="@id/bottomNav"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_market_instrument" />
@@ -202,13 +229,13 @@
             android:orientation="vertical"
             android:visibility="gone"
             app:layout_constraintTop_toBottomOf="@id/tvMarketStatusBanner"
-            app:layout_constraintBottom_toTopOf="@id/bottomNav"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
 
             <ImageView
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:src="@drawable/ic_search"
                 app:tint="@color/text_muted"
                 android:contentDescription="@null" />
@@ -235,18 +262,6 @@
                 android:textSize="12sp"
                 tools:text="Stock market data is currently unavailable." />
         </LinearLayout>
-
-        <!-- BOTTOM NAVIGATION BAR -->
-        <include
-            android:id="@+id/bottomNav"
-            layout="@layout/view_bottom_nav_pill"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

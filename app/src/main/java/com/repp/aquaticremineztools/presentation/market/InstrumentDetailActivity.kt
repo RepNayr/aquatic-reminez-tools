@@ -129,15 +129,17 @@ class InstrumentDetailActivity : AppCompatActivity() {
         tvDetailSymbol.text = instrument.symbol
         tvDetailName.text = instrument.name
 
-        if (instrument.currentPrice != null) {
+        val price = instrument.currentPrice
+        if (price != null) {
             val formatted = when (instrument.currency) {
-                "IDR" -> String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
-                "%" -> String.format(Locale.US, "%.2f%%", instrument.currentPrice)
-                "JPY" -> String.format(Locale.US, "¥%,.2f", instrument.currentPrice)
-                else -> if (instrument.currentPrice >= 1.0) {
-                    String.format(Locale.US, "$%,.2f", instrument.currentPrice)
+                "IDR" -> String.format(Locale.US, "Rp %,.2f", price)
+                "%" -> String.format(Locale.US, "%.2f%%", price)
+                "JPY" -> String.format(Locale.US, "¥%,.2f", price)
+                "EUR" -> String.format(Locale.US, "€%,.4f", price)
+                else -> if (price >= 1.0) {
+                    String.format(Locale.US, "$%,.2f", price)
                 } else {
-                    String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+                    String.format(Locale.US, "$%,.4f", price)
                 }
             }
             tvDetailCurrentPrice.text = formatted
@@ -145,10 +147,11 @@ class InstrumentDetailActivity : AppCompatActivity() {
             tvDetailCurrentPrice.text = "--"
         }
 
-        if (instrument.priceChangePercentage24h != null) {
-            val isPos = instrument.priceChangePercentage24h >= 0
+        val pctChange = instrument.priceChangePercentage24h
+        if (pctChange != null) {
+            val isPos = pctChange >= 0
             val sign = if (isPos) "+" else ""
-            tvDetailChange.text = String.format(Locale.US, "%s%.2f%%", sign, instrument.priceChangePercentage24h)
+            tvDetailChange.text = String.format(Locale.US, "%s%.2f%%", sign, pctChange)
             val colorRes = if (isPos) R.color.accent_teal else R.color.accent_muted_red
             tvDetailChange.setTextColor(ContextCompat.getColor(this, colorRes))
         } else {
@@ -158,8 +161,8 @@ class InstrumentDetailActivity : AppCompatActivity() {
         tvDetailSourceStatus.text = when (instrument.dataStatus) {
             MarketDataStatus.LIVE -> "Live Feed · Powered by CoinGecko"
             MarketDataStatus.CACHED -> "Offline Mode · Cached CoinGecko Data"
-            MarketDataStatus.SIMULATED -> "Simulated Market Data (Demo)"
-            MarketDataStatus.UNAVAILABLE -> "Data Unavailable"
+            MarketDataStatus.SIMULATED -> "Simulated Market Data (Demo Mode)"
+            MarketDataStatus.UNAVAILABLE -> "Feed Unavailable (Demo Mode Off)"
         }
     }
 
@@ -183,13 +186,13 @@ class InstrumentDetailActivity : AppCompatActivity() {
             }
 
             val dataSet = LineDataSet(entries, "7-Day Sparkline Trend").apply {
-                color = Color.parseColor("#43D9E6")
+                color = Color.parseColor("#38BFA1")
                 setDrawValues(false)
                 lineWidth = 2f
                 setDrawCircles(false)
                 mode = LineDataSet.Mode.CUBIC_BEZIER
                 setDrawFilled(true)
-                fillColor = Color.parseColor("#43D9E6")
+                fillColor = Color.parseColor("#38BFA1")
                 fillAlpha = 40
             }
 
@@ -198,7 +201,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
                 val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
-                    color = Color.parseColor("#38BFA1")
+                    color = Color.parseColor("#D6B46A")
                     setDrawValues(false)
                     lineWidth = 1.5f
                     setDrawCircles(false)
@@ -229,14 +232,14 @@ class InstrumentDetailActivity : AppCompatActivity() {
                 }
             }
 
-            val dataSet = LineDataSet(entries, "Simulated Chart (Demo Data)").apply {
-                color = Color.parseColor("#43D9E6")
+            val dataSet = LineDataSet(entries, "Simulated Trend (Demo Data)").apply {
+                color = Color.parseColor("#38BFA1")
                 setDrawValues(false)
                 lineWidth = 2f
                 setDrawCircles(false)
                 mode = LineDataSet.Mode.CUBIC_BEZIER
                 setDrawFilled(true)
-                fillColor = Color.parseColor("#43D9E6")
+                fillColor = Color.parseColor("#38BFA1")
                 fillAlpha = 40
             }
 
@@ -245,7 +248,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
                 val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
-                    color = Color.parseColor("#38BFA1")
+                    color = Color.parseColor("#D6B46A")
                     setDrawValues(false)
                     lineWidth = 1.5f
                     setDrawCircles(false)

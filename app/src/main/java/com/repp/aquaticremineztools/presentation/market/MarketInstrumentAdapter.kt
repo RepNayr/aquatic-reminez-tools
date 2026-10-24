@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import java.util.Locale
 
@@ -70,38 +71,44 @@ class MarketInstrumentAdapter(
             }
 
             // Price formatting
-            if (instrument.currentPrice != null) {
+            val price = instrument.currentPrice
+            if (price != null) {
                 val formattedPrice = when (instrument.currency) {
-                    "IDR" -> String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
-                    "%" -> String.format(Locale.US, "%.2f%%", instrument.currentPrice)
-                    "JPY" -> String.format(Locale.US, "¥%,.2f", instrument.currentPrice)
-                    else -> if (instrument.currentPrice >= 1.0) {
-                        String.format(Locale.US, "$%,.2f", instrument.currentPrice)
+                    "IDR" -> String.format(Locale.US, "Rp %,.2f", price)
+                    "%" -> String.format(Locale.US, "%.2f%%", price)
+                    "JPY" -> String.format(Locale.US, "¥%,.2f", price)
+                    "EUR" -> String.format(Locale.US, "€%,.4f", price)
+                    else -> if (price >= 1.0) {
+                        String.format(Locale.US, "$%,.2f", price)
                     } else {
-                        String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+                        String.format(Locale.US, "$%,.4f", price)
                     }
                 }
                 tvInstrumentPrice.text = formattedPrice
                 tvInstrumentPrice.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
             } else {
-                tvInstrumentPrice.text = "--"
+                tvInstrumentPrice.text = when (instrument.dataStatus) {
+                    MarketDataStatus.UNAVAILABLE -> "N/A"
+                    else -> "--"
+                }
                 tvInstrumentPrice.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_muted))
             }
 
             // Change formatting
-            if (instrument.priceChangePercentage24h != null) {
-                val isPositive = instrument.priceChangePercentage24h >= 0
+            val pctChange = instrument.priceChangePercentage24h
+            if (pctChange != null) {
+                val isPositive = pctChange >= 0
                 val changeText = if (isPositive) {
-                    String.format(Locale.US, "+%.2f%%", instrument.priceChangePercentage24h)
+                    String.format(Locale.US, "+%.2f%%", pctChange)
                 } else {
-                    String.format(Locale.US, "%.2f%%", instrument.priceChangePercentage24h)
+                    String.format(Locale.US, "%.2f%%", pctChange)
                 }
                 tvInstrumentChange.text = changeText
                 val colorRes = if (isPositive) R.color.accent_teal else R.color.accent_muted_red
                 tvInstrumentChange.setTextColor(ContextCompat.getColor(itemView.context, colorRes))
                 tvInstrumentChange.visibility = View.VISIBLE
             } else {
-                tvInstrumentChange.text = "--"
+                tvInstrumentChange.text = if (instrument.currentPrice == null) "No Feed" else "--"
                 tvInstrumentChange.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_muted))
                 tvInstrumentChange.visibility = View.VISIBLE
             }

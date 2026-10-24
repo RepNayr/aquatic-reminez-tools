@@ -2,12 +2,10 @@ package com.repp.aquaticremineztools.presentation.market
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
-import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -28,13 +26,8 @@ import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import com.repp.aquaticremineztools.data.model.MarketCategory
-import com.repp.aquaticremineztools.presentation.about.AboutActivity
-import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
-import com.repp.aquaticremineztools.presentation.home.HomeActivity
-import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
-import com.repp.aquaticremineztools.presentation.settings.SettingsActivity
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 
@@ -46,6 +39,8 @@ class MarketActivity : AppCompatActivity() {
     private lateinit var etMarketSearch: EditText
     private lateinit var btnClearSearch: ImageView
     private lateinit var btnMenu: FrameLayout
+    private lateinit var btnDemoToggle: TextView
+    private lateinit var btnAlerts: ImageView
     private lateinit var btnPortfolio: ImageView
     private lateinit var layoutCategoryChips: LinearLayout
     private lateinit var tvMarketStatusBanner: TextView
@@ -56,31 +51,6 @@ class MarketActivity : AppCompatActivity() {
 
     private lateinit var viewModel: MarketViewModel
     private lateinit var adapter: MarketInstrumentAdapter
-
-    // Bottom Navigation
-    private lateinit var tabHome: FrameLayout
-    private lateinit var tabSearch: FrameLayout
-    private lateinit var tabHistory: FrameLayout
-    private lateinit var tabAbout: FrameLayout
-    private lateinit var tabSettings: FrameLayout
-
-    private lateinit var pillHome: LinearLayout
-    private lateinit var pillSearch: LinearLayout
-    private lateinit var pillHistory: LinearLayout
-    private lateinit var pillAbout: LinearLayout
-    private lateinit var pillSettings: LinearLayout
-
-    private lateinit var iconHome: ImageView
-    private lateinit var iconSearch: ImageView
-    private lateinit var iconHistory: ImageView
-    private lateinit var iconAbout: ImageView
-    private lateinit var iconSettings: ImageView
-
-    private lateinit var textHome: TextView
-    private lateinit var textSearch: TextView
-    private lateinit var textHistory: TextView
-    private lateinit var textAbout: TextView
-    private lateinit var textSettings: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,7 +66,6 @@ class MarketActivity : AppCompatActivity() {
         bindViews()
         setupWindowInsets()
         setupGlassBlur()
-        setupBottomNav()
         setupDrawer()
         setupCategoryChips()
         setupRecyclerView()
@@ -111,6 +80,8 @@ class MarketActivity : AppCompatActivity() {
         etMarketSearch = findViewById(R.id.etMarketSearch)
         btnClearSearch = findViewById(R.id.btnClearSearch)
         btnMenu = findViewById(R.id.btnMenu)
+        btnDemoToggle = findViewById(R.id.btnDemoToggle)
+        btnAlerts = findViewById(R.id.btnAlerts)
         btnPortfolio = findViewById(R.id.btnPortfolio)
         layoutCategoryChips = findViewById(R.id.layoutCategoryChips)
         tvMarketStatusBanner = findViewById(R.id.tvMarketStatusBanner)
@@ -118,37 +89,11 @@ class MarketActivity : AppCompatActivity() {
         layoutEmptyState = findViewById(R.id.layoutEmptyState)
         tvEmptyStateTitle = findViewById(R.id.tvEmptyStateTitle)
         tvEmptyStateSubtitle = findViewById(R.id.tvEmptyStateSubtitle)
-
-        // Bottom Nav
-        tabHome = findViewById(R.id.tabHome)
-        tabSearch = findViewById(R.id.tabSearch)
-        tabHistory = findViewById(R.id.tabHistory)
-        tabAbout = findViewById(R.id.tabAbout)
-        tabSettings = findViewById(R.id.tabSettings)
-
-        pillHome = findViewById(R.id.pillHome)
-        pillSearch = findViewById(R.id.pillSearch)
-        pillHistory = findViewById(R.id.pillHistory)
-        pillAbout = findViewById(R.id.pillAbout)
-        pillSettings = findViewById(R.id.pillSettings)
-
-        iconHome = findViewById(R.id.iconHome)
-        iconSearch = findViewById(R.id.iconSearch)
-        iconHistory = findViewById(R.id.iconHistory)
-        iconAbout = findViewById(R.id.iconAbout)
-        iconSettings = findViewById(R.id.iconSettings)
-
-        textHome = findViewById(R.id.textHome)
-        textSearch = findViewById(R.id.textSearch)
-        textHistory = findViewById(R.id.textHistory)
-        textAbout = findViewById(R.id.textAbout)
-        textSettings = findViewById(R.id.textSettings)
     }
 
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
 
             val layoutToolbar = findViewById<LinearLayout>(R.id.layoutToolbar)
             layoutToolbar.setPadding(
@@ -157,14 +102,6 @@ class MarketActivity : AppCompatActivity() {
                 layoutToolbar.paddingRight,
                 layoutToolbar.paddingBottom
             )
-
-            val bottomNav = findViewById<View>(R.id.bottomNav)
-            val lp = bottomNav.layoutParams as? ViewGroup.MarginLayoutParams
-            if (lp != null) {
-                val density = resources.displayMetrics.density
-                lp.bottomMargin = navBarHeight + (12 * density).toInt()
-                bottomNav.layoutParams = lp
-            }
 
             insets
         }
@@ -190,8 +127,18 @@ class MarketActivity : AppCompatActivity() {
             tvChipName.text = category.displayName
 
             chipView.setOnClickListener {
-                viewModel.setCategory(this, category)
-                highlightCategoryChip(category)
+                when (category) {
+                    MarketCategory.PORTFOLIO -> {
+                        openPortfolioActivity()
+                    }
+                    MarketCategory.ALERTS -> {
+                        openAlertsActivity()
+                    }
+                    else -> {
+                        viewModel.setCategory(this, category)
+                        highlightCategoryChip(category)
+                    }
+                }
             }
             layoutCategoryChips.addView(chipView)
         }
@@ -238,6 +185,10 @@ class MarketActivity : AppCompatActivity() {
                     adapter.updateData(state.filteredInstruments)
                     highlightCategoryChip(state.selectedCategory)
 
+                    btnDemoToggle.text = if (state.isDemoMode) "DEMO: ON" else "DEMO: OFF"
+                    val demoTextColor = if (state.isDemoMode) R.color.accent_teal else R.color.text_muted
+                    btnDemoToggle.setTextColor(ContextCompat.getColor(this, demoTextColor))
+
                     if (state.filteredInstruments.isEmpty()) {
                         rvMarketInstruments.visibility = View.GONE
                         layoutEmptyState.visibility = View.VISIBLE
@@ -261,8 +212,6 @@ class MarketActivity : AppCompatActivity() {
                 }
             }
         }
-
-        viewModel.loadMarket(this)
     }
 
     private fun setupListeners() {
@@ -270,9 +219,16 @@ class MarketActivity : AppCompatActivity() {
             drawerLayout.openDrawer(GravityCompat.START)
         }
 
+        btnDemoToggle.setOnClickListener {
+            viewModel.toggleDemoMode(this)
+        }
+
+        btnAlerts.setOnClickListener {
+            openAlertsActivity()
+        }
+
         btnPortfolio.setOnClickListener {
-            val intent = Intent(this, PortfolioActivity::class.java)
-            ActivityTransition.startActivitySmooth(this, intent)
+            openPortfolioActivity()
         }
 
         btnClearSearch.setOnClickListener {
@@ -290,59 +246,14 @@ class MarketActivity : AppCompatActivity() {
         })
     }
 
-    private fun setupBottomNav() {
-        unselectAllBottomNavTabs()
-
-        tabHome.setOnClickListener {
-            val intent = Intent(this, HomeActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        tabSearch.setOnClickListener {
-            val intent = Intent(this, SearchActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        tabHistory.setOnClickListener {
-            val intent = Intent(this, HistoryActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        tabAbout.setOnClickListener {
-            val intent = Intent(this, AboutActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-
-        tabSettings.setOnClickListener {
-            val intent = Intent(this, SettingsActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
+    private fun openPortfolioActivity() {
+        val intent = Intent(this, PortfolioActivity::class.java)
+        ActivityTransition.startActivitySmooth(this, intent)
     }
 
-    private fun unselectAllBottomNavTabs() {
-        val tabs = listOf(
-            Triple(pillHome, iconHome, textHome),
-            Triple(pillSearch, iconSearch, textSearch),
-            Triple(pillHistory, iconHistory, textHistory),
-            Triple(pillAbout, iconAbout, textAbout),
-            Triple(pillSettings, iconSettings, textSettings),
-        )
-        val secondaryColor = ContextCompat.getColor(this, R.color.text_secondary)
-        tabs.forEach { (pill, icon, text) ->
-            pill.setBackgroundColor(Color.TRANSPARENT)
-            text.visibility = View.GONE
-            icon.setColorFilter(secondaryColor)
-        }
+    private fun openAlertsActivity() {
+        val intent = Intent(this, AlertsActivity::class.java)
+        ActivityTransition.startActivitySmooth(this, intent)
     }
 
     override fun onResume() {
@@ -350,6 +261,8 @@ class MarketActivity : AppCompatActivity() {
         if (PinManager.hasPin(this) && AppLockManager.shouldLock(this)) {
             AppLockManager.redirectToVerify(this, PinVerifyActivity::class.java)
             finish()
+        } else {
+            viewModel.loadMarket(this, forceRefresh = false)
         }
     }
 }

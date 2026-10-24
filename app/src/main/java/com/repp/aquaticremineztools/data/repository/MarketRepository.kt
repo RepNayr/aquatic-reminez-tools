@@ -4,14 +4,31 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.repp.aquaticremineztools.core.settings.MarketPreferences
+import com.repp.aquaticremineztools.data.model.AlertType
 import com.repp.aquaticremineztools.data.model.CandleData
+import com.repp.aquaticremineztools.data.model.MarketAlert
 import com.repp.aquaticremineztools.data.model.MarketCategory
+import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.PortfolioHolding
 import com.repp.aquaticremineztools.data.model.WatchlistEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.abs
 import kotlin.math.sin
+
+data class PortfolioValuationResult(
+    val totalValuationUsd: Double,
+    val totalCostUsd: Double,
+    val unrealizedPlUsd: Double,
+    val unrealizedPlPctUsd: Double,
+    val totalValuationIdr: Double,
+    val totalCostIdr: Double,
+    val unrealizedPlIdr: Double,
+    val unrealizedPlPctIdr: Double,
+    val hasUnpricedHoldings: Boolean
+)
 
 class MarketRepository private constructor(context: Context) {
 
@@ -19,24 +36,34 @@ class MarketRepository private constructor(context: Context) {
     private val prefs = appContext.getSharedPreferences("market_terminal_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
     private val cryptoRepository = CryptoRepository.getInstance(appContext)
+    private val marketPreferences = MarketPreferences.getInstance(appContext)
+
+    var isDemoModeEnabled: Boolean
+        get() = marketPreferences.isDemoModeEnabled
+        set(value) {
+            marketPreferences.isDemoModeEnabled = value
+        }
 
     suspend fun getAllMarketInstruments(forceRefresh: Boolean = false): Result<List<MarketInstrument>> = withContext(Dispatchers.IO) {
         try {
             val list = mutableListOf<MarketInstrument>()
+            val demoMode = isDemoModeEnabled
 
             // 1. Fetch live Crypto from CoinGecko via CryptoRepository
             val cryptoResult = cryptoRepository.getMarketData(forceRefresh)
             cryptoResult.onSuccess { marketResult ->
                 marketResult.assets.forEach { asset ->
-                    val priceChangePct = asset.priceChange24h ?: 0.0
-                    val currentPrice = asset.currentPriceUsd ?: 0.0
-                    val absChange = currentPrice * (priceChangePct / 100.0)
-                    val cryptoStatus = if (marketResult.isDemo) {
-                        com.repp.aquaticremineztools.data.model.MarketDataStatus.SIMULATED
-                    } else if (marketResult.isCached) {
-                        com.repp.aquaticremineztools.data.model.MarketDataStatus.CACHED
-                    } else {
-                        com.repp.aquaticremineztools.data.model.MarketDataStatus.LIVE
+                    val priceChangePct = asset.priceChange24h
+                    val currentPrice = asset.currentPriceUsd
+                    val absChange = if (currentPrice != null && priceChangePct != null) {
+                        currentPrice * (priceChangePct / 100.0)
+                    } else null
+
+                    val cryptoStatus = when {
+                        marketResult.isDemo -> MarketDataStatus.SIMULATED
+                        marketResult.isCached -> MarketDataStatus.CACHED
+                        currentPrice != null -> MarketDataStatus.LIVE
+                        else -> MarketDataStatus.UNAVAILABLE
                     }
                     val isDemoCrypto = marketResult.isDemo
                     list.add(
@@ -52,31 +79,33 @@ class MarketRepository private constructor(context: Context) {
                             exchange = "COINGECKO",
                             imageUrl = asset.imageUrl,
                             sparklinePrices = asset.sparklinePrices,
-                            historicalCandles = if (isDemoCrypto) generateMockCandles(currentPrice.takeIf { it > 0.0 } ?: 1000.0, priceChangePct) else null,
+                            historicalCandles = if (isDemoCrypto && currentPrice != null) {
+                                generateMockCandles(currentPrice, priceChangePct ?: 0.0)
+                            } else null,
                             isCached = marketResult.isCached,
                             isDemo = isDemoCrypto,
-                            dataStatus = cryptoStatus,
-                        ),
+                            dataStatus = cryptoStatus
+                        )
                     )
                 }
             }.onFailure { e ->
                 Log.w("MarketRepository", "Crypto market fetch failed: ${e.message}")
             }
 
-            // 2. Add Regional & Global Indices (Demo / Simulated Market Data)
-            list.addAll(getIndicesInstruments())
+            // 2. Regional & Global Indices
+            list.addAll(getIndicesInstruments(demoMode))
 
-            // 3. Add Forex Instruments (Demo / Simulated Market Data)
-            list.addAll(getForexInstruments())
+            // 3. Forex Instruments
+            list.addAll(getForexInstruments(demoMode))
 
-            // 4. Add Commodities (Demo / Simulated Market Data)
-            list.addAll(getCommoditiesInstruments())
+            // 4. Commodities
+            list.addAll(getCommoditiesInstruments(demoMode))
 
-            // 5. Add Economic Indicators (Demo / Simulated Market Data)
-            list.addAll(getEconomicsInstruments())
+            // 5. Economic Indicators
+            list.addAll(getEconomicsInstruments(demoMode))
 
-            // 6. Add ETFs & Sectors (Demo / Simulated Market Data)
-            list.addAll(getEtfsInstruments())
+            // 6. ETFs & Sectors
+            list.addAll(getEtfsInstruments(demoMode))
 
             return@withContext Result.success(list)
         } catch (e: Exception) {
@@ -85,7 +114,7 @@ class MarketRepository private constructor(context: Context) {
         }
     }
 
-    private fun getIndicesInstruments(): List<MarketInstrument> {
+    private fun getIndicesInstruments(isDemo: Boolean): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
@@ -93,61 +122,65 @@ class MarketRepository private constructor(context: Context) {
                 symbol = "IHSG",
                 name = "Jakarta Composite Index",
                 category = MarketCategory.INDICES,
-                currentPrice = 7324.50,
-                priceChange24h = 45.20,
-                priceChangePercentage24h = 0.62,
+                currentPrice = if (isDemo) 7324.50 else null,
+                priceChange24h = if (isDemo) 45.20 else null,
+                priceChangePercentage24h = if (isDemo) 0.62 else null,
                 currency = "IDR",
                 exchange = "IDX",
-                historicalCandles = generateMockCandles(7324.50, 0.62),
+                historicalCandles = if (isDemo) generateMockCandles(7324.50, 0.62) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "sp500",
                 symbol = "SPX",
                 name = "S&P 500",
                 category = MarketCategory.INDICES,
-                currentPrice = 5815.20,
-                priceChange24h = 32.40,
-                priceChangePercentage24h = 0.56,
+                currentPrice = if (isDemo) 5815.20 else null,
+                priceChange24h = if (isDemo) 32.40 else null,
+                priceChangePercentage24h = if (isDemo) 0.56 else null,
                 currency = "USD",
                 exchange = "NYSE",
-                historicalCandles = generateMockCandles(5815.20, 0.56),
+                historicalCandles = if (isDemo) generateMockCandles(5815.20, 0.56) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "nasdaq",
                 symbol = "IXIC",
                 name = "Nasdaq Composite",
                 category = MarketCategory.INDICES,
-                currentPrice = 18518.60,
-                priceChange24h = 142.10,
-                priceChangePercentage24h = 0.77,
+                currentPrice = if (isDemo) 18518.60 else null,
+                priceChange24h = if (isDemo) 142.10 else null,
+                priceChangePercentage24h = if (isDemo) 0.77 else null,
                 currency = "USD",
                 exchange = "NASDAQ",
-                historicalCandles = generateMockCandles(18518.60, 0.77),
+                historicalCandles = if (isDemo) generateMockCandles(18518.60, 0.77) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "nikkei",
                 symbol = "NI225",
                 name = "Nikkei 225",
                 category = MarketCategory.INDICES,
-                currentPrice = 38981.75,
-                priceChange24h = -125.50,
-                priceChangePercentage24h = -0.32,
+                currentPrice = if (isDemo) 38981.75 else null,
+                priceChange24h = if (isDemo) -125.50 else null,
+                priceChangePercentage24h = if (isDemo) -0.32 else null,
                 currency = "JPY",
                 exchange = "TSE",
-                historicalCandles = generateMockCandles(38981.75, -0.32),
+                historicalCandles = if (isDemo) generateMockCandles(38981.75, -0.32) else null,
                 timestampEpoch = now,
-                isDemo = true,
-            ),
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
+            )
         )
     }
 
-    private fun getForexInstruments(): List<MarketInstrument> {
+    private fun getForexInstruments(isDemo: Boolean): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
@@ -155,47 +188,50 @@ class MarketRepository private constructor(context: Context) {
                 symbol = "USD/IDR",
                 name = "US Dollar / Indonesian Rupiah",
                 category = MarketCategory.FOREX,
-                currentPrice = 15680.0,
-                priceChange24h = 35.0,
-                priceChangePercentage24h = 0.22,
+                currentPrice = if (isDemo) 15680.0 else null,
+                priceChange24h = if (isDemo) 35.0 else null,
+                priceChangePercentage24h = if (isDemo) 0.22 else null,
                 currency = "IDR",
                 exchange = "FX",
-                historicalCandles = generateMockCandles(15680.0, 0.22),
+                historicalCandles = if (isDemo) generateMockCandles(15680.0, 0.22) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "eur_usd",
                 symbol = "EUR/USD",
                 name = "Euro / US Dollar",
                 category = MarketCategory.FOREX,
-                currentPrice = 1.0852,
-                priceChange24h = -0.0015,
-                priceChangePercentage24h = -0.14,
+                currentPrice = if (isDemo) 1.0852 else null,
+                priceChange24h = if (isDemo) -0.0015 else null,
+                priceChangePercentage24h = if (isDemo) -0.14 else null,
                 currency = "USD",
                 exchange = "FX",
-                historicalCandles = generateMockCandles(1.0852, -0.14),
+                historicalCandles = if (isDemo) generateMockCandles(1.0852, -0.14) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "gbp_usd",
                 symbol = "GBP/USD",
                 name = "British Pound / US Dollar",
                 category = MarketCategory.FOREX,
-                currentPrice = 1.2985,
-                priceChange24h = 0.0024,
-                priceChangePercentage24h = 0.19,
+                currentPrice = if (isDemo) 1.2985 else null,
+                priceChange24h = if (isDemo) 0.0024 else null,
+                priceChangePercentage24h = if (isDemo) 0.19 else null,
                 currency = "USD",
                 exchange = "FX",
-                historicalCandles = generateMockCandles(1.2985, 0.19),
+                historicalCandles = if (isDemo) generateMockCandles(1.2985, 0.19) else null,
                 timestampEpoch = now,
-                isDemo = true,
-            ),
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
+            )
         )
     }
 
-    private fun getCommoditiesInstruments(): List<MarketInstrument> {
+    private fun getCommoditiesInstruments(isDemo: Boolean): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
@@ -203,33 +239,35 @@ class MarketRepository private constructor(context: Context) {
                 symbol = "XAU/USD",
                 name = "Gold Spot",
                 category = MarketCategory.COMMODITIES,
-                currentPrice = 2735.80,
-                priceChange24h = 18.40,
-                priceChangePercentage24h = 0.68,
+                currentPrice = if (isDemo) 2735.80 else null,
+                priceChange24h = if (isDemo) 18.40 else null,
+                priceChangePercentage24h = if (isDemo) 0.68 else null,
                 currency = "USD",
                 exchange = "COMEX",
-                historicalCandles = generateMockCandles(2735.80, 0.68),
+                historicalCandles = if (isDemo) generateMockCandles(2735.80, 0.68) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "oil_wti",
                 symbol = "WTI",
                 name = "Crude Oil WTI",
                 category = MarketCategory.COMMODITIES,
-                currentPrice = 71.42,
-                priceChange24h = -1.12,
-                priceChangePercentage24h = -1.54,
+                currentPrice = if (isDemo) 71.42 else null,
+                priceChange24h = if (isDemo) -1.12 else null,
+                priceChangePercentage24h = if (isDemo) -1.54 else null,
                 currency = "USD",
                 exchange = "NYMEX",
-                historicalCandles = generateMockCandles(71.42, -1.54),
+                historicalCandles = if (isDemo) generateMockCandles(71.42, -1.54) else null,
                 timestampEpoch = now,
-                isDemo = true,
-            ),
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
+            )
         )
     }
 
-    private fun getEconomicsInstruments(): List<MarketInstrument> {
+    private fun getEconomicsInstruments(isDemo: Boolean): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
@@ -237,33 +275,35 @@ class MarketRepository private constructor(context: Context) {
                 symbol = "US10Y",
                 name = "US 10-Year Treasury Yield",
                 category = MarketCategory.ECONOMICS,
-                currentPrice = 4.24,
-                priceChange24h = 0.03,
-                priceChangePercentage24h = 0.71,
+                currentPrice = if (isDemo) 4.24 else null,
+                priceChange24h = if (isDemo) 0.03 else null,
+                priceChangePercentage24h = if (isDemo) 0.71 else null,
                 currency = "%",
                 exchange = "BOND",
-                historicalCandles = generateMockCandles(4.24, 0.71),
+                historicalCandles = if (isDemo) generateMockCandles(4.24, 0.71) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "id_inflation",
                 symbol = "ID-CPI",
                 name = "Indonesia Inflation Rate (YoY)",
                 category = MarketCategory.ECONOMICS,
-                currentPrice = 2.57,
-                priceChange24h = -0.05,
-                priceChangePercentage24h = -1.91,
+                currentPrice = if (isDemo) 2.57 else null,
+                priceChange24h = if (isDemo) -0.05 else null,
+                priceChangePercentage24h = if (isDemo) -1.91 else null,
                 currency = "%",
                 exchange = "BPS",
-                historicalCandles = generateMockCandles(2.57, -1.91),
+                historicalCandles = if (isDemo) generateMockCandles(2.57, -1.91) else null,
                 timestampEpoch = now,
-                isDemo = true,
-            ),
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
+            )
         )
     }
 
-    private fun getEtfsInstruments(): List<MarketInstrument> {
+    private fun getEtfsInstruments(isDemo: Boolean): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
@@ -271,29 +311,31 @@ class MarketRepository private constructor(context: Context) {
                 symbol = "SPY",
                 name = "SPDR S&P 500 ETF Trust",
                 category = MarketCategory.ETFS,
-                currentPrice = 580.40,
-                priceChange24h = 3.10,
-                priceChangePercentage24h = 0.54,
+                currentPrice = if (isDemo) 580.40 else null,
+                priceChange24h = if (isDemo) 3.10 else null,
+                priceChangePercentage24h = if (isDemo) 0.54 else null,
                 currency = "USD",
                 exchange = "NYSE",
-                historicalCandles = generateMockCandles(580.40, 0.54),
+                historicalCandles = if (isDemo) generateMockCandles(580.40, 0.54) else null,
                 timestampEpoch = now,
-                isDemo = true,
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "qqq",
                 symbol = "QQQ",
                 name = "Invesco QQQ Trust",
                 category = MarketCategory.ETFS,
-                currentPrice = 498.20,
-                priceChange24h = 4.50,
-                priceChangePercentage24h = 0.91,
+                currentPrice = if (isDemo) 498.20 else null,
+                priceChange24h = if (isDemo) 4.50 else null,
+                priceChangePercentage24h = if (isDemo) 0.91 else null,
                 currency = "USD",
                 exchange = "NASDAQ",
-                historicalCandles = generateMockCandles(498.20, 0.91),
+                historicalCandles = if (isDemo) generateMockCandles(498.20, 0.91) else null,
                 timestampEpoch = now,
-                isDemo = true,
-            ),
+                isDemo = isDemo,
+                dataStatus = if (isDemo) MarketDataStatus.SIMULATED else MarketDataStatus.UNAVAILABLE
+            )
         )
     }
 
@@ -319,15 +361,13 @@ class MarketRepository private constructor(context: Context) {
                     high = high.toFloat(),
                     low = low.toFloat(),
                     close = close.toFloat(),
-                    volume = volume,
-                ),
+                    volume = volume
+                )
             )
             price = close
         }
         return candles
     }
-
-    private fun abs(d: Double): Double = if (d < 0) -d else d
 
     // Watchlist Management
     fun getWatchlist(): List<WatchlistEntry> {
@@ -352,8 +392,8 @@ class MarketRepository private constructor(context: Context) {
                     instrumentId = instrument.id,
                     symbol = instrument.symbol,
                     name = instrument.name,
-                    category = instrument.category,
-                ),
+                    category = instrument.category
+                )
             )
             true
         }
@@ -382,11 +422,132 @@ class MarketRepository private constructor(context: Context) {
         prefs.edit().putString("portfolio_json", gson.toJson(current)).apply()
     }
 
-    @Suppress("unused")
     fun removePortfolioHolding(holdingId: String) {
         val current = getPortfolioHoldings().toMutableList()
-        current.removeIf { it.id == holdingId }
+        current.removeAll { it.id == holdingId }
         prefs.edit().putString("portfolio_json", gson.toJson(current)).apply()
+    }
+
+    fun calculatePortfolioValuation(
+        holdings: List<PortfolioHolding>,
+        instrumentsMap: Map<String, MarketInstrument>
+    ): PortfolioValuationResult {
+        var totalValuationUsd = 0.0
+        var totalCostUsd = 0.0
+        var totalValuationIdr = 0.0
+        var totalCostIdr = 0.0
+        var hasUnpriced = false
+
+        holdings.forEach { holding ->
+            val inst = instrumentsMap[holding.instrumentId]
+            val currentUnitPrice = inst?.currentPrice
+            val isUnpriced = (currentUnitPrice == null)
+            if (isUnpriced) {
+                hasUnpriced = true
+            }
+
+            val priceToUse = currentUnitPrice ?: holding.averageCost
+            val valuation = holding.quantity * priceToUse
+            val cost = holding.quantity * holding.averageCost
+
+            if (holding.currency.equals("IDR", ignoreCase = true) || inst?.currency?.equals("IDR", ignoreCase = true) == true) {
+                totalValuationIdr += valuation
+                totalCostIdr += cost
+            } else {
+                totalValuationUsd += valuation
+                totalCostUsd += cost
+            }
+        }
+
+        val plUsd = totalValuationUsd - totalCostUsd
+        val plPctUsd = if (totalCostUsd > 0.0) (plUsd / totalCostUsd) * 100.0 else 0.0
+
+        val plIdr = totalValuationIdr - totalCostIdr
+        val plPctIdr = if (totalCostIdr > 0.0) (plIdr / totalCostIdr) * 100.0 else 0.0
+
+        return PortfolioValuationResult(
+            totalValuationUsd = totalValuationUsd,
+            totalCostUsd = totalCostUsd,
+            unrealizedPlUsd = plUsd,
+            unrealizedPlPctUsd = plPctUsd,
+            totalValuationIdr = totalValuationIdr,
+            totalCostIdr = totalCostIdr,
+            unrealizedPlIdr = plIdr,
+            unrealizedPlPctIdr = plPctIdr,
+            hasUnpricedHoldings = hasUnpriced
+        )
+    }
+
+    // Alerts Management
+    fun getAlerts(): List<MarketAlert> {
+        val json = prefs.getString("alerts_json", null) ?: return emptyList()
+        return try {
+            val type = object : TypeToken<List<MarketAlert>>() {}.type
+            gson.fromJson(json, type) ?: emptyList()
+        } catch (_: Exception) {
+            emptyList()
+        }
+    }
+
+    fun addAlert(alert: MarketAlert) {
+        val current = getAlerts().toMutableList()
+        current.add(alert)
+        prefs.edit().putString("alerts_json", gson.toJson(current)).apply()
+    }
+
+    fun updateAlert(updatedAlert: MarketAlert) {
+        val current = getAlerts().toMutableList()
+        val index = current.indexOfFirst { it.id == updatedAlert.id }
+        if (index != -1) {
+            current[index] = updatedAlert
+            prefs.edit().putString("alerts_json", gson.toJson(current)).apply()
+        }
+    }
+
+    fun deleteAlert(alertId: String) {
+        val current = getAlerts().toMutableList()
+        current.removeAll { it.id == alertId }
+        prefs.edit().putString("alerts_json", gson.toJson(current)).apply()
+    }
+
+    fun evaluateAlerts(instruments: List<MarketInstrument>): List<MarketAlert> {
+        val alerts = getAlerts()
+        if (alerts.isEmpty() || instruments.isEmpty()) return emptyList()
+
+        val instrumentsMap = instruments.associateBy { it.id }
+        val triggeredList = mutableListOf<MarketAlert>()
+        val updatedAlerts = alerts.toMutableList()
+
+        for (i in updatedAlerts.indices) {
+            val alert = updatedAlerts[i]
+            if (!alert.isActive || alert.isTriggered) continue
+
+            val inst = instrumentsMap[alert.instrumentId] ?: continue
+            val price = inst.currentPrice ?: continue
+            val pctChange = inst.priceChangePercentage24h
+
+            var isTriggered = false
+            when (alert.alertType) {
+                AlertType.PRICE_ABOVE -> if (price >= alert.targetValue) isTriggered = true
+                AlertType.PRICE_BELOW -> if (price <= alert.targetValue) isTriggered = true
+                AlertType.PCT_CHANGE_24H -> if (pctChange != null && abs(pctChange) >= alert.targetValue) isTriggered = true
+            }
+
+            if (isTriggered) {
+                val newAlert = alert.copy(
+                    isTriggered = true,
+                    lastTriggeredEpoch = System.currentTimeMillis()
+                )
+                updatedAlerts[i] = newAlert
+                triggeredList.add(newAlert)
+            }
+        }
+
+        if (triggeredList.isNotEmpty()) {
+            prefs.edit().putString("alerts_json", gson.toJson(updatedAlerts)).apply()
+        }
+
+        return triggeredList
     }
 
     companion object {
