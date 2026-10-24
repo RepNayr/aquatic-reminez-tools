@@ -27,6 +27,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import android.text.format.DateUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -50,6 +51,9 @@ import com.repp.aquaticremineztools.core.settings.SettingsPreferences
 import com.repp.aquaticremineztools.core.util.HijriCalendarHelper
 import com.repp.aquaticremineztools.data.QuickCategory
 import com.repp.aquaticremineztools.data.model.CryptoAsset
+import com.repp.aquaticremineztools.data.model.NewsArticle
+import com.repp.aquaticremineztools.presentation.news.NewsViewModel
+import com.repp.aquaticremineztools.presentation.news.NewsUiState
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
@@ -144,6 +148,15 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvMarketStatusIndicator: TextView
     private lateinit var tvMarketTitle: TextView
 
+    // News Widget
+    private lateinit var newsViewModel: NewsViewModel
+    private var cardNewsBlur: BlurView? = null
+    private lateinit var layoutNewsHeaderTitle: LinearLayout
+    private lateinit var containerFeaturedArticle: FrameLayout
+    private lateinit var layoutCompactArticles: LinearLayout
+    private lateinit var pbNewsLoading: ProgressBar
+    private lateinit var tvNewsStatusIndicator: TextView
+
     private val prayerCountdownHandler = Handler(Looper.getMainLooper())
     private val prayerCountdownRunnable = object : Runnable {
         override fun run() {
@@ -232,12 +245,14 @@ class HomeActivity : AppCompatActivity() {
         prayerViewModel = ViewModelProvider(this)[PrayerViewModel::class.java]
         cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
         calendarViewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
+        newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]
 
         bindViews()
         setupGlassCards()
         setupPrayerSchedule()
         setupCalendarSection()
         setupMarketSection()
+        setupNewsSection()
         setupClicks()
         setupDrawerMenuClicks()
         setupBottomNav()
@@ -311,6 +326,14 @@ class HomeActivity : AppCompatActivity() {
         layoutCryptoRows = findViewById(R.id.layoutCryptoRows)
         tvMarketStatusIndicator = findViewById(R.id.tvMarketStatusIndicator)
         tvMarketTitle = findViewById(R.id.tvMarketTitle)
+
+        // News Widget
+        cardNewsBlur = findViewById(R.id.cardNews)
+        layoutNewsHeaderTitle = findViewById(R.id.layoutNewsHeaderTitle)
+        containerFeaturedArticle = findViewById(R.id.containerFeaturedArticle)
+        layoutCompactArticles = findViewById(R.id.layoutCompactArticles)
+        pbNewsLoading = findViewById(R.id.pbNewsLoading)
+        tvNewsStatusIndicator = findViewById(R.id.tvNewsStatusIndicator)
 
         tvPasswordLabel = findViewById(R.id.tvPasswordLabel)
 
@@ -485,6 +508,7 @@ class HomeActivity : AppCompatActivity() {
         cardPrayerBlur = findViewById(R.id.cardPrayerSchedule)
         cardCalendarBlur = findViewById(R.id.cardCalendar)
         cardMarketBlur = findViewById(R.id.cardMarket)
+        cardNewsBlur = findViewById(R.id.cardNews)
 
         val frameClearDrawable = window.decorView.background
 
@@ -494,6 +518,7 @@ class HomeActivity : AppCompatActivity() {
         GlassBlurHelper.setupBlur(cardPrayerBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardCalendarBlur, homeBlurTarget, frameClearDrawable)
         GlassBlurHelper.setupBlur(cardMarketBlur, homeBlurTarget, frameClearDrawable)
+        cardNewsBlur?.let { GlassBlurHelper.setupBlur(it, homeBlurTarget, frameClearDrawable) }
     }
 
     // ============================
@@ -769,6 +794,142 @@ class HomeActivity : AppCompatActivity() {
                 layoutCryptoRows.addView(divider)
             }
         }
+    }
+
+    // ============================
+    // NEWS WIDGET
+    // ============================
+    private fun setupNewsSection() {
+        layoutNewsHeaderTitle.setOnClickListener {
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.news.NewsActivity::class.java)
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        newsViewModel.homepageUiState.observe(this) { state ->
+            when (state) {
+                is NewsUiState.Loading -> {
+                    if (containerFeaturedArticle.childCount == 0 && layoutCompactArticles.childCount == 0) {
+                        pbNewsLoading.visibility = View.VISIBLE
+                    }
+                }
+                is NewsUiState.Success -> {
+                    pbNewsLoading.visibility = View.GONE
+                    displayHomepageNews(state.articles)
+
+                    if (state.isOffline || state.isCached) {
+                        tvNewsStatusIndicator.text = getString(R.string.news_offline_notice)
+                        tvNewsStatusIndicator.visibility = View.VISIBLE
+                    } else {
+                        tvNewsStatusIndicator.visibility = View.GONE
+                    }
+                }
+                is NewsUiState.Error -> {
+                    pbNewsLoading.visibility = View.GONE
+                    tvNewsStatusIndicator.text = state.message
+                    tvNewsStatusIndicator.visibility = View.VISIBLE
+                }
+            }
+        }
+
+        newsViewModel.loadHomepageNews(this)
+    }
+
+    private fun displayHomepageNews(articles: List<NewsArticle>) {
+        containerFeaturedArticle.removeAllViews()
+        layoutCompactArticles.removeAllViews()
+
+        if (articles.isEmpty()) return
+
+        val inflater = LayoutInflater.from(this)
+
+        // 1. Featured Article
+        val featuredArticle = articles.firstOrNull { it.isFeatured } ?: articles.first()
+        val featuredView = inflater.inflate(R.layout.item_news_featured, containerFeaturedArticle, false)
+
+        val ivFeaturedThumbnail = featuredView.findViewById<ImageView>(R.id.ivFeaturedThumbnail)
+        val tvFeaturedCategory = featuredView.findViewById<TextView>(R.id.tvFeaturedCategory)
+        val tvFeaturedHeadline = featuredView.findViewById<TextView>(R.id.tvFeaturedHeadline)
+        val tvFeaturedMeta = featuredView.findViewById<TextView>(R.id.tvFeaturedMeta)
+        val tvFeaturedSummary = featuredView.findViewById<TextView>(R.id.tvFeaturedSummary)
+
+        tvFeaturedCategory.text = featuredArticle.category.uppercase(Locale.ROOT)
+        tvFeaturedHeadline.text = featuredArticle.headline
+        val relativeTime = DateUtils.getRelativeTimeSpanString(
+            featuredArticle.publishedAtEpoch,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS
+        )
+        tvFeaturedMeta.text = "${featuredArticle.publisher} · $relativeTime"
+        tvFeaturedSummary.text = featuredArticle.summary
+
+        if (!featuredArticle.thumbnailUrl.isNullOrBlank()) {
+            ivFeaturedThumbnail.load(featuredArticle.thumbnailUrl) {
+                placeholder(R.drawable.home_background_image)
+                error(R.drawable.home_background_image)
+                crossfade(true)
+            }
+        } else {
+            ivFeaturedThumbnail.setImageResource(R.drawable.home_background_image)
+        }
+
+        featuredView.setOnClickListener {
+            openNewsDetail(featuredArticle)
+        }
+
+        containerFeaturedArticle.addView(featuredView)
+
+        // 2. Compact Articles
+        val compactList = articles.filter { it.articleUrl != featuredArticle.articleUrl }.take(7)
+        compactList.forEach { article ->
+            val compactView = inflater.inflate(R.layout.item_news_compact, layoutCompactArticles, false)
+
+            val ivCompactThumbnail = compactView.findViewById<ImageView>(R.id.ivCompactThumbnail)
+            val tvCompactCategory = compactView.findViewById<TextView>(R.id.tvCompactCategory)
+            val tvCompactMeta = compactView.findViewById<TextView>(R.id.tvCompactMeta)
+            val tvCompactHeadline = compactView.findViewById<TextView>(R.id.tvCompactHeadline)
+            val tvCompactSummary = compactView.findViewById<TextView>(R.id.tvCompactSummary)
+
+            tvCompactCategory.text = article.category.uppercase(Locale.ROOT)
+            tvCompactHeadline.text = article.headline
+            tvCompactSummary.text = article.summary
+
+            val compRelativeTime = DateUtils.getRelativeTimeSpanString(
+                article.publishedAtEpoch,
+                System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS
+            )
+            tvCompactMeta.text = "${article.publisher} · $compRelativeTime"
+
+            if (!article.thumbnailUrl.isNullOrBlank()) {
+                ivCompactThumbnail.load(article.thumbnailUrl) {
+                    placeholder(R.drawable.home_background_image)
+                    error(R.drawable.home_background_image)
+                    crossfade(true)
+                }
+            } else {
+                ivCompactThumbnail.setImageResource(R.drawable.home_background_image)
+            }
+
+            compactView.setOnClickListener {
+                openNewsDetail(article)
+            }
+
+            layoutCompactArticles.addView(compactView)
+        }
+    }
+
+    private fun openNewsDetail(article: NewsArticle) {
+        val intent = Intent(this, com.repp.aquaticremineztools.presentation.news.NewsDetailActivity::class.java).apply {
+            putExtra("article_url", article.articleUrl)
+            putExtra("headline", article.headline)
+            putExtra("summary", article.summary)
+            putExtra("content", article.content)
+            putExtra("thumbnail_url", article.thumbnailUrl)
+            putExtra("publisher", article.publisher)
+            putExtra("category", article.category)
+            putExtra("published_epoch", article.publishedAtEpoch)
+        }
+        ActivityTransition.startActivitySmooth(this, intent)
     }
 
     // ============================

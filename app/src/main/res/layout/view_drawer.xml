@@ -172,6 +172,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/menuNews"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_info"
+                android:contentDescription="@string/news_title"
+                app:tint="@color/accent_primary" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="@string/news_title" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/menuFavorites"
             style="@style/DrawerMenuItem">
 

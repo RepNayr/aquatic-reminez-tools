@@ -57,6 +57,23 @@
     <string name="market_attribution">Data provided by CoinGecko</string>
     <string name="market_status_offline">Offline Data</string>
     <string name="market_status_demo">Demo Data</string>
+
+    <!-- NEWS -->
+    <string name="news_title">NEWS</string>
+    <string name="news_desc">Latest updates · Tech &amp; feeds</string>
+    <string name="news_load_more">LOAD MORE ARTICLES</string>
+    <string name="news_filter">FILTER</string>
+    <string name="news_manage_categories">Manage Categories</string>
+    <string name="news_search_hint">Search news headlines…</string>
+    <string name="news_empty_title">No News Found</string>
+    <string name="news_empty_desc">Try adjusting your search query or category filter.</string>
+    <string name="news_open_browser">OPEN IN BROWSER</string>
+    <string name="news_share">SHARE</string>
+    <string name="news_publisher_attribution">Original content by %1$s</string>
+    <string name="news_offline_notice">Offline Data · Showing cached news</string>
+    <string name="news_language">News Language</string>
+    <string name="news_theme">News Theme</string>
+
     <string name="home_info">INFO</string>
     <string name="home_tools_count">%1$d tools</string>
 

@@ -93,6 +93,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var cardCatSecurity: LinearLayout
     private lateinit var cardCatAppSupport: LinearLayout
     private lateinit var cardCatWorkspace: LinearLayout
+    private lateinit var cardCatNews: LinearLayout
 
     // Bottom Nav Pill
     private lateinit var tabHome: FrameLayout
@@ -195,6 +196,7 @@ class SettingsActivity : AppCompatActivity() {
         cardCatSecurity = findViewById(R.id.cardCatSecurity)
         cardCatAppSupport = findViewById(R.id.cardCatAppSupport)
         cardCatWorkspace = findViewById(R.id.cardCatWorkspace)
+        cardCatNews = findViewById(R.id.cardCatNews)
 
         // Bottom Nav Pill
         tabHome = findViewById(R.id.tabHome)
@@ -502,6 +504,10 @@ class SettingsActivity : AppCompatActivity() {
 
         cardCatWorkspace.setOnClickListener {
             ActivityTransition.startActivitySmooth(this, Intent(this, WorkspaceWorkflowSettingsActivity::class.java))
+        }
+
+        cardCatNews.setOnClickListener {
+            ActivityTransition.startActivitySmooth(this, Intent(this, com.repp.aquaticremineztools.presentation.news.ManageNewsCategoriesActivity::class.java))
         }
     }
 }

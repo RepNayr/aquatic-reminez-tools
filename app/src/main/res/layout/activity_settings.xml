@@ -1583,6 +1583,58 @@
                                 android:contentDescription="Open" />
                         </LinearLayout>
 
+                        <!-- Category 5 -->
+                        <LinearLayout
+                            android:id="@+id/cardCatNews"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="@drawable/bg_card_dark"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:gravity="center_vertical"
+                            android:padding="12dp">
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_info"
+                                app:tint="@color/accent_cyan"
+                                android:contentDescription="News" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="12dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/times_new_roman_bold"
+                                    android:text="5. News Reader &amp; Feeds"
+                                    android:textColor="@color/text_primary"
+                                    android:textSize="13sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="RSS feeds, categories, language preference &amp; news theme"
+                                    android:textColor="@color/text_muted"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_chevron_right"
+                                app:tint="@color/text_muted"
+                                android:contentDescription="Open" />
+                        </LinearLayout>
+
                     </LinearLayout>
                 </eightbitlab.com.blurview.BlurView>
 
