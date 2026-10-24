@@ -1,5 +1,12 @@
 package com.repp.aquaticremineztools.data.model
 
+enum class MarketDataStatus {
+    LIVE,
+    CACHED,
+    SIMULATED,
+    UNAVAILABLE
+}
+
 data class MarketInstrument(
     val id: String,
     val symbol: String,
@@ -15,7 +22,8 @@ data class MarketInstrument(
     val historicalCandles: List<CandleData>? = null,
     val timestampEpoch: Long = System.currentTimeMillis(),
     val isCached: Boolean = false,
-    val isDemo: Boolean = false
+    val isDemo: Boolean = false,
+    val dataStatus: MarketDataStatus = if (isDemo) MarketDataStatus.SIMULATED else if (isCached) MarketDataStatus.CACHED else MarketDataStatus.LIVE
 )
 
 data class CandleData(

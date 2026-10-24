@@ -2,10 +2,12 @@ package com.repp.aquaticremineztools.presentation.market
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -14,6 +16,8 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,6 +51,8 @@ class MarketActivity : AppCompatActivity() {
     private lateinit var tvMarketStatusBanner: TextView
     private lateinit var rvMarketInstruments: RecyclerView
     private lateinit var layoutEmptyState: LinearLayout
+    private lateinit var tvEmptyStateTitle: TextView
+    private lateinit var tvEmptyStateSubtitle: TextView
 
     private lateinit var viewModel: MarketViewModel
     private lateinit var adapter: MarketInstrumentAdapter
@@ -88,6 +94,7 @@ class MarketActivity : AppCompatActivity() {
         setContentView(R.layout.activity_market)
 
         bindViews()
+        setupWindowInsets()
         setupGlassBlur()
         setupBottomNav()
         setupDrawer()
@@ -109,6 +116,8 @@ class MarketActivity : AppCompatActivity() {
         tvMarketStatusBanner = findViewById(R.id.tvMarketStatusBanner)
         rvMarketInstruments = findViewById(R.id.rvMarketInstruments)
         layoutEmptyState = findViewById(R.id.layoutEmptyState)
+        tvEmptyStateTitle = findViewById(R.id.tvEmptyStateTitle)
+        tvEmptyStateSubtitle = findViewById(R.id.tvEmptyStateSubtitle)
 
         // Bottom Nav
         tabHome = findViewById(R.id.tabHome)
@@ -134,6 +143,31 @@ class MarketActivity : AppCompatActivity() {
         textHistory = findViewById(R.id.textHistory)
         textAbout = findViewById(R.id.textAbout)
         textSettings = findViewById(R.id.textSettings)
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+
+            val layoutToolbar = findViewById<LinearLayout>(R.id.layoutToolbar)
+            layoutToolbar.setPadding(
+                layoutToolbar.paddingLeft,
+                statusBarHeight,
+                layoutToolbar.paddingRight,
+                layoutToolbar.paddingBottom
+            )
+
+            val bottomNav = findViewById<View>(R.id.bottomNav)
+            val lp = bottomNav.layoutParams as? ViewGroup.MarginLayoutParams
+            if (lp != null) {
+                val density = resources.displayMetrics.density
+                lp.bottomMargin = navBarHeight + (12 * density).toInt()
+                bottomNav.layoutParams = lp
+            }
+
+            insets
+        }
     }
 
     private fun setupGlassBlur() {
@@ -179,7 +213,7 @@ class MarketActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        adapter = MarketInstrumentAdapter(emptyList()) { instrument ->
+        adapter = MarketInstrumentAdapter { instrument ->
             val intent = Intent(this, InstrumentDetailActivity::class.java).apply {
                 putExtra("instrument_id", instrument.id)
                 putExtra("instrument_symbol", instrument.symbol)
@@ -207,16 +241,15 @@ class MarketActivity : AppCompatActivity() {
                     if (state.filteredInstruments.isEmpty()) {
                         rvMarketInstruments.visibility = View.GONE
                         layoutEmptyState.visibility = View.VISIBLE
+                        tvEmptyStateTitle.text = state.emptyStateTitle
+                        tvEmptyStateSubtitle.text = state.emptyStateSubtitle
                     } else {
                         rvMarketInstruments.visibility = View.VISIBLE
                         layoutEmptyState.visibility = View.GONE
                     }
 
-                    if (state.isDemo) {
-                        tvMarketStatusBanner.text = "Demo Mode - Simulated Market Data"
-                        tvMarketStatusBanner.visibility = View.VISIBLE
-                    } else if (state.isCached) {
-                        tvMarketStatusBanner.text = "Offline Mode - Showing Cached Data"
+                    if (!state.bannerMessage.isNullOrEmpty()) {
+                        tvMarketStatusBanner.text = state.bannerMessage
                         tvMarketStatusBanner.visibility = View.VISIBLE
                     } else {
                         tvMarketStatusBanner.visibility = View.GONE
@@ -258,6 +291,8 @@ class MarketActivity : AppCompatActivity() {
     }
 
     private fun setupBottomNav() {
+        unselectAllBottomNavTabs()
+
         tabHome.setOnClickListener {
             val intent = Intent(this, HomeActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
@@ -291,6 +326,22 @@ class MarketActivity : AppCompatActivity() {
                 flags = Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP
             }
             ActivityTransition.startActivitySmooth(this, intent)
+        }
+    }
+
+    private fun unselectAllBottomNavTabs() {
+        val tabs = listOf(
+            Triple(pillHome, iconHome, textHome),
+            Triple(pillSearch, iconSearch, textSearch),
+            Triple(pillHistory, iconHistory, textHistory),
+            Triple(pillAbout, iconAbout, textAbout),
+            Triple(pillSettings, iconSettings, textSettings),
+        )
+        val secondaryColor = ContextCompat.getColor(this, R.color.text_secondary)
+        tabs.forEach { (pill, icon, text) ->
+            pill.setBackgroundColor(Color.TRANSPARENT)
+            text.visibility = View.GONE
+            icon.setColorFilter(secondaryColor)
         }
     }
 

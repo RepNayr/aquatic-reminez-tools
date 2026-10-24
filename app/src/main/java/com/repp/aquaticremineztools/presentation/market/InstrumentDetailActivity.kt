@@ -3,6 +3,7 @@ package com.repp.aquaticremineztools.presentation.market
 import android.app.AlertDialog
 import android.graphics.Color
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -18,6 +19,7 @@ import com.github.mikephil.charting.data.LineDataSet
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
+import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.PortfolioHolding
 import com.repp.aquaticremineztools.data.repository.MarketRepository
@@ -128,12 +130,15 @@ class InstrumentDetailActivity : AppCompatActivity() {
         tvDetailName.text = instrument.name
 
         if (instrument.currentPrice != null) {
-            val formatted = if (instrument.currency == "IDR") {
-                String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
-            } else if (instrument.currentPrice >= 1.0) {
-                String.format(Locale.US, "$%,.2f", instrument.currentPrice)
-            } else {
-                String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+            val formatted = when (instrument.currency) {
+                "IDR" -> String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
+                "%" -> String.format(Locale.US, "%.2f%%", instrument.currentPrice)
+                "JPY" -> String.format(Locale.US, "¥%,.2f", instrument.currentPrice)
+                else -> if (instrument.currentPrice >= 1.0) {
+                    String.format(Locale.US, "$%,.2f", instrument.currentPrice)
+                } else {
+                    String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+                }
             }
             tvDetailCurrentPrice.text = formatted
         } else {
@@ -150,61 +155,116 @@ class InstrumentDetailActivity : AppCompatActivity() {
             tvDetailChange.text = "--"
         }
 
-        tvDetailSourceStatus.text = if (instrument.isDemo) "Demo Data" else if (instrument.isCached) "Cached Data" else "Live · Market Feed"
+        tvDetailSourceStatus.text = when (instrument.dataStatus) {
+            MarketDataStatus.LIVE -> "Live Feed · Powered by CoinGecko"
+            MarketDataStatus.CACHED -> "Offline Mode · Cached CoinGecko Data"
+            MarketDataStatus.SIMULATED -> "Simulated Market Data (Demo)"
+            MarketDataStatus.UNAVAILABLE -> "Data Unavailable"
+        }
     }
 
     private fun renderChart(instrument: MarketInstrument) {
+        val sparkline = instrument.sparklinePrices
         val candles = instrument.historicalCandles
-        if (candles.isNullOrEmpty()) {
-            chartInstrument.clear()
-            return
-        }
 
-        val entries = ArrayList<Entry>()
-        val smaEntries = ArrayList<Entry>()
-        val window = 5
+        if (!sparkline.isNullOrEmpty()) {
+            btnToggleIndicator.visibility = View.VISIBLE
+            val entries = ArrayList<Entry>()
+            val smaEntries = ArrayList<Entry>()
+            val window = 5
 
-        candles.forEachIndexed { index, candle ->
-            entries.add(Entry(index.toFloat(), candle.close))
-            if (isSmaActive && (index >= window - 1)) {
-                val slice = candles.subList(index - window + 1, index + 1)
-                val avg = slice.map { it.close }.average().toFloat()
-                smaEntries.add(Entry(index.toFloat(), avg))
+            sparkline.forEachIndexed { index, price ->
+                entries.add(Entry(index.toFloat(), price))
+                if (isSmaActive && (index >= window - 1)) {
+                    val slice = sparkline.subList(index - window + 1, index + 1)
+                    val avg = slice.average().toFloat()
+                    smaEntries.add(Entry(index.toFloat(), avg))
+                }
             }
-        }
 
-        val dataSet = LineDataSet(entries, "Close Price").apply {
-            color = Color.parseColor("#43D9E6")
-            setDrawValues(false)
-            lineWidth = 2f
-            setDrawCircles(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            setDrawFilled(true)
-            fillColor = Color.parseColor("#43D9E6")
-            fillAlpha = 40
-        }
-
-        val dataSets = ArrayList<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>()
-        dataSets.add(dataSet)
-
-        if (isSmaActive && smaEntries.isNotEmpty()) {
-            val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
-                color = Color.parseColor("#38BFA1")
+            val dataSet = LineDataSet(entries, "7-Day Sparkline Trend").apply {
+                color = Color.parseColor("#43D9E6")
                 setDrawValues(false)
-                lineWidth = 1.5f
+                lineWidth = 2f
                 setDrawCircles(false)
+                mode = LineDataSet.Mode.CUBIC_BEZIER
+                setDrawFilled(true)
+                fillColor = Color.parseColor("#43D9E6")
+                fillAlpha = 40
             }
-            dataSets.add(smaDataSet)
-        }
 
-        chartInstrument.data = LineData(dataSets)
-        chartInstrument.description.isEnabled = false
-        chartInstrument.legend.isEnabled = true
-        chartInstrument.legend.textColor = Color.WHITE
-        chartInstrument.xAxis.isEnabled = false
-        chartInstrument.axisRight.isEnabled = false
-        chartInstrument.axisLeft.textColor = Color.WHITE
-        chartInstrument.invalidate()
+            val dataSets = ArrayList<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>()
+            dataSets.add(dataSet)
+
+            if (isSmaActive && smaEntries.isNotEmpty()) {
+                val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
+                    color = Color.parseColor("#38BFA1")
+                    setDrawValues(false)
+                    lineWidth = 1.5f
+                    setDrawCircles(false)
+                }
+                dataSets.add(smaDataSet)
+            }
+
+            chartInstrument.data = LineData(dataSets)
+            chartInstrument.description.isEnabled = false
+            chartInstrument.legend.isEnabled = true
+            chartInstrument.legend.textColor = Color.WHITE
+            chartInstrument.xAxis.isEnabled = false
+            chartInstrument.axisRight.isEnabled = false
+            chartInstrument.axisLeft.textColor = Color.WHITE
+            chartInstrument.invalidate()
+        } else if (!candles.isNullOrEmpty()) {
+            btnToggleIndicator.visibility = View.VISIBLE
+            val entries = ArrayList<Entry>()
+            val smaEntries = ArrayList<Entry>()
+            val window = 5
+
+            candles.forEachIndexed { index, candle ->
+                entries.add(Entry(index.toFloat(), candle.close))
+                if (isSmaActive && (index >= window - 1)) {
+                    val slice = candles.subList(index - window + 1, index + 1)
+                    val avg = slice.map { it.close }.average().toFloat()
+                    smaEntries.add(Entry(index.toFloat(), avg))
+                }
+            }
+
+            val dataSet = LineDataSet(entries, "Simulated Chart (Demo Data)").apply {
+                color = Color.parseColor("#43D9E6")
+                setDrawValues(false)
+                lineWidth = 2f
+                setDrawCircles(false)
+                mode = LineDataSet.Mode.CUBIC_BEZIER
+                setDrawFilled(true)
+                fillColor = Color.parseColor("#43D9E6")
+                fillAlpha = 40
+            }
+
+            val dataSets = ArrayList<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>()
+            dataSets.add(dataSet)
+
+            if (isSmaActive && smaEntries.isNotEmpty()) {
+                val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
+                    color = Color.parseColor("#38BFA1")
+                    setDrawValues(false)
+                    lineWidth = 1.5f
+                    setDrawCircles(false)
+                }
+                dataSets.add(smaDataSet)
+            }
+
+            chartInstrument.data = LineData(dataSets)
+            chartInstrument.description.isEnabled = false
+            chartInstrument.legend.isEnabled = true
+            chartInstrument.legend.textColor = Color.WHITE
+            chartInstrument.xAxis.isEnabled = false
+            chartInstrument.axisRight.isEnabled = false
+            chartInstrument.axisLeft.textColor = Color.WHITE
+            chartInstrument.invalidate()
+        } else {
+            chartInstrument.clear()
+            btnToggleIndicator.visibility = View.GONE
+        }
     }
 
     private fun updateWatchlistIcon(isInWatchlist: Boolean) {

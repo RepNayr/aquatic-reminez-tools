@@ -6,6 +6,8 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.repp.aquaticremineztools.R
@@ -13,13 +15,15 @@ import com.repp.aquaticremineztools.data.model.MarketInstrument
 import java.util.Locale
 
 class MarketInstrumentAdapter(
-    private var instruments: List<MarketInstrument>,
     private val onItemClick: (MarketInstrument) -> Unit,
-) : RecyclerView.Adapter<MarketInstrumentAdapter.ViewHolder>() {
+) : ListAdapter<MarketInstrument, MarketInstrumentAdapter.ViewHolder>(DiffCallback) {
+
+    constructor(initialList: List<MarketInstrument>, onItemClick: (MarketInstrument) -> Unit) : this(onItemClick) {
+        submitList(initialList)
+    }
 
     fun updateData(newInstruments: List<MarketInstrument>) {
-        instruments = newInstruments
-        notifyItemRangeChanged(0, instruments.size)
+        submitList(newInstruments)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -28,11 +32,8 @@ class MarketInstrumentAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val instrument = instruments[position]
-        holder.bind(instrument, onItemClick)
+        holder.bind(getItem(position), onItemClick)
     }
-
-    override fun getItemCount(): Int = instruments.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivInstrumentLogo = itemView.findViewById<ImageView>(R.id.ivInstrumentLogo)
@@ -70,14 +71,15 @@ class MarketInstrumentAdapter(
 
             // Price formatting
             if (instrument.currentPrice != null) {
-                val formattedPrice = if (instrument.currency == "IDR") {
-                    String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
-                } else if (instrument.currency == "%") {
-                    String.format(Locale.US, "%.2f%%", instrument.currentPrice)
-                } else if (instrument.currentPrice >= 1.0) {
-                    String.format(Locale.US, "$%,.2f", instrument.currentPrice)
-                } else {
-                    String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+                val formattedPrice = when (instrument.currency) {
+                    "IDR" -> String.format(Locale.US, "Rp %,.2f", instrument.currentPrice)
+                    "%" -> String.format(Locale.US, "%.2f%%", instrument.currentPrice)
+                    "JPY" -> String.format(Locale.US, "¥%,.2f", instrument.currentPrice)
+                    else -> if (instrument.currentPrice >= 1.0) {
+                        String.format(Locale.US, "$%,.2f", instrument.currentPrice)
+                    } else {
+                        String.format(Locale.US, "$%,.4f", instrument.currentPrice)
+                    }
                 }
                 tvInstrumentPrice.text = formattedPrice
                 tvInstrumentPrice.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_primary))
@@ -101,9 +103,18 @@ class MarketInstrumentAdapter(
             } else {
                 tvInstrumentChange.text = "--"
                 tvInstrumentChange.setTextColor(ContextCompat.getColor(itemView.context, R.color.text_muted))
+                tvInstrumentChange.visibility = View.VISIBLE
             }
 
             itemView.setOnClickListener { onClick(instrument) }
         }
+    }
+
+    private object DiffCallback : DiffUtil.ItemCallback<MarketInstrument>() {
+        override fun areItemsTheSame(oldItem: MarketInstrument, newItem: MarketInstrument): Boolean =
+            oldItem.id == newItem.id
+
+        override fun areContentsTheSame(oldItem: MarketInstrument, newItem: MarketInstrument): Boolean =
+            oldItem == newItem
     }
 }

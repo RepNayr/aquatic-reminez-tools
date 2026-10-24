@@ -31,6 +31,14 @@ class MarketRepository private constructor(context: Context) {
                     val priceChangePct = asset.priceChange24h ?: 0.0
                     val currentPrice = asset.currentPriceUsd ?: 0.0
                     val absChange = currentPrice * (priceChangePct / 100.0)
+                    val cryptoStatus = if (marketResult.isDemo) {
+                        com.repp.aquaticremineztools.data.model.MarketDataStatus.SIMULATED
+                    } else if (marketResult.isCached) {
+                        com.repp.aquaticremineztools.data.model.MarketDataStatus.CACHED
+                    } else {
+                        com.repp.aquaticremineztools.data.model.MarketDataStatus.LIVE
+                    }
+                    val isDemoCrypto = marketResult.isDemo
                     list.add(
                         MarketInstrument(
                             id = asset.id,
@@ -44,9 +52,10 @@ class MarketRepository private constructor(context: Context) {
                             exchange = "COINGECKO",
                             imageUrl = asset.imageUrl,
                             sparklinePrices = asset.sparklinePrices,
-                            historicalCandles = generateMockCandles(currentPrice.takeIf { it > 0.0 } ?: 1000.0, priceChangePct),
+                            historicalCandles = if (isDemoCrypto) generateMockCandles(currentPrice.takeIf { it > 0.0 } ?: 1000.0, priceChangePct) else null,
                             isCached = marketResult.isCached,
-                            isDemo = marketResult.isDemo,
+                            isDemo = isDemoCrypto,
+                            dataStatus = cryptoStatus,
                         ),
                     )
                 }
