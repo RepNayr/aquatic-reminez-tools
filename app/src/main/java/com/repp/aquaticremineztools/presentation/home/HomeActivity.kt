@@ -670,7 +670,13 @@ class HomeActivity : AppCompatActivity() {
     // ============================
     private fun setupMarketSection() {
         tvMarketTitle.setOnClickListener {
-            cryptoViewModel.loadMarketData(this, forceRefresh = true)
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
+            ActivityTransition.startActivitySmooth(this, intent)
+        }
+
+        cardMarketBlur.setOnClickListener {
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
+            ActivityTransition.startActivitySmooth(this, intent)
         }
 
         cryptoViewModel.uiState.observe(this) { state ->

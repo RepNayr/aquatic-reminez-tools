@@ -187,6 +187,21 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/menuMarket"
+            style="@style/DrawerMenuItem">
+
+            <ImageView
+                style="@style/DrawerMenuIcon"
+                android:src="@drawable/ic_activity"
+                android:contentDescription="@string/market_title"
+                app:tint="@color/accent_primary" />
+
+            <TextView
+                style="@style/DrawerMenuText"
+                android:text="Market Terminal" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/menuFavorites"
             style="@style/DrawerMenuItem">
 

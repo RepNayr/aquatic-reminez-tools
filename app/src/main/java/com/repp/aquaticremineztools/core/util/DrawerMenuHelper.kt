@@ -69,6 +69,10 @@ object DrawerMenuHelper {
             navigateTo(com.repp.aquaticremineztools.presentation.news.NewsActivity::class.java)
         }
 
+        activity.findViewById<LinearLayout>(R.id.menuMarket)?.setOnClickListener {
+            navigateTo(com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
+        }
+
         activity.findViewById<LinearLayout>(R.id.menuFavorites)?.setOnClickListener {
             closeDrawerAnd {
                 Toast.makeText(activity, "Favorites - Quick Access Available", Toast.LENGTH_SHORT).show()
