@@ -10,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
@@ -21,7 +22,6 @@ import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.PortfolioHolding
 import com.repp.aquaticremineztools.data.repository.MarketRepository
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -40,7 +40,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
     private lateinit var btnToggleIndicator: TextView
     private lateinit var btnBack: ImageView
 
-    private var instrumentId: String = ""
+    private var instrumentId: String = "bitcoin"
     private var currentInstrument: MarketInstrument? = null
     private var isSmaActive: Boolean = true
 
@@ -55,7 +55,10 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_instrument_detail)
 
-        instrumentId = intent.getStringExtra("instrument_id") ?: "bitcoin"
+        val extraId = intent.getStringExtra("instrument_id")
+        if (!extraId.isNullOrEmpty()) {
+            instrumentId = extraId
+        }
 
         bindViews()
         setupListeners()
@@ -103,7 +106,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
     }
 
     private fun loadInstrumentData() {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val repository = MarketRepository.getInstance(this@InstrumentDetailActivity)
             val result = repository.getAllMarketInstruments(forceRefresh = false)
             result.onSuccess { list ->

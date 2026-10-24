@@ -5,6 +5,7 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
@@ -12,7 +13,6 @@ import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.data.repository.MarketRepository
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,7 +61,7 @@ class PortfolioActivity : AppCompatActivity() {
     }
 
     private fun loadPortfolio() {
-        CoroutineScope(Dispatchers.IO).launch {
+        lifecycleScope.launch(Dispatchers.IO) {
             val repository = MarketRepository.getInstance(this@PortfolioActivity)
             val holdings = repository.getPortfolioHoldings()
             val marketResult = repository.getAllMarketInstruments(forceRefresh = false)
@@ -80,14 +80,14 @@ class PortfolioActivity : AppCompatActivity() {
 
                 inst?.copy(
                     currentPrice = value,
-                    priceChangePercentage24h = ((value - cost) / cost) * 100.0,
+                    priceChangePercentage24h = if (cost > 0.0) ((value - cost) / cost) * 100.0 else 0.0,
                 )
             }
 
             withContext(Dispatchers.Main) {
                 tvPortfolioTotalValue.text = String.format(Locale.US, "$%,.2f", totalValuation)
                 val pl = totalValuation - totalCost
-                val plPct = if (totalCost > 0) (pl / totalCost) * 100.0 else 0.0
+                val plPct = if (totalCost > 0.0) (pl / totalCost) * 100.0 else 0.0
                 tvPortfolioProfitLoss.text = String.format(Locale.US, "Unrealized P/L: %s$%,.2f (%.2f%%)", if (pl >= 0) "+" else "", pl, plPct)
 
                 val adapter = MarketInstrumentAdapter(instrumentsList) { _ -> }

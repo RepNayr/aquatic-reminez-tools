@@ -28,6 +28,9 @@ class MarketRepository private constructor(context: Context) {
             val cryptoResult = cryptoRepository.getMarketData(forceRefresh)
             cryptoResult.onSuccess { marketResult ->
                 marketResult.assets.forEach { asset ->
+                    val priceChangePct = asset.priceChange24h ?: 0.0
+                    val currentPrice = asset.currentPriceUsd ?: 0.0
+                    val absChange = currentPrice * (priceChangePct / 100.0)
                     list.add(
                         MarketInstrument(
                             id = asset.id,
@@ -35,39 +38,41 @@ class MarketRepository private constructor(context: Context) {
                             name = asset.name,
                             category = MarketCategory.CRYPTO,
                             currentPrice = asset.currentPriceUsd,
-                            priceChange24h = asset.priceChange24h,
-                            priceChangePercentage24h = asset.priceChange24h,
+                            priceChange24h = absChange,
+                            priceChangePercentage24h = priceChangePct,
                             currency = "USD",
                             exchange = "COINGECKO",
                             imageUrl = asset.imageUrl,
                             sparklinePrices = asset.sparklinePrices,
-                            historicalCandles = generateMockCandles(asset.currentPriceUsd ?: 1000.0, asset.priceChange24h ?: 1.0),
+                            historicalCandles = generateMockCandles(currentPrice.takeIf { it > 0.0 } ?: 1000.0, priceChangePct),
                             isCached = marketResult.isCached,
                             isDemo = marketResult.isDemo,
                         ),
                     )
                 }
+            }.onFailure { e ->
+                Log.w("MarketRepository", "Crypto market fetch failed: ${e.message}")
             }
 
-            // 2. Add Regional & Global Indices
+            // 2. Add Regional & Global Indices (Demo / Simulated Market Data)
             list.addAll(getIndicesInstruments())
 
-            // 3. Add Forex Instruments
+            // 3. Add Forex Instruments (Demo / Simulated Market Data)
             list.addAll(getForexInstruments())
 
-            // 4. Add Commodities
+            // 4. Add Commodities (Demo / Simulated Market Data)
             list.addAll(getCommoditiesInstruments())
 
-            // 5. Add Economic Indicators
+            // 5. Add Economic Indicators (Demo / Simulated Market Data)
             list.addAll(getEconomicsInstruments())
 
-            // 6. Add ETFs & Sectors
+            // 6. Add ETFs & Sectors (Demo / Simulated Market Data)
             list.addAll(getEtfsInstruments())
 
             return@withContext Result.success(list)
         } catch (e: Exception) {
             Log.e("MarketRepository", "Error assembling market instruments: ${e.message}")
-            return@withContext Result.success(getDefaultFallbackInstruments())
+            return@withContext Result.failure(e)
         }
     }
 
@@ -86,7 +91,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "IDX",
                 historicalCandles = generateMockCandles(7324.50, 0.62),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "sp500",
@@ -100,7 +105,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "NYSE",
                 historicalCandles = generateMockCandles(5815.20, 0.56),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "nasdaq",
@@ -114,7 +119,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "NASDAQ",
                 historicalCandles = generateMockCandles(18518.60, 0.77),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "nikkei",
@@ -128,7 +133,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "TSE",
                 historicalCandles = generateMockCandles(38981.75, -0.32),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
         )
     }
@@ -148,7 +153,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "FX",
                 historicalCandles = generateMockCandles(15680.0, 0.22),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "eur_usd",
@@ -162,7 +167,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "FX",
                 historicalCandles = generateMockCandles(1.0852, -0.14),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "gbp_usd",
@@ -176,7 +181,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "FX",
                 historicalCandles = generateMockCandles(1.2985, 0.19),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
         )
     }
@@ -196,7 +201,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "COMEX",
                 historicalCandles = generateMockCandles(2735.80, 0.68),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "oil_wti",
@@ -210,7 +215,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "NYMEX",
                 historicalCandles = generateMockCandles(71.42, -1.54),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
         )
     }
@@ -230,7 +235,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "BOND",
                 historicalCandles = generateMockCandles(4.24, 0.71),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "id_inflation",
@@ -244,7 +249,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "BPS",
                 historicalCandles = generateMockCandles(2.57, -1.91),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
         )
     }
@@ -264,7 +269,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "NYSE",
                 historicalCandles = generateMockCandles(580.40, 0.54),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
             MarketInstrument(
                 id = "qqq",
@@ -278,7 +283,7 @@ class MarketRepository private constructor(context: Context) {
                 exchange = "NASDAQ",
                 historicalCandles = generateMockCandles(498.20, 0.91),
                 timestampEpoch = now,
-                isDemo = false,
+                isDemo = true,
             ),
         )
     }
@@ -314,10 +319,6 @@ class MarketRepository private constructor(context: Context) {
     }
 
     private fun abs(d: Double): Double = if (d < 0) -d else d
-
-    private fun getDefaultFallbackInstruments(): List<MarketInstrument> {
-        return getIndicesInstruments() + getForexInstruments() + getCommoditiesInstruments()
-    }
 
     // Watchlist Management
     fun getWatchlist(): List<WatchlistEntry> {
