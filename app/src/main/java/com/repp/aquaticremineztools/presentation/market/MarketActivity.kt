@@ -35,6 +35,7 @@ class MarketActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var marketBlurTarget: BlurTarget
+    private lateinit var viewTopSpacer: View
     private lateinit var blurSearchBar: BlurView
     private lateinit var etMarketSearch: EditText
     private lateinit var btnClearSearch: ImageView
@@ -76,6 +77,7 @@ class MarketActivity : AppCompatActivity() {
     private fun bindViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
         marketBlurTarget = findViewById(R.id.marketBlurTarget)
+        viewTopSpacer = findViewById(R.id.viewTopSpacer)
         blurSearchBar = findViewById(R.id.blurSearchBar)
         etMarketSearch = findViewById(R.id.etMarketSearch)
         btnClearSearch = findViewById(R.id.btnClearSearch)
@@ -95,13 +97,9 @@ class MarketActivity : AppCompatActivity() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
 
-            val layoutToolbar = findViewById<LinearLayout>(R.id.layoutToolbar)
-            layoutToolbar.setPadding(
-                layoutToolbar.paddingLeft,
-                statusBarHeight,
-                layoutToolbar.paddingRight,
-                layoutToolbar.paddingBottom
-            )
+            val lpSpacer = viewTopSpacer.layoutParams
+            lpSpacer.height = statusBarHeight
+            viewTopSpacer.layoutParams = lpSpacer
 
             insets
         }
@@ -127,18 +125,8 @@ class MarketActivity : AppCompatActivity() {
             tvChipName.text = category.displayName
 
             chipView.setOnClickListener {
-                when (category) {
-                    MarketCategory.PORTFOLIO -> {
-                        openPortfolioActivity()
-                    }
-                    MarketCategory.ALERTS -> {
-                        openAlertsActivity()
-                    }
-                    else -> {
-                        viewModel.setCategory(this, category)
-                        highlightCategoryChip(category)
-                    }
-                }
+                viewModel.setCategory(this, category)
+                highlightCategoryChip(category)
             }
             layoutCategoryChips.addView(chipView)
         }

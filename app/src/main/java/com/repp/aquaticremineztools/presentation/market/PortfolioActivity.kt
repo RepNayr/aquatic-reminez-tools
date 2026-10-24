@@ -84,7 +84,7 @@ class PortfolioActivity : AppCompatActivity() {
                     id = holding.id,
                     symbol = holding.symbol,
                     name = "${holding.name} (${holding.quantity} units)",
-                    category = inst?.category ?: com.repp.aquaticremineztools.data.model.MarketCategory.PORTFOLIO,
+                    category = inst?.category ?: com.repp.aquaticremineztools.data.model.MarketCategory.OVERVIEW,
                     currentPrice = value,
                     priceChange24h = value - cost,
                     priceChangePercentage24h = if (cost > 0.0) ((value - cost) / cost) * 100.0 else 0.0,

@@ -89,9 +89,6 @@ class MarketViewModel : ViewModel() {
             MarketCategory.WATCHLIST -> {
                 allInstruments.filter { watchlistIds.contains(it.id) && matchesQuery(it, currentQuery) }
             }
-            MarketCategory.ALERTS, MarketCategory.PORTFOLIO -> {
-                emptyList()
-            }
             else -> {
                 allInstruments.filter { instrument ->
                     val matchesCategory = when (currentCategory) {

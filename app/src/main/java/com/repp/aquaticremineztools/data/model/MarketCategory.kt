@@ -9,7 +9,5 @@ enum class MarketCategory(val id: String, val displayName: String) {
     COMMODITIES("commodities", "Commodities"),
     ECONOMICS("economics", "Economics"),
     ETFS("etfs", "ETFs & Sectors"),
-    WATCHLIST("watchlist", "Watchlist"),
-    ALERTS("alerts", "Alerts"),
-    PORTFOLIO("portfolio", "Portfolio")
+    WATCHLIST("watchlist", "Watchlist")
 }
