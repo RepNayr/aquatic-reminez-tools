@@ -3,17 +3,11 @@ package com.repp.aquaticremineztools.presentation.market
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -25,33 +19,41 @@ import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
-import com.repp.aquaticremineztools.data.model.MarketCategory
-import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
+import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import eightbitlab.com.blurview.BlurTarget
-import eightbitlab.com.blurview.BlurView
 
 class MarketActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var marketBlurTarget: BlurTarget
     private lateinit var viewTopSpacer: View
-    private lateinit var blurSearchBar: BlurView
-    private lateinit var etMarketSearch: EditText
-    private lateinit var btnClearSearch: ImageView
-    private lateinit var btnMenu: FrameLayout
-    private lateinit var btnDemoToggle: TextView
+    private lateinit var btnBack: FrameLayout
     private lateinit var btnAlerts: ImageView
     private lateinit var btnPortfolio: ImageView
-    private lateinit var layoutCategoryChips: LinearLayout
     private lateinit var tvMarketStatusBanner: TextView
-    private lateinit var rvMarketInstruments: RecyclerView
-    private lateinit var layoutEmptyState: LinearLayout
-    private lateinit var tvEmptyStateTitle: TextView
-    private lateinit var tvEmptyStateSubtitle: TextView
+
+    // Dashboard Section RecyclerViews
+    private lateinit var rvMarketPulse: RecyclerView
+    private lateinit var rvKeyMarkets: RecyclerView
+    private lateinit var rvCryptoMarket: RecyclerView
+    private lateinit var rvForexMatrix: RecyclerView
+    private lateinit var rvStocksAndEtfs: RecyclerView
+    private lateinit var rvCommodities: RecyclerView
+    private lateinit var rvEconomicIndicators: RecyclerView
+    private lateinit var rvEconomicEvents: RecyclerView
+
+    // Adapters
+    private lateinit var pulseAdapter: MarketPulseAdapter
+    private lateinit var keyMarketsAdapter: KeyMarketsAdapter
+    private lateinit var cryptoAdapter: CryptoDashboardAdapter
+    private lateinit var forexAdapter: ForexMatrixAdapter
+    private lateinit var stockAdapter: StockWatchlistAdapter
+    private lateinit var commodityAdapter: CommodityAdapter
+    private lateinit var economicIndicatorAdapter: EconomicIndicatorAdapter
+    private lateinit var economicEventAdapter: EconomicEventAdapter
 
     private lateinit var viewModel: MarketViewModel
-    private lateinit var adapter: MarketInstrumentAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,10 +68,8 @@ class MarketActivity : AppCompatActivity() {
 
         bindViews()
         setupWindowInsets()
-        setupGlassBlur()
         setupDrawer()
-        setupCategoryChips()
-        setupRecyclerView()
+        setupRecyclerViews()
         setupViewModel()
         setupListeners()
     }
@@ -78,86 +78,75 @@ class MarketActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         marketBlurTarget = findViewById(R.id.marketBlurTarget)
         viewTopSpacer = findViewById(R.id.viewTopSpacer)
-        blurSearchBar = findViewById(R.id.blurSearchBar)
-        etMarketSearch = findViewById(R.id.etMarketSearch)
-        btnClearSearch = findViewById(R.id.btnClearSearch)
-        btnMenu = findViewById(R.id.btnMenu)
-        btnDemoToggle = findViewById(R.id.btnDemoToggle)
+        btnBack = findViewById(R.id.btnBack)
         btnAlerts = findViewById(R.id.btnAlerts)
         btnPortfolio = findViewById(R.id.btnPortfolio)
-        layoutCategoryChips = findViewById(R.id.layoutCategoryChips)
         tvMarketStatusBanner = findViewById(R.id.tvMarketStatusBanner)
-        rvMarketInstruments = findViewById(R.id.rvMarketInstruments)
-        layoutEmptyState = findViewById(R.id.layoutEmptyState)
-        tvEmptyStateTitle = findViewById(R.id.tvEmptyStateTitle)
-        tvEmptyStateSubtitle = findViewById(R.id.tvEmptyStateSubtitle)
+
+        rvMarketPulse = findViewById(R.id.rvMarketPulse)
+        rvKeyMarkets = findViewById(R.id.rvKeyMarkets)
+        rvCryptoMarket = findViewById(R.id.rvCryptoMarket)
+        rvForexMatrix = findViewById(R.id.rvForexMatrix)
+        rvStocksAndEtfs = findViewById(R.id.rvStocksAndEtfs)
+        rvCommodities = findViewById(R.id.rvCommodities)
+        rvEconomicIndicators = findViewById(R.id.rvEconomicIndicators)
+        rvEconomicEvents = findViewById(R.id.rvEconomicEvents)
     }
 
     private fun setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-
             val lpSpacer = viewTopSpacer.layoutParams
             lpSpacer.height = statusBarHeight
             viewTopSpacer.layoutParams = lpSpacer
-
             insets
         }
     }
 
-    private fun setupGlassBlur() {
-        val clearDrawable = window.decorView.background
-        GlassBlurHelper.setupBlur(blurSearchBar, marketBlurTarget, clearDrawable)
-    }
-
     private fun setupDrawer() {
-        DrawerMenuHelper.setup(this, drawerLayout, listOf(blurSearchBar))
+        DrawerMenuHelper.setup(this, drawerLayout, emptyList())
     }
 
-    private fun setupCategoryChips() {
-        layoutCategoryChips.removeAllViews()
-        val categories = MarketCategory.entries
-        val inflater = layoutInflater
+    private fun setupRecyclerViews() {
+        // Section A: Market Pulse (Horizontal)
+        pulseAdapter = MarketPulseAdapter { showInstrumentBottomSheet(it) }
+        rvMarketPulse.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvMarketPulse.adapter = pulseAdapter
 
-        categories.forEach { category ->
-            val chipView = inflater.inflate(R.layout.item_news_category_chip, layoutCategoryChips, false)
-            val tvChipName = chipView.findViewById<TextView>(R.id.tvCategoryName)
-            tvChipName.text = category.displayName
+        // Section B: Key Markets (Horizontal)
+        keyMarketsAdapter = KeyMarketsAdapter { showInstrumentBottomSheet(it) }
+        rvKeyMarkets.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvKeyMarkets.adapter = keyMarketsAdapter
 
-            chipView.setOnClickListener {
-                viewModel.setCategory(this, category)
-                highlightCategoryChip(category)
-            }
-            layoutCategoryChips.addView(chipView)
-        }
-    }
+        // Section C: Crypto Market (Vertical)
+        cryptoAdapter = CryptoDashboardAdapter { showInstrumentBottomSheet(it) }
+        rvCryptoMarket.layoutManager = LinearLayoutManager(this)
+        rvCryptoMarket.adapter = cryptoAdapter
 
-    private fun highlightCategoryChip(selectedCategory: MarketCategory) {
-        for (i in 0 until layoutCategoryChips.childCount) {
-            val child = layoutCategoryChips.getChildAt(i)
-            val tv = child.findViewById<TextView>(R.id.tvCategoryName)
-            val isSelected = MarketCategory.entries[i] == selectedCategory
-            if (isSelected) {
-                tv.setTextColor(ContextCompat.getColor(this, R.color.accent_primary))
-                child.background = ContextCompat.getDrawable(this, R.drawable.bg_nav_active_pill)
-            } else {
-                tv.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
-                child.background = null
-            }
-        }
-    }
+        // Section D: Forex Matrix (Horizontal)
+        forexAdapter = ForexMatrixAdapter { showInstrumentBottomSheet(it) }
+        rvForexMatrix.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvForexMatrix.adapter = forexAdapter
 
-    private fun setupRecyclerView() {
-        adapter = MarketInstrumentAdapter { instrument ->
-            val intent = Intent(this, InstrumentDetailActivity::class.java).apply {
-                putExtra("instrument_id", instrument.id)
-                putExtra("instrument_symbol", instrument.symbol)
-                putExtra("instrument_name", instrument.name)
-            }
-            ActivityTransition.startActivitySmooth(this, intent)
-        }
-        rvMarketInstruments.layoutManager = LinearLayoutManager(this)
-        rvMarketInstruments.adapter = adapter
+        // Section E: Stocks & ETFs (Vertical)
+        stockAdapter = StockWatchlistAdapter { showInstrumentBottomSheet(it) }
+        rvStocksAndEtfs.layoutManager = LinearLayoutManager(this)
+        rvStocksAndEtfs.adapter = stockAdapter
+
+        // Section F: Commodities (Horizontal)
+        commodityAdapter = CommodityAdapter { showInstrumentBottomSheet(it) }
+        rvCommodities.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvCommodities.adapter = commodityAdapter
+
+        // Section G: Economic Indicators (Horizontal)
+        economicIndicatorAdapter = EconomicIndicatorAdapter { showInstrumentBottomSheet(it) }
+        rvEconomicIndicators.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvEconomicIndicators.adapter = economicIndicatorAdapter
+
+        // Section G2: Economic Events (Vertical)
+        economicEventAdapter = EconomicEventAdapter()
+        rvEconomicEvents.layoutManager = LinearLayoutManager(this)
+        rvEconomicEvents.adapter = economicEventAdapter
     }
 
     @SuppressLint("SetTextI18n")
@@ -170,22 +159,14 @@ class MarketActivity : AppCompatActivity() {
                     // Retain current view
                 }
                 is MarketUiState.Success -> {
-                    adapter.updateData(state.filteredInstruments)
-                    highlightCategoryChip(state.selectedCategory)
-
-                    btnDemoToggle.text = if (state.isDemoMode) "DEMO: ON" else "DEMO: OFF"
-                    val demoTextColor = if (state.isDemoMode) R.color.accent_teal else R.color.text_muted
-                    btnDemoToggle.setTextColor(ContextCompat.getColor(this, demoTextColor))
-
-                    if (state.filteredInstruments.isEmpty()) {
-                        rvMarketInstruments.visibility = View.GONE
-                        layoutEmptyState.visibility = View.VISIBLE
-                        tvEmptyStateTitle.text = state.emptyStateTitle
-                        tvEmptyStateSubtitle.text = state.emptyStateSubtitle
-                    } else {
-                        rvMarketInstruments.visibility = View.VISIBLE
-                        layoutEmptyState.visibility = View.GONE
-                    }
+                    pulseAdapter.updateData(state.marketPulse)
+                    keyMarketsAdapter.updateData(state.keyMarkets)
+                    cryptoAdapter.updateData(state.cryptoInstruments)
+                    forexAdapter.updateData(state.forexInstruments)
+                    stockAdapter.updateData(state.stocksInstruments)
+                    commodityAdapter.updateData(state.commoditiesInstruments)
+                    economicIndicatorAdapter.updateData(state.economicIndicators)
+                    economicEventAdapter.updateData(state.economicEvents)
 
                     if (!state.bannerMessage.isNullOrEmpty()) {
                         tvMarketStatusBanner.text = state.bannerMessage
@@ -203,12 +184,8 @@ class MarketActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        btnMenu.setOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        btnDemoToggle.setOnClickListener {
-            viewModel.toggleDemoMode(this)
+        btnBack.setOnClickListener {
+            finish()
         }
 
         btnAlerts.setOnClickListener {
@@ -218,20 +195,11 @@ class MarketActivity : AppCompatActivity() {
         btnPortfolio.setOnClickListener {
             openPortfolioActivity()
         }
+    }
 
-        btnClearSearch.setOnClickListener {
-            etMarketSearch.setText("")
-        }
-
-        etMarketSearch.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                val query = s?.toString() ?: ""
-                btnClearSearch.visibility = if (query.isNotEmpty()) View.VISIBLE else View.GONE
-                viewModel.setSearchQuery(this@MarketActivity, query)
-            }
-        })
+    private fun showInstrumentBottomSheet(instrument: MarketInstrument) {
+        val bottomSheet = MarketInstrumentBottomSheet.newInstance(instrument)
+        bottomSheet.show(supportFragmentManager, "MarketInstrumentBottomSheet")
     }
 
     private fun openPortfolioActivity() {

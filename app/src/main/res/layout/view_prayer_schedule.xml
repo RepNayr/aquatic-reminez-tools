@@ -22,7 +22,7 @@
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:contentDescription="@null"
-            android:src="@drawable/ic_clock"
+            android:src="@drawable/ic_prayer_header"
             app:tint="@color/accent_primary" />
 
         <TextView

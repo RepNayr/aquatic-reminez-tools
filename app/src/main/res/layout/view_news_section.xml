@@ -54,14 +54,6 @@
             android:textColor="@color/text_secondary"
             android:textSize="10sp" />
 
-        <ImageView
-            android:layout_width="16dp"
-            android:layout_height="16dp"
-            android:layout_marginEnd="8dp"
-            android:contentDescription="@null"
-            android:src="@drawable/ic_chevron_right"
-            app:tint="@color/accent_primary" />
-
     </LinearLayout>
 
     <View

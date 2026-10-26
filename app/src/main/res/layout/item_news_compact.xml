@@ -20,14 +20,28 @@
         android:padding="8dp">
 
         <!-- COMPACT THUMBNAIL -->
-        <com.google.android.material.imageview.ShapeableImageView
-            android:id="@+id/ivCompactThumbnail"
+        <FrameLayout
             android:layout_width="84dp"
             android:layout_height="72dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="@null"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
-            tools:src="@drawable/home_background_image" />
+            android:background="@color/bg_card">
+
+            <ImageView
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_news_fallback"
+                app:tint="@color/text_muted"
+                android:contentDescription="@null" />
+
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivCompactThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@null"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Small"
+                tools:src="@drawable/home_background_image" />
+        </FrameLayout>
 
         <!-- RIGHT COLUMN -->
         <LinearLayout

@@ -3,6 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/rootNewsDetail"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg_primary">
@@ -21,8 +22,8 @@
 
             <ImageView
                 android:id="@+id/btnReaderBack"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
@@ -31,7 +32,8 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:tint="@color/text_primary" />
+                app:tint="@color/text_primary"
+                android:contentDescription="Back" />
 
             <TextView
                 android:id="@+id/tvReaderTitle"
@@ -41,10 +43,11 @@
                 android:layout_marginEnd="8dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/times_new_roman_bold"
+                android:letterSpacing="0.08"
                 android:maxLines="1"
                 android:text="ARTICLE READER"
                 android:textColor="@color/text_primary"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -53,32 +56,17 @@
 
             <ImageView
                 android:id="@+id/btnReaderShare"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:layout_marginEnd="4dp"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"
                 android:padding="6dp"
-                android:src="@drawable/ic_info"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/btnReaderOpenBrowser"
-                app:tint="@color/accent_cyan" />
-
-            <ImageView
-                android:id="@+id/btnReaderOpenBrowser"
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:padding="6dp"
-                android:src="@drawable/ic_chevron_right"
+                android:src="@drawable/ic_news_action"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:tint="@color/accent_primary" />
+                android:contentDescription="@null" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -88,6 +76,8 @@
         android:id="@+id/scrollReaderContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="140dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
@@ -96,50 +86,50 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- ARTICLE IMAGE -->
-            <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/ivReaderImage"
+            <!-- CATEGORY BADGE & TIME -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
-                android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
-                tools:src="@drawable/home_background_image" />
-
-            <!-- CATEGORY BADGE -->
-            <TextView
-                android:id="@+id/tvReaderCategory"
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_info_chip"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp"
-                android:textColor="@color/accent_cyan"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                tools:text="TECHNOLOGY" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvReaderCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_info_chip"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    tools:text="TECHNOLOGY" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tvReaderPublisherMeta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/text_muted"
+                    android:textSize="11.5sp"
+                    tools:text="Antara News · 12 Oct" />
+            </LinearLayout>
 
             <!-- HEADLINE -->
             <TextView
                 android:id="@+id/tvReaderHeadline"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="12dp"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:textColor="@color/text_primary"
-                android:textSize="20sp"
+                android:textSize="21sp"
                 android:textStyle="bold"
                 tools:text="Quantum Computing Breakthrough Announced by Major Tech Alliance" />
-
-            <!-- PUBLISHER & TIME -->
-            <TextView
-                android:id="@+id/tvReaderPublisherMeta"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textColor="@color/text_secondary"
-                android:textSize="12sp"
-                tools:text="Antara News · Published 12 October 2026 at 14:30" />
 
             <View
                 android:layout_width="match_parent"
@@ -147,63 +137,73 @@
                 android:layout_marginVertical="14dp"
                 android:background="@color/border" />
 
-            <!-- READABLE SUMMARY/CONTENT -->
-            <TextView
-                android:id="@+id/tvReaderBodyText"
+            <!-- ARTICLE IMAGE (High Quality / Clear rendering) -->
+            <com.google.android.material.imageview.ShapeableImageView
+                android:id="@+id/ivReaderImage"
+                android:layout_width="match_parent"
+                android:layout_height="240dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Medium"
+                tools:src="@drawable/home_background_image" />
+
+            <!-- FULL BODY TEXT (Rich HTML / Full Content) -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lineSpacingExtra="4dp"
-                android:textColor="@color/text_primary"
-                android:textSize="15sp"
-                tools:text="Researchers have demonstrated a high-fidelity quantum processor capable of error correction at scale, opening doors for next-generation encryption and complex simulations." />
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
 
-            <!-- WEBVIEW CONTAINER (when web view is used) -->
-            <WebView
-                android:id="@+id/webViewReader"
-                android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:layout_marginTop="12dp"
-                android:visibility="gone" />
-
-            <!-- ATTRIBUTION CARD -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                app:cardBackgroundColor="@color/bg_card"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/border"
-                app:strokeWidth="1dp">
-
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvReaderBodyText"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:lineSpacingExtra="6dp"
+                    android:textColor="@color/text_primary"
+                    android:textSize="16sp"
+                    tools:text="Researchers have demonstrated a high-fidelity quantum processor capable of error correction at scale, opening doors for next-generation encryption and complex simulations." />
 
-                    <TextView
-                        android:id="@+id/tvReaderAttribution"
+                <!-- ATTRIBUTION & BROWSER CARD -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    app:cardBackgroundColor="@color/bg_card"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/times_new_roman_bold"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        tools:text="Original content published by Antara News." />
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnOpenOriginalUrl"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="@string/news_open_browser"
-                        android:textColor="@color/accent_cyan"
-                        app:strokeColor="@color/accent_cyan" />
+                        <TextView
+                            android:id="@+id/tvReaderAttribution"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12.5sp"
+                            tools:text="Original full story published by Antara News." />
 
-                </LinearLayout>
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnOpenOriginalUrl"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:text="Open Full Original Web Article"
+                            android:textColor="@color/accent_cyan"
+                            app:strokeColor="@color/accent_cyan" />
 
-            </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
 
         </LinearLayout>
 

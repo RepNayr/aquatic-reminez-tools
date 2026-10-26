@@ -130,6 +130,12 @@ dependencies {
     // ⬇️ TAMBAHAN BARU: Google Play Services Location (GPS)
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
+    // HTML SCRAPING FOR NEWS
+    implementation("org.jsoup:jsoup:1.17.2")
+
+    // PULL TO REFRESH
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0")
+
     implementation(libs.androidx.security.crypto)
 
     // TESTING

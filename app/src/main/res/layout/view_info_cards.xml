@@ -179,7 +179,7 @@
                 android:id="@+id/ivPingIcon"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
-                android:src="@drawable/ic_activity"
+                android:src="@drawable/ic_ping_latency"
                 android:contentDescription="@string/info_ping_latency"
                 app:tint="@color/accent_violet"
                 app:layout_constraintTop_toTopOf="parent"

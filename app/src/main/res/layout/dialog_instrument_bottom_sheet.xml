@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_sheet"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- DRAG HANDLE -->
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_dot_inactive" />
+
+    <!-- INSTRUMENT HEADER -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <FrameLayout
+            android:id="@+id/flBsIcon"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_icon_circle">
+
+            <ImageView
+                android:id="@+id/ivBsLogo"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:layout_gravity="center"
+                android:contentDescription="Logo"
+                tools:src="@drawable/ic_activity" />
+
+            <TextView
+                android:id="@+id/tvBsFallback"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="BTC" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvBsSymbol"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="BTC · Bitcoin" />
+
+            <TextView
+                android:id="@+id/tvBsExchange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_secondary"
+                android:textSize="12.5sp"
+                tools:text="CoinGecko · Crypto" />
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/btnBsClose"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="6dp"
+            android:src="@drawable/ic_close"
+            app:tint="@color/text_muted"
+            android:contentDescription="Close" />
+    </LinearLayout>
+
+    <!-- PRICE & STATUS ROW -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvBsPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="$96,420.00" />
+
+            <TextView
+                android:id="@+id/tvBsChange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/accent_teal"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="+3.42% (24h)" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvBsDataStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_info_chip"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="5dp"
+            android:textColor="@color/accent_primary"
+            android:textSize="11sp"
+            tools:text="LIVE FEED" />
+    </LinearLayout>
+
+    <!-- SPARKLINE CHART -->
+    <com.repp.aquaticremineztools.presentation.home.SparklineView
+        android:id="@+id/sparklineBs"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvBsNoChart"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="12dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:gravity="center"
+        android:textColor="@color/text_muted"
+        android:textSize="12sp"
+        android:text="Historical chart unavailable for this feed" />
+
+    <!-- ACTION BUTTONS ROW -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnBsWatchlist"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="6dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="Watchlist"
+            android:textColor="@color/accent_primary"
+            android:textSize="12sp"
+            app:strokeColor="@color/accent_primary" />
+
+        <Button
+            android:id="@+id/btnBsPortfolio"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="3dp"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="+ Portfolio"
+            android:textColor="@color/text_primary"
+            android:textSize="12sp"
+            app:strokeColor="@color/border" />
+
+        <Button
+            android:id="@+id/btnBsFullDetails"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:backgroundTint="@color/accent_primary"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="Full Chart"
+            android:textColor="@color/bg_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+</LinearLayout>

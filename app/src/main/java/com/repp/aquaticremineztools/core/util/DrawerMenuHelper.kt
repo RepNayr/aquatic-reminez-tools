@@ -18,7 +18,6 @@ import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
 import com.repp.aquaticremineztools.presentation.settings.SettingsActivity
-import com.repp.aquaticremineztools.presentation.settings.WorkspaceWorkflowSettingsActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import eightbitlab.com.blurview.BlurView
 
@@ -65,23 +64,9 @@ object DrawerMenuHelper {
             navigateTo(HistoryActivity::class.java)
         }
 
-        activity.findViewById<LinearLayout>(R.id.menuNews)?.setOnClickListener {
-            navigateTo(com.repp.aquaticremineztools.presentation.news.NewsActivity::class.java)
-        }
-
-        activity.findViewById<LinearLayout>(R.id.menuMarket)?.setOnClickListener {
-            navigateTo(com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
-        }
-
         activity.findViewById<LinearLayout>(R.id.menuFavorites)?.setOnClickListener {
             closeDrawerAnd {
                 Toast.makeText(activity, "Favorites - Quick Access Available", Toast.LENGTH_SHORT).show()
-            }
-        }
-
-        activity.findViewById<LinearLayout>(R.id.menuCategories)?.setOnClickListener {
-            closeDrawerAnd {
-                ActivityTransition.startActivitySmooth(activity, Intent(activity, WorkspaceWorkflowSettingsActivity::class.java))
             }
         }
 

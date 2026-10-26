@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="142dp"
+    android:layout_height="96dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/bg_glass_card_clip"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvKeySymbol"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/accent_blue"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="SPX" />
+
+        <TextView
+            android:id="@+id/tvKeyCountry"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp"
+            tools:text="US" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvKeyName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:maxLines="1"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        tools:text="S&amp;P 500" />
+
+    <TextView
+        android:id="@+id/tvKeyPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/text_primary"
+        android:textSize="13.5sp"
+        android:textStyle="bold"
+        tools:text="$5,815.20" />
+
+    <TextView
+        android:id="@+id/tvKeyChange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/accent_teal"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        tools:text="+0.56%" />
+
+</LinearLayout>

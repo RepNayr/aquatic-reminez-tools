@@ -248,6 +248,7 @@ class HomeActivity : AppCompatActivity() {
         newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]
 
         bindViews()
+        setupSwipeRefresh()
         setupGlassCards()
         setupPrayerSchedule()
         setupCalendarSection()
@@ -264,6 +265,21 @@ class HomeActivity : AppCompatActivity() {
         registerBattery()
         requestLocationAndWeather()
         updatePasswordLabel()
+    }
+
+    private fun setupSwipeRefresh() {
+        val swipeRefreshLayout = findViewById<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.swipeRefreshLayout)
+        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(android.graphics.Color.parseColor("#1E222B"))
+        swipeRefreshLayout.setColorSchemeColors(android.graphics.Color.parseColor("#00E5FF"), android.graphics.Color.parseColor("#10B981"))
+        swipeRefreshLayout.setOnRefreshListener {
+            cryptoViewModel.loadMarketData(this, true)
+            newsViewModel.loadHomepageNews(this, true)
+            updateIpAndConnection()
+            updatePingValue()
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                swipeRefreshLayout.isRefreshing = false
+            }, 1200L)
+        }
     }
 
     private fun bindViews() {
@@ -726,7 +742,11 @@ class HomeActivity : AppCompatActivity() {
             tvCoinSymbol.text = asset.symbol
 
             // Logo
-            if (!asset.imageUrl.isNullOrEmpty()) {
+            if (asset.id.equals("travala", ignoreCase = true)) {
+                tvLogoFallback.visibility = View.GONE
+                ivCoinLogo.visibility = View.VISIBLE
+                ivCoinLogo.setImageResource(R.drawable.ic_crypto_travala)
+            } else if (!asset.imageUrl.isNullOrEmpty()) {
                 tvLogoFallback.visibility = View.GONE
                 ivCoinLogo.visibility = View.VISIBLE
                 ivCoinLogo.load(asset.imageUrl) {
@@ -869,13 +889,12 @@ class HomeActivity : AppCompatActivity() {
         tvFeaturedSummary.text = featuredArticle.summary
 
         if (!featuredArticle.thumbnailUrl.isNullOrBlank()) {
+            ivFeaturedThumbnail.visibility = View.VISIBLE
             ivFeaturedThumbnail.load(featuredArticle.thumbnailUrl) {
-                placeholder(R.drawable.home_background_image)
-                error(R.drawable.home_background_image)
                 crossfade(true)
             }
         } else {
-            ivFeaturedThumbnail.setImageResource(R.drawable.home_background_image)
+            ivFeaturedThumbnail.setImageDrawable(null)
         }
 
         featuredView.setOnClickListener {
@@ -884,8 +903,8 @@ class HomeActivity : AppCompatActivity() {
 
         containerFeaturedArticle.addView(featuredView)
 
-        // 2. Compact Articles
-        val compactList = articles.filter { it.articleUrl != featuredArticle.articleUrl }.take(7)
+        // 2. Compact Articles (4 compact articles, total 5 on homepage)
+        val compactList = articles.filter { it.articleUrl != featuredArticle.articleUrl }.take(4)
         compactList.forEach { article ->
             val compactView = inflater.inflate(R.layout.item_news_compact, layoutCompactArticles, false)
 
@@ -907,13 +926,12 @@ class HomeActivity : AppCompatActivity() {
             tvCompactMeta.text = "${article.publisher} · $compRelativeTime"
 
             if (!article.thumbnailUrl.isNullOrBlank()) {
+                ivCompactThumbnail.visibility = View.VISIBLE
                 ivCompactThumbnail.load(article.thumbnailUrl) {
-                    placeholder(R.drawable.home_background_image)
-                    error(R.drawable.home_background_image)
                     crossfade(true)
                 }
             } else {
-                ivCompactThumbnail.setImageResource(R.drawable.home_background_image)
+                ivCompactThumbnail.setImageDrawable(null)
             }
 
             compactView.setOnClickListener {

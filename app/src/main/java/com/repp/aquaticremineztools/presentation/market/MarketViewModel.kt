@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.repp.aquaticremineztools.data.model.EconomicEvent
 import com.repp.aquaticremineztools.data.model.MarketCategory
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
@@ -14,16 +15,17 @@ import kotlinx.coroutines.launch
 sealed class MarketUiState {
     object Loading : MarketUiState()
     data class Success(
-        val instruments: List<MarketInstrument>,
-        val filteredInstruments: List<MarketInstrument>,
-        val selectedCategory: MarketCategory,
-        val searchQuery: String,
-        val isDemoMode: Boolean,
-        val watchlistIds: Set<String>,
+        val allInstruments: List<MarketInstrument>,
+        val marketPulse: List<MarketInstrument>,
+        val keyMarkets: List<MarketInstrument>,
+        val cryptoInstruments: List<MarketInstrument>,
+        val forexInstruments: List<MarketInstrument>,
+        val stocksInstruments: List<MarketInstrument>,
+        val commoditiesInstruments: List<MarketInstrument>,
+        val economicIndicators: List<MarketInstrument>,
+        val economicEvents: List<EconomicEvent>,
         val activeAlertsCount: Int,
-        val bannerMessage: String?,
-        val emptyStateTitle: String,
-        val emptyStateSubtitle: String,
+        val bannerMessage: String?
     ) : MarketUiState()
     data class Error(val message: String) : MarketUiState()
 }
@@ -32,10 +34,6 @@ class MarketViewModel : ViewModel() {
 
     private val _uiState = MutableLiveData<MarketUiState>(MarketUiState.Loading)
     val uiState: LiveData<MarketUiState> = _uiState
-
-    private var allInstruments = listOf<MarketInstrument>()
-    private var currentCategory = MarketCategory.OVERVIEW
-    private var currentQuery = ""
 
     fun loadMarket(context: Context, forceRefresh: Boolean = false) {
         viewModelScope.launch {
@@ -47,107 +45,56 @@ class MarketViewModel : ViewModel() {
             val result = repository.getAllMarketInstruments(forceRefresh)
 
             result.onSuccess { instruments ->
-                allInstruments = instruments
                 repository.evaluateAlerts(instruments)
-                updateFilteredState(context)
+                val activeAlertsCount = repository.getAlerts().count { it.isActive }
+
+                val byCategory = instruments.groupBy { it.category }
+
+                val cryptoList = byCategory[MarketCategory.CRYPTO] ?: emptyList()
+                val forexList = byCategory[MarketCategory.FOREX] ?: emptyList()
+                val commoditiesList = byCategory[MarketCategory.COMMODITIES] ?: emptyList()
+                val economicsList = byCategory[MarketCategory.ECONOMICS] ?: emptyList()
+                val stocksList = (byCategory[MarketCategory.STOCKS] ?: emptyList()) + (byCategory[MarketCategory.ETFS] ?: emptyList())
+
+                // Market Pulse Priority: IHSG, SPX, IXIC, NI225, USD/IDR
+                val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
+                val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
+
+                // Key Markets Priority: IHSG, SPX, IXIC, USD/IDR, BTC
+                val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
+                val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
+
+                val events = repository.getEconomicEvents()
+
+                val cryptoStatus = cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
+                val bannerMessage = when (cryptoStatus) {
+                    MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Other Markets Feed Pending Integration"
+                    MarketDataStatus.CACHED -> "Cached Crypto Data · Other Markets Feed Pending Integration"
+                    else -> "Crypto Feed Unavailable · Other Markets Feed Pending Integration"
+                }
+
+                _uiState.value = MarketUiState.Success(
+                    allInstruments = instruments,
+                    marketPulse = marketPulse,
+                    keyMarkets = keyMarkets,
+                    cryptoInstruments = cryptoList,
+                    forexInstruments = forexList,
+                    stocksInstruments = stocksList,
+                    commoditiesInstruments = commoditiesList,
+                    economicIndicators = economicsList,
+                    economicEvents = events,
+                    activeAlertsCount = activeAlertsCount,
+                    bannerMessage = bannerMessage
+                )
             }.onFailure { e ->
-                _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market data")
+                _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market dashboard data")
             }
         }
-    }
-
-    fun setCategory(context: Context, category: MarketCategory) {
-        currentCategory = category
-        updateFilteredState(context)
-    }
-
-    fun setSearchQuery(context: Context, query: String) {
-        currentQuery = query.trim()
-        updateFilteredState(context)
-    }
-
-    fun toggleDemoMode(context: Context) {
-        val repository = MarketRepository.getInstance(context)
-        repository.isDemoModeEnabled = !repository.isDemoModeEnabled
-        loadMarket(context, forceRefresh = true)
     }
 
     fun toggleWatchlist(context: Context, instrument: MarketInstrument) {
         val repository = MarketRepository.getInstance(context)
         repository.toggleWatchlist(instrument)
-        updateFilteredState(context)
-    }
-
-    private fun updateFilteredState(context: Context) {
-        val repository = MarketRepository.getInstance(context)
-        val watchlistEntries = repository.getWatchlist()
-        val watchlistIds = watchlistEntries.map { it.instrumentId }.toSet()
-        val isDemo = repository.isDemoModeEnabled
-        val activeAlertsCount = repository.getAlerts().count { it.isActive }
-
-        val filtered = when (currentCategory) {
-            MarketCategory.WATCHLIST -> {
-                allInstruments.filter { watchlistIds.contains(it.id) && matchesQuery(it, currentQuery) }
-            }
-            else -> {
-                allInstruments.filter { instrument ->
-                    val matchesCategory = when (currentCategory) {
-                        MarketCategory.OVERVIEW -> true
-                        else -> instrument.category == currentCategory
-                    }
-                    matchesCategory && matchesQuery(instrument, currentQuery)
-                }
-            }
-        }
-
-        val cryptoInstruments = allInstruments.filter { it.category == MarketCategory.CRYPTO }
-        val cryptoStatus = cryptoInstruments.firstOrNull()?.dataStatus ?: MarketDataStatus.SIMULATED
-
-        val bannerMessage = when {
-            currentCategory == MarketCategory.WATCHLIST -> {
-                if (watchlistIds.isEmpty()) "Your Watchlist is Empty" else "Watchlist (${filtered.size} items)"
-            }
-            !isDemo -> when (cryptoStatus) {
-                MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Other Markets Unavailable (Demo Mode Off)"
-                MarketDataStatus.CACHED -> "Cached Crypto Data · Other Markets Unavailable (Demo Mode Off)"
-                else -> "Crypto Data Unavailable · Demo Mode Off"
-            }
-            else -> when (cryptoStatus) {
-                MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Other Markets Simulated (Demo Mode)"
-                MarketDataStatus.CACHED -> "Cached Crypto Data · Other Markets Simulated (Demo Mode)"
-                else -> "Simulated Market Terminal Data (Demo Mode)"
-            }
-        }
-
-        val (emptyTitle, emptySubtitle) = when {
-            currentCategory == MarketCategory.WATCHLIST && watchlistIds.isEmpty() ->
-                Pair("Watchlist is Empty", "Tap the star icon on any instrument detail page to add it to your watchlist.")
-            currentCategory == MarketCategory.STOCKS && !isDemo ->
-                Pair("Stocks Data Unavailable", "Live stock feed is currently unavailable. Enable Demo Mode in the top header to view simulated stock data.")
-            currentQuery.isNotEmpty() ->
-                Pair("No Instruments Found", "No results matching \"$currentQuery\". Try searching another symbol or name.")
-            else ->
-                Pair("No Instruments Available", "No market instruments available in this category.")
-        }
-
-        _uiState.value = MarketUiState.Success(
-            instruments = allInstruments,
-            filteredInstruments = filtered,
-            selectedCategory = currentCategory,
-            searchQuery = currentQuery,
-            isDemoMode = isDemo,
-            watchlistIds = watchlistIds,
-            activeAlertsCount = activeAlertsCount,
-            bannerMessage = bannerMessage,
-            emptyStateTitle = emptyTitle,
-            emptyStateSubtitle = emptySubtitle,
-        )
-    }
-
-    private fun matchesQuery(instrument: MarketInstrument, query: String): Boolean {
-        if (query.isEmpty()) return true
-        return instrument.name.contains(query, ignoreCase = true) ||
-                instrument.symbol.contains(query, ignoreCase = true) ||
-                instrument.exchange.contains(query, ignoreCase = true)
+        loadMarket(context, forceRefresh = false)
     }
 }

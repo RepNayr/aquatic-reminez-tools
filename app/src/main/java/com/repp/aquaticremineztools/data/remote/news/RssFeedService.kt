@@ -113,23 +113,27 @@ class RssFeedService {
                         } else if (inItem) {
                             when {
                                 name.equals("title", ignoreCase = true) -> {
-                                    title = readText(parser)
+                                    title = readTagText(parser, name)
                                 }
                                 name.equals("description", ignoreCase = true) || name.equals("summary", ignoreCase = true) -> {
-                                    description = readText(parser)
+                                    description = readTagText(parser, name)
                                 }
                                 name.equals("content", ignoreCase = true) || name.equals("content:encoded", ignoreCase = true) -> {
-                                    content = readText(parser)
+                                    val readContent = readTagText(parser, name)
+                                    if (readContent.isNotBlank()) {
+                                        content = readContent
+                                    }
                                 }
                                 name.equals("link", ignoreCase = true) -> {
                                     val href = parser.getAttributeValue(null, "href")
-                                    link = if (!href.isNullOrBlank()) href else readText(parser)
+                                    val linkText = readTagText(parser, name)
+                                    link = if (!href.isNullOrBlank()) href else linkText
                                 }
                                 name.equals("pubDate", ignoreCase = true) || name.equals("published", ignoreCase = true) || name.equals("updated", ignoreCase = true) -> {
-                                    pubDate = readText(parser)
+                                    pubDate = readTagText(parser, name)
                                 }
                                 name.equals("category", ignoreCase = true) -> {
-                                    val catText = readText(parser)
+                                    val catText = readTagText(parser, name)
                                     if (catText.isNotBlank()) {
                                         itemCategory = mapItemCategory(catText, config.category)
                                     }
@@ -149,6 +153,7 @@ class RssFeedService {
                             inItem = false
 
                             val cleanTitle = stripHtml(title).trim()
+                            val rawContentOrDesc = if (content.isNotBlank()) content else description
                             val cleanDesc = stripHtml(if (description.isNotBlank()) description else content).trim()
                             val cleanLink = link.trim()
 
@@ -164,7 +169,7 @@ class RssFeedService {
                                     id = cleanLink,
                                     headline = cleanTitle,
                                     summary = if (cleanDesc.length > 200) cleanDesc.substring(0, 200) + "…" else cleanDesc,
-                                    content = if (content.isNotBlank()) content else description,
+                                    content = rawContentOrDesc,
                                     thumbnailUrl = thumbnailUrl,
                                     articleUrl = cleanLink,
                                     publisher = config.publisher,
@@ -185,13 +190,26 @@ class RssFeedService {
         return articles
     }
 
-    private fun readText(parser: XmlPullParser): String {
-        var result = ""
-        if (parser.next() == XmlPullParser.TEXT) {
-            result = parser.text
-            parser.nextTag()
+    private fun readTagText(parser: XmlPullParser, targetTag: String): String {
+        val sb = StringBuilder()
+        var depth = 1
+        while (depth > 0) {
+            val event = try { parser.next() } catch (_: Exception) { XmlPullParser.END_DOCUMENT }
+            if (event == XmlPullParser.END_DOCUMENT) break
+
+            if (event == XmlPullParser.END_TAG) {
+                if (parser.name.equals(targetTag, ignoreCase = true)) {
+                    depth--
+                }
+            } else if (event == XmlPullParser.START_TAG) {
+                if (parser.name.equals(targetTag, ignoreCase = true)) {
+                    depth++
+                }
+            } else if (event == XmlPullParser.TEXT || event == XmlPullParser.CDSECT) {
+                sb.append(parser.text)
+            }
         }
-        return result
+        return sb.toString().trim()
     }
 
     private fun stripHtml(html: String): String {

@@ -14,6 +14,8 @@ import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -35,6 +37,7 @@ class AlertsActivity : AppCompatActivity() {
     private lateinit var layoutAlertsEmptyState: LinearLayout
     private lateinit var btnBack: ImageView
     private lateinit var btnAddAlert: Button
+    private lateinit var viewTopSpacer: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,6 +51,7 @@ class AlertsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_alerts)
 
         bindViews()
+        setupWindowInsets()
         setupListeners()
         loadAlerts()
     }
@@ -57,6 +61,17 @@ class AlertsActivity : AppCompatActivity() {
         layoutAlertsEmptyState = findViewById(R.id.layoutAlertsEmptyState)
         btnBack = findViewById(R.id.btnBack)
         btnAddAlert = findViewById(R.id.btnAddAlert)
+        viewTopSpacer = findViewById(R.id.viewTopSpacer)
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val lpSpacer = viewTopSpacer.layoutParams
+            lpSpacer.height = statusBarHeight
+            viewTopSpacer.layoutParams = lpSpacer
+            insets
+        }
     }
 
     private fun setupListeners() {

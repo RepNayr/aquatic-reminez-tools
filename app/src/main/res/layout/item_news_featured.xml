@@ -25,6 +25,20 @@
             app:cardCornerRadius="0dp"
             app:cardElevation="0dp">
 
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/bg_card">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_news_fallback"
+                    app:tint="@color/text_muted"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
             <ImageView
                 android:id="@+id/ivFeaturedThumbnail"
                 android:layout_width="match_parent"

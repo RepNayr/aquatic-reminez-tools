@@ -60,14 +60,35 @@ class NewsRepository private constructor(context: Context) {
         val featuredCandidate = allArticles.firstOrNull { !it.thumbnailUrl.isNullOrBlank() } ?: allArticles.first()
         val featuredArticle = featuredCandidate.copy(isFeatured = true)
 
-        // Remaining 7 compact articles
-        val remaining = allArticles.filter { it.articleUrl != featuredArticle.articleUrl }.take(7)
+        // Remaining 4 compact articles (Total 5 articles on homepage: 1 featured + 4 compact)
+        val remaining = allArticles.filter { it.articleUrl != featuredArticle.articleUrl }.take(4)
 
         val homepageArticles = mutableListOf<NewsArticle>()
         homepageArticles.add(featuredArticle)
         homepageArticles.addAll(remaining)
 
-        Result.success(fetchResult.copy(articles = homepageArticles))
+        // Pre-fetch full content for these 5 homepage articles so it's ready instantly on click
+        homepageArticles.forEach { article ->
+            if (article.content.isNullOrBlank() || article.content.length < 300) {
+                try {
+                    val full = fetchFullArticleContent(article.articleUrl)
+                    if (full.isNotBlank()) {
+                        newsDao.updateArticleContent(article.articleUrl, full)
+                    }
+                } catch (_: Exception) {}
+            }
+        }
+
+        val updatedHomepageArticles = homepageArticles.map { art ->
+            val entity = newsDao.getAllArticles().find { it.articleUrl == art.articleUrl }
+            if (entity != null && !entity.content.isNullOrBlank()) {
+                art.copy(content = entity.content)
+            } else {
+                art
+            }
+        }
+
+        Result.success(fetchResult.copy(articles = updatedHomepageArticles))
     }
 
     suspend fun getArticles(
@@ -155,5 +176,41 @@ class NewsRepository private constructor(context: Context) {
             result.add(article)
         }
         return result
+    }
+
+    suspend fun fetchFullArticleContent(articleUrl: String): String = withContext(Dispatchers.IO) {
+        if (articleUrl.isBlank()) return@withContext ""
+        try {
+            val doc = org.jsoup.Jsoup.connect(articleUrl)
+                .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+                .timeout(10000)
+                .get()
+
+            // Remove non-content elements
+            doc.select("script, style, nav, header, footer, iframe, .ad, .ads, .advertisement, .comment, .related, .share, .tags, .author-bio").remove()
+
+            // Select candidate container for main content
+            val bodyElement = doc.select("article, [itemprop=articleBody], .detail-text, .detail__body-text, .post-content, .entry-content, .read__content, .content-detail, .text-detail, .post-body, .article-content, .caas-body").firstOrNull()
+                ?: doc.body()
+
+            val paragraphs = bodyElement.select("p")
+                .map { it.text().trim() }
+                .filter { p ->
+                    p.length > 20 &&
+                    !p.startsWith("BACA JUGA", ignoreCase = true) &&
+                    !p.startsWith("Simak Video", ignoreCase = true) &&
+                    !p.contains("Copyright", ignoreCase = true) &&
+                    !p.contains("All rights reserved", ignoreCase = true)
+                }
+
+            if (paragraphs.isNotEmpty()) {
+                val fullText = paragraphs.joinToString("\n\n")
+                newsDao.updateArticleContent(articleUrl, fullText)
+                return@withContext fullText
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to scrape full article content from $articleUrl: ${e.message}")
+        }
+        return@withContext ""
     }
 }

@@ -139,74 +139,81 @@
 
         </com.google.android.material.appbar.AppBarLayout>
 
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/scrollContent"
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipeRefreshLayout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:clipToPadding="false"
-            android:fillViewport="true"
-            android:paddingBottom="70dp"
             app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-            <LinearLayout
-                android:id="@+id/contentContainer"
+            <androidx.core.widget.NestedScrollView
+                android:id="@+id/scrollContent"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="6dp"
-                android:paddingTop="8dp">
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:fillViewport="true"
+                android:paddingBottom="96dp">
 
-                <include
-                    android:id="@+id/userCardInclude"
-                    layout="@layout/view_user_card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content" />
-
-                <include
-                    android:id="@+id/infoCardsInclude"
-                    layout="@layout/view_info_cards"
+                <LinearLayout
+                    android:id="@+id/contentContainer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    android:orientation="vertical"
+                    android:paddingHorizontal="6dp"
+                    android:paddingTop="8dp">
 
-                <include
-                    android:id="@+id/quickMenuInclude"
-                    layout="@layout/view_quick_menu"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp" />
+                    <include
+                        android:id="@+id/userCardInclude"
+                        layout="@layout/view_user_card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
 
-                <include
-                    android:id="@+id/prayerScheduleInclude"
-                    layout="@layout/view_prayer_schedule"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    <include
+                        android:id="@+id/infoCardsInclude"
+                        layout="@layout/view_info_cards"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
 
-                <include
-                    android:id="@+id/calendarInclude"
-                    layout="@layout/view_calendar"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    <include
+                        android:id="@+id/quickMenuInclude"
+                        layout="@layout/view_quick_menu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp" />
 
-                <include
-                    android:id="@+id/marketInclude"
-                    layout="@layout/view_market"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    <include
+                        android:id="@+id/prayerScheduleInclude"
+                        layout="@layout/view_prayer_schedule"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
 
-                <include
-                    android:id="@+id/newsInclude"
-                    layout="@layout/view_news_section"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp" />
+                    <include
+                        android:id="@+id/calendarInclude"
+                        layout="@layout/view_calendar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
 
-            </LinearLayout>
+                    <include
+                        android:id="@+id/marketInclude"
+                        layout="@layout/view_market"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
 
-        </androidx.core.widget.NestedScrollView>
+                    <include
+                        android:id="@+id/newsInclude"
+                        layout="@layout/view_news_section"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp" />
+
+                </LinearLayout>
+
+            </androidx.core.widget.NestedScrollView>
+
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <!-- BOTTOM NAV — PILL -->
         <FrameLayout

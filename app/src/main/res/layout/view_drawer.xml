@@ -172,36 +172,6 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/menuNews"
-            style="@style/DrawerMenuItem">
-
-            <ImageView
-                style="@style/DrawerMenuIcon"
-                android:src="@drawable/ic_info"
-                android:contentDescription="@string/news_title"
-                app:tint="@color/accent_primary" />
-
-            <TextView
-                style="@style/DrawerMenuText"
-                android:text="@string/news_title" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/menuMarket"
-            style="@style/DrawerMenuItem">
-
-            <ImageView
-                style="@style/DrawerMenuIcon"
-                android:src="@drawable/ic_activity"
-                android:contentDescription="@string/market_title"
-                app:tint="@color/accent_primary" />
-
-            <TextView
-                style="@style/DrawerMenuText"
-                android:text="Market Terminal" />
-        </LinearLayout>
-
-        <LinearLayout
             android:id="@+id/menuFavorites"
             style="@style/DrawerMenuItem">
 
@@ -214,21 +184,6 @@
             <TextView
                 style="@style/DrawerMenuText"
                 android:text="@string/drawer_favorites" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/menuCategories"
-            style="@style/DrawerMenuItem">
-
-            <ImageView
-                style="@style/DrawerMenuIcon"
-                android:src="@drawable/ic_categories"
-                android:contentDescription="@string/drawer_categories"
-                app:tint="@color/accent_primary" />
-
-            <TextView
-                style="@style/DrawerMenuText"
-                android:text="@string/drawer_categories" />
         </LinearLayout>
 
         <View style="@style/DrawerDivider" />

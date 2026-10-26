@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="156dp"
+    android:layout_height="108dp"
+    android:layout_marginEnd="10dp"
+    android:background="@drawable/bg_glass_card_clip"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvCommSymbol"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/accent_gold"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            tools:text="XAU/USD" />
+
+        <TextView
+            android:id="@+id/tvCommUnit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="10.5sp"
+            tools:text="USD/oz" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvCommName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:maxLines="1"
+        android:textColor="@color/text_secondary"
+        android:textSize="11.5sp"
+        tools:text="Gold Spot" />
+
+    <TextView
+        android:id="@+id/tvCommPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        tools:text="$2,735.80" />
+
+    <TextView
+        android:id="@+id/tvCommChange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/accent_teal"
+        android:textSize="11.5sp"
+        android:textStyle="bold"
+        tools:text="+0.68%" />
+
+</LinearLayout>

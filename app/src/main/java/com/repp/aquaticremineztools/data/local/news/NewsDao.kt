@@ -28,4 +28,7 @@ interface NewsDao {
 
     @Query("SELECT COUNT(*) FROM news_articles")
     suspend fun getCount(): Int
+
+    @Query("UPDATE news_articles SET content = :content WHERE articleUrl = :articleUrl")
+    suspend fun updateArticleContent(articleUrl: String, content: String)
 }

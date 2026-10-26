@@ -78,13 +78,12 @@ class NewsAdapter(
             tvMeta.text = "${article.publisher} · $relativeTime"
 
             if (!article.thumbnailUrl.isNullOrBlank()) {
+                ivThumbnail.visibility = View.VISIBLE
                 ivThumbnail.load(article.thumbnailUrl) {
-                    placeholder(R.drawable.home_background_image)
-                    error(R.drawable.home_background_image)
                     crossfade(true)
                 }
             } else {
-                ivThumbnail.setImageResource(R.drawable.home_background_image)
+                ivThumbnail.setImageDrawable(null)
             }
 
             itemView.setOnClickListener { onClick(article) }
@@ -111,13 +110,12 @@ class NewsAdapter(
             tvMeta.text = "${article.publisher} · $relativeTime"
 
             if (!article.thumbnailUrl.isNullOrBlank()) {
+                ivThumbnail.visibility = View.VISIBLE
                 ivThumbnail.load(article.thumbnailUrl) {
-                    placeholder(R.drawable.home_background_image)
-                    error(R.drawable.home_background_image)
                     crossfade(true)
                 }
             } else {
-                ivThumbnail.setImageResource(R.drawable.home_background_image)
+                ivThumbnail.setImageDrawable(null)
             }
 
             itemView.setOnClickListener { onClick(article) }
