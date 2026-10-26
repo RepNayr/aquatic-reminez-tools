@@ -145,7 +145,7 @@ class MarketActivity : AppCompatActivity() {
 
         // Section G2: Economic Events (Vertical)
         economicEventAdapter = EconomicEventAdapter()
-        rvEconomicEvengit s.layoutManager = LinearLayoutManager(this)
+        rvEconomicEvents.layoutManager = LinearLayoutManager(this)
         rvEconomicEvents.adapter = economicEventAdapter
     }
 
