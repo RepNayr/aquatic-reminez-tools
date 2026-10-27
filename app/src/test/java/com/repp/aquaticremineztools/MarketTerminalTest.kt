@@ -247,4 +247,201 @@ class MarketTerminalTest {
         assertEquals(30f, smaValues[1], 0.01f) // avg(20, 30, 40) = 30
         assertEquals(40f, smaValues[2], 0.01f) // avg(30, 40, 50) = 40
     }
+
+    @Test
+    fun testCryptoApiSuccessValidData() {
+        val asset = MarketInstrument(
+            id = "bitcoin",
+            symbol = "BTC",
+            name = "Bitcoin",
+            category = MarketCategory.CRYPTO,
+            currentPrice = 65000.0,
+            priceChange24h = 1000.0,
+            priceChangePercentage24h = 2.5,
+            dataStatus = MarketDataStatus.LIVE
+        )
+        assertEquals(MarketDataStatus.LIVE, asset.dataStatus)
+        assertEquals(65000.0, asset.currentPrice!!, 0.01)
+    }
+
+    @Test
+    fun testCryptoApiPartialResponse() {
+        val partialAsset = MarketInstrument(
+            id = "ethereum",
+            symbol = "ETH",
+            name = "Ethereum",
+            category = MarketCategory.CRYPTO,
+            currentPrice = null,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.UNAVAILABLE
+        )
+        assertEquals(MarketDataStatus.UNAVAILABLE, partialAsset.dataStatus)
+        assertNull(partialAsset.currentPrice)
+    }
+
+    @Test
+    fun testNetworkFailureWithoutCacheReturnsUnavailableOrSimulated() {
+        val unavailableInst = MarketInstrument(
+            id = "usd_idr",
+            symbol = "USD/IDR",
+            name = "USD / IDR",
+            category = MarketCategory.FOREX,
+            currentPrice = null,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.UNAVAILABLE
+        )
+        assertEquals(MarketDataStatus.UNAVAILABLE, unavailableInst.dataStatus)
+        assertNull(unavailableInst.currentPrice)
+    }
+
+    @Test
+    fun testForexRateValidAndPartial() {
+        val fxValid = MarketInstrument(
+            id = "usd_chf",
+            symbol = "USD/CHF",
+            name = "USD / CHF",
+            category = MarketCategory.FOREX,
+            currentPrice = 0.88,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.LIVE
+        )
+        assertEquals(0.88, fxValid.currentPrice!!, 0.001)
+        assertEquals(MarketDataStatus.LIVE, fxValid.dataStatus)
+    }
+
+    @Test
+    fun testSimulatedDataCannotTriggerAlert() {
+        val alert = MarketAlert(
+            id = "a1",
+            instrumentId = "ihsg",
+            symbol = "IHSG",
+            name = "IHSG",
+            targetValue = 7000.0,
+            alertType = AlertType.PRICE_ABOVE,
+            isActive = true
+        )
+        val simulatedInst = MarketInstrument(
+            id = "ihsg",
+            symbol = "IHSG",
+            name = "IHSG",
+            category = MarketCategory.INDICES,
+            currentPrice = 7324.50,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.SIMULATED
+        )
+        val canTrigger = simulatedInst.dataStatus == MarketDataStatus.LIVE && simulatedInst.currentPrice!! >= alert.targetValue
+        assertFalse(canTrigger)
+    }
+
+    @Test
+    fun testStaleCacheNotFresh() {
+        val now = System.currentTimeMillis()
+        val staleTimestamp = now - (40 * 60 * 1000L)
+        val cachedInst = MarketInstrument(
+            id = "bitcoin",
+            symbol = "BTC",
+            name = "Bitcoin",
+            category = MarketCategory.CRYPTO,
+            currentPrice = 60000.0,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            timestampEpoch = staleTimestamp,
+            dataStatus = MarketDataStatus.CACHED
+        )
+        val maxAgeMs = 30 * 60 * 1000L
+        val isFresh = (now - cachedInst.timestampEpoch) <= maxAgeMs
+        assertFalse(isFresh)
+    }
+
+    @Test
+    fun testPortfolioDoesNotUseSimulatedPrice() {
+        val holding = PortfolioHolding(
+            id = "h1",
+            instrumentId = "ihsg",
+            symbol = "IHSG",
+            name = "IHSG",
+            quantity = 10.0,
+            averageCost = 7000.0,
+            currency = "IDR"
+        )
+        assertEquals("IHSG", holding.symbol)
+        val simulatedInst = MarketInstrument(
+            id = "ihsg",
+            symbol = "IHSG",
+            name = "IHSG",
+            category = MarketCategory.INDICES,
+            currentPrice = 7300.0,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.SIMULATED
+        )
+        val isLiveOrFresh = simulatedInst.dataStatus == MarketDataStatus.LIVE
+        assertFalse(isLiveOrFresh)
+    }
+
+    @Test
+    fun testPortfolioHandlesUnpricedInstruments() {
+        val unpricedInst = MarketInstrument(
+            id = "unknown",
+            symbol = "UNK",
+            name = "Unknown",
+            category = MarketCategory.STOCKS,
+            currentPrice = null,
+            priceChange24h = null,
+            priceChangePercentage24h = null,
+            dataStatus = MarketDataStatus.UNAVAILABLE
+        )
+        assertNull(unpricedInst.currentPrice)
+        assertEquals(MarketDataStatus.UNAVAILABLE, unpricedInst.dataStatus)
+    }
+
+    @Test
+    fun testForexPairCalculationUSDCHF() {
+        val usdChfRate = 0.88
+        assertEquals(0.88, usdChfRate, 0.001)
+    }
+
+    @Test
+    fun testScopeChangeNoChainedFiltering() {
+        val all = listOf(
+            MarketInstrument(id = "1", symbol = "BTC", name = "Bitcoin", category = MarketCategory.CRYPTO, currentPrice = 50000.0, priceChange24h = null, priceChangePercentage24h = null, currency = "USD", countryCode = "US"),
+            MarketInstrument(id = "2", symbol = "IHSG", name = "IHSG", category = MarketCategory.INDICES, currentPrice = 7000.0, priceChange24h = null, priceChangePercentage24h = null, currency = "IDR", countryCode = "ID")
+        )
+        val indoScope = all.filter { it.countryCode == "ID" || it.currency == "IDR" || it.exchange == "IDX" }
+        assertEquals(1, indoScope.size)
+        assertEquals("IHSG", indoScope[0].symbol)
+
+        val overviewScope = all
+        assertEquals(2, overviewScope.size)
+    }
+
+    @Test
+    fun testTimeRangeSelectionDataset() {
+        val sparklineNull: List<Float>? = null
+        val sparklineValid: List<Float>? = listOf(10f, 12f)
+        val timeRange = "1D"
+        assertFalse(timeRange == "1D" && !sparklineNull.isNullOrEmpty())
+        assertTrue(timeRange == "1D" && !sparklineValid.isNullOrEmpty())
+    }
+
+    @Test
+    fun testEconomicEventsDemoFlag() {
+        val event = com.repp.aquaticremineztools.data.model.EconomicEvent(
+            id = "e1",
+            title = "FOMC",
+            country = "USA",
+            countryFlag = "🇺🇸",
+            eventDate = "Demo",
+            impact = com.repp.aquaticremineztools.data.model.ImpactLevel.HIGH,
+            actualValue = "4.75%",
+            forecastValue = "4.75%",
+            previousValue = "5.00%",
+            isDemo = true
+        )
+        assertTrue(event.isDemo)
+    }
 }

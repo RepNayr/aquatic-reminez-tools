@@ -148,11 +148,8 @@ class MarketViewModel : ViewModel() {
                 val events = repository.getEconomicEvents()
 
                 val cryptoStatus = cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
-                val bannerMessage = when (cryptoStatus) {
-                    MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Forex (ExchangeRate-API)"
-                    MarketDataStatus.CACHED -> "Cached Crypto Data · Forex (ExchangeRate-API)"
-                    else -> "Crypto Feed Unavailable · Forex (ExchangeRate-API)"
-                }
+                val forexStatus = forexList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
+                val bannerMessage = "Crypto: $cryptoStatus · Forex: $forexStatus · Reference: SIMULATED"
 
                 val scopedPulse = filterInstrumentsByScope(marketPulse, currentScope)
                 val scopedKey = filterInstrumentsByScope(keyMarkets, currentScope)

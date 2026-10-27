@@ -9,7 +9,8 @@ data class EconomicEvent(
     val impact: ImpactLevel,
     val actualValue: String?,
     val forecastValue: String?,
-    val previousValue: String?
+    val previousValue: String?,
+    val isDemo: Boolean = true
 )
 
 enum class ImpactLevel {

@@ -93,31 +93,56 @@ class MarketRepository private constructor(context: Context) {
             // 2. Fetch live Forex rates from ExchangeRate-API (Free open API)
             var ratesMap: Map<String, Double>? = null
             var forexStatus = MarketDataStatus.UNAVAILABLE
+            var forexTimestamp = System.currentTimeMillis()
+
+            val cachedFxJson = prefs.getString("cached_forex_json", null)
+            val cachedFxTime = prefs.getLong("cached_forex_timestamp", 0L)
+            val currentTime = System.currentTimeMillis()
+            val cacheMaxAgeMs = 15 * 60 * 1000L
+
             try {
                 val fxResponse = exchangeRateApi.getLatestRates()
                 if (fxResponse.isSuccessful && fxResponse.body()?.result.equals("success", ignoreCase = true)) {
                     ratesMap = fxResponse.body()?.rates
-                    forexStatus = MarketDataStatus.LIVE
-                } else {
-                    forexStatus = MarketDataStatus.CACHED
+                    if (!ratesMap.isNullOrEmpty()) {
+                        forexStatus = MarketDataStatus.LIVE
+                        forexTimestamp = currentTime
+                        prefs.edit()
+                            .putString("cached_forex_json", gson.toJson(ratesMap))
+                            .putLong("cached_forex_timestamp", currentTime)
+                            .apply()
+                    }
                 }
             } catch (e: Exception) {
                 Log.w("MarketRepository", "Forex fetch failed: ${e.message}")
-                forexStatus = MarketDataStatus.UNAVAILABLE
             }
 
-            val idrRate = ratesMap?.get("IDR") ?: 15850.0
-            val eurUsdRate = if ((ratesMap?.get("EUR") ?: 0.92) > 0) 1.0 / (ratesMap?.get("EUR") ?: 0.92) else 1.0852
-            val gbpUsdRate = if ((ratesMap?.get("GBP") ?: 0.78) > 0) 1.0 / (ratesMap?.get("GBP") ?: 0.78) else 1.2985
-            val jpyRate = ratesMap?.get("JPY") ?: 152.0
-            val audUsdRate = if ((ratesMap?.get("AUD") ?: 1.52) > 0) 1.0 / (ratesMap?.get("AUD") ?: 1.52) else 0.6580
-            val chfRate = ratesMap?.get("CHF") ?: 0.88
+            if (ratesMap.isNullOrEmpty()) {
+                if (!cachedFxJson.isNullOrEmpty() && (currentTime - cachedFxTime) < cacheMaxAgeMs) {
+                    try {
+                        val type = object : TypeToken<Map<String, Double>>() {}.type
+                        ratesMap = gson.fromJson(cachedFxJson, type)
+                        forexStatus = MarketDataStatus.CACHED
+                        forexTimestamp = cachedFxTime
+                    } catch (_: Exception) {}
+                }
+            }
+
+            val idrRate = ratesMap?.get("IDR")
+            val eurRate = ratesMap?.get("EUR")
+            val eurUsdRate = if (eurRate != null && eurRate > 0.0) 1.0 / eurRate else null
+            val gbpRate = ratesMap?.get("GBP")
+            val gbpUsdRate = if (gbpRate != null && gbpRate > 0.0) 1.0 / gbpRate else null
+            val jpyRate = ratesMap?.get("JPY")
+            val audRate = ratesMap?.get("AUD")
+            val audUsdRate = if (audRate != null && audRate > 0.0) 1.0 / audRate else null
+            val chfRate = ratesMap?.get("CHF")
 
             // 3. Regional & Global Indices (Simulated reference data)
             list.addAll(getIndicesInstruments())
 
             // 4. Forex Instruments (Live/Cached from ExchangeRate-API)
-            list.addAll(getForexInstruments(idrRate, eurUsdRate, gbpUsdRate, jpyRate, audUsdRate, chfRate, forexStatus))
+            list.addAll(getForexInstruments(idrRate, eurUsdRate, gbpUsdRate, jpyRate, audUsdRate, chfRate, forexStatus, forexTimestamp))
 
             // 5. Commodities (Simulated reference data)
             list.addAll(getCommoditiesInstruments())
@@ -202,15 +227,15 @@ class MarketRepository private constructor(context: Context) {
     }
 
     private fun getForexInstruments(
-        idr: Double,
-        eurUsd: Double,
-        gbpUsd: Double,
-        jpy: Double,
-        audUsd: Double,
-        chf: Double,
-        status: MarketDataStatus
+        idr: Double?,
+        eurUsd: Double?,
+        gbpUsd: Double?,
+        jpy: Double?,
+        audUsd: Double?,
+        chf: Double?,
+        status: MarketDataStatus,
+        timestamp: Long
     ): List<MarketInstrument> {
-        val now = System.currentTimeMillis()
         return listOf(
             MarketInstrument(
                 id = "usd_idr",
@@ -222,8 +247,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (idr != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "eur_usd",
@@ -235,8 +260,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (eurUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "gbp_usd",
@@ -248,8 +273,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (gbpUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "usd_jpy",
@@ -261,8 +286,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "JPY",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (jpy != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "aud_usd",
@@ -274,8 +299,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (audUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "usd_chf",
@@ -287,8 +312,8 @@ class MarketRepository private constructor(context: Context) {
                 priceChangePercentage24h = null,
                 currency = "CHF",
                 exchange = "FX",
-                timestampEpoch = now,
-                dataStatus = status
+                timestampEpoch = timestamp,
+                dataStatus = if (chf != null) status else MarketDataStatus.UNAVAILABLE
             )
         )
     }
