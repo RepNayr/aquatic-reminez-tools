@@ -579,29 +579,23 @@ class MarketActivity : AppCompatActivity() {
         val entries = ArrayList<Entry>()
         if (!sparkline.isNullOrEmpty()) {
             sparkline.forEachIndexed { i, p -> entries.add(Entry(i.toFloat(), p)) }
+            val dataSet = LineDataSet(entries, "Price Trend").apply {
+                color = Color.parseColor("#43D9E6")
+                lineWidth = 2.5f
+                setDrawCircles(false)
+                setDrawValues(false)
+                mode = LineDataSet.Mode.CUBIC_BEZIER
+                setDrawFilled(true)
+                fillColor = Color.parseColor("#43D9E6")
+                fillAlpha = 35
+            }
+
+            chartHero.data = LineData(dataSet)
+            chartHero.animateX(400)
+            chartHero.invalidate()
         } else {
-            val basePrice = (price ?: 100.0).toFloat()
-            val dummyPoints = listOf(
-                basePrice * 0.98f, basePrice * 0.985f, basePrice * 0.992f,
-                basePrice * 0.99f, basePrice * 1.005f, basePrice * 1.008f, basePrice
-            )
-            dummyPoints.forEachIndexed { i, p -> entries.add(Entry(i.toFloat(), p)) }
+            chartHero.clear()
         }
-
-        val dataSet = LineDataSet(entries, "Price Trend").apply {
-            color = Color.parseColor("#43D9E6")
-            lineWidth = 2.5f
-            setDrawCircles(false)
-            setDrawValues(false)
-            mode = LineDataSet.Mode.CUBIC_BEZIER
-            setDrawFilled(true)
-            fillColor = Color.parseColor("#43D9E6")
-            fillAlpha = 35
-        }
-
-        chartHero.data = LineData(dataSet)
-        chartHero.animateX(400)
-        chartHero.invalidate()
     }
 
     private fun selectWatchlistCategory(category: MarketCategory?, selectedChip: TextView) {

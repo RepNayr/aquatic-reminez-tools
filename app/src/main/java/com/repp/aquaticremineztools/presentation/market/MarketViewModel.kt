@@ -68,22 +68,29 @@ class MarketViewModel : ViewModel() {
         currentScope = scope
         val currentState = _uiState.value
         if (currentState is MarketUiState.Success) {
-            val filteredPulse = filterInstrumentsByScope(currentState.marketPulse, scope)
-            val filteredKey = filterInstrumentsByScope(currentState.keyMarkets, scope)
-            val filteredCrypto = filterInstrumentsByScope(currentState.cryptoInstruments, scope)
-            val filteredForex = filterInstrumentsByScope(currentState.forexInstruments, scope)
-            val filteredStocks = filterInstrumentsByScope(currentState.stocksInstruments, scope)
-            val filteredCommodities = filterInstrumentsByScope(currentState.commoditiesInstruments, scope)
-            val filteredEconomics = filterInstrumentsByScope(currentState.economicIndicators, scope)
+            val instruments = currentState.allInstruments
+            val byCategory = instruments.groupBy { it.category }
+
+            val cryptoList = byCategory[MarketCategory.CRYPTO] ?: emptyList()
+            val forexList = byCategory[MarketCategory.FOREX] ?: emptyList()
+            val commoditiesList = byCategory[MarketCategory.COMMODITIES] ?: emptyList()
+            val economicsList = byCategory[MarketCategory.ECONOMICS] ?: emptyList()
+            val stocksList = (byCategory[MarketCategory.STOCKS] ?: emptyList()) + (byCategory[MarketCategory.ETFS] ?: emptyList())
+
+            val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
+            val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
+
+            val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
+            val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
             _uiState.value = currentState.copy(
-                marketPulse = filteredPulse,
-                keyMarkets = filteredKey,
-                cryptoInstruments = filteredCrypto,
-                forexInstruments = filteredForex,
-                stocksInstruments = filteredStocks,
-                commoditiesInstruments = filteredCommodities,
-                economicIndicators = filteredEconomics,
+                marketPulse = filterInstrumentsByScope(marketPulse, scope),
+                keyMarkets = filterInstrumentsByScope(keyMarkets, scope),
+                cryptoInstruments = filterInstrumentsByScope(cryptoList, scope),
+                forexInstruments = filterInstrumentsByScope(forexList, scope),
+                stocksInstruments = filterInstrumentsByScope(stocksList, scope),
+                commoditiesInstruments = filterInstrumentsByScope(commoditiesList, scope),
+                economicIndicators = filterInstrumentsByScope(economicsList, scope),
                 activeScope = scope
             )
         } else {

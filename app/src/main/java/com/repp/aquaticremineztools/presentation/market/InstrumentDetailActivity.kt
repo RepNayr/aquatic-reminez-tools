@@ -215,8 +215,9 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
         // Key Statistics
         val sparkline = instrument.sparklinePrices
-        val high = if (!sparkline.isNullOrEmpty()) sparkline.maxOrNull()?.toDouble() else price?.let { it * 1.03 }
-        val low = if (!sparkline.isNullOrEmpty()) sparkline.minOrNull()?.toDouble() else price?.let { it * 0.97 }
+        val candles = instrument.historicalCandles
+        val high = sparkline?.maxOrNull()?.toDouble() ?: candles?.maxOfOrNull { it.high }?.toDouble()
+        val low = sparkline?.minOrNull()?.toDouble() ?: candles?.minOfOrNull { it.low }?.toDouble()
 
         tvStatHigh.text = high?.let { formatPriceValue(it, instrument.currency) } ?: "--"
         tvStatLow.text = low?.let { formatPriceValue(it, instrument.currency) } ?: "--"

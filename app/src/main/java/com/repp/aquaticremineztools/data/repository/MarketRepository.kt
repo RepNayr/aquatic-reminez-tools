@@ -92,13 +92,18 @@ class MarketRepository private constructor(context: Context) {
 
             // 2. Fetch live Forex rates from ExchangeRate-API (Free open API)
             var ratesMap: Map<String, Double>? = null
+            var forexStatus = MarketDataStatus.UNAVAILABLE
             try {
                 val fxResponse = exchangeRateApi.getLatestRates()
                 if (fxResponse.isSuccessful && fxResponse.body()?.result.equals("success", ignoreCase = true)) {
                     ratesMap = fxResponse.body()?.rates
+                    forexStatus = MarketDataStatus.LIVE
+                } else {
+                    forexStatus = MarketDataStatus.CACHED
                 }
             } catch (e: Exception) {
                 Log.w("MarketRepository", "Forex fetch failed: ${e.message}")
+                forexStatus = MarketDataStatus.UNAVAILABLE
             }
 
             val idrRate = ratesMap?.get("IDR") ?: 15850.0
@@ -106,21 +111,21 @@ class MarketRepository private constructor(context: Context) {
             val gbpUsdRate = if ((ratesMap?.get("GBP") ?: 0.78) > 0) 1.0 / (ratesMap?.get("GBP") ?: 0.78) else 1.2985
             val jpyRate = ratesMap?.get("JPY") ?: 152.0
             val audUsdRate = if ((ratesMap?.get("AUD") ?: 1.52) > 0) 1.0 / (ratesMap?.get("AUD") ?: 1.52) else 0.6580
-            val chfUsdRate = if ((ratesMap?.get("CHF") ?: 0.88) > 0) 1.0 / (ratesMap?.get("CHF") ?: 0.88) else 1.1250
+            val chfRate = ratesMap?.get("CHF") ?: 0.88
 
-            // 3. Regional & Global Indices
+            // 3. Regional & Global Indices (Simulated reference data)
             list.addAll(getIndicesInstruments())
 
-            // 4. Forex Instruments (Live from ExchangeRate-API)
-            list.addAll(getForexInstruments(idrRate, eurUsdRate, gbpUsdRate, jpyRate, audUsdRate, chfUsdRate))
+            // 4. Forex Instruments (Live/Cached from ExchangeRate-API)
+            list.addAll(getForexInstruments(idrRate, eurUsdRate, gbpUsdRate, jpyRate, audUsdRate, chfRate, forexStatus))
 
-            // 5. Commodities
+            // 5. Commodities (Simulated reference data)
             list.addAll(getCommoditiesInstruments())
 
-            // 6. Economic Indicators
+            // 6. Economic Indicators (Simulated reference data)
             list.addAll(getEconomicsInstruments())
 
-            // 7. Stocks & ETFs
+            // 7. Stocks & ETFs (Simulated reference data)
             list.addAll(getStocksAndEtfsInstruments())
 
             return@withContext Result.success(list)
@@ -139,12 +144,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Jakarta Composite Index",
                 category = MarketCategory.INDICES,
                 currentPrice = 7324.50,
-                priceChange24h = 45.20,
-                priceChangePercentage24h = 0.62,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
             ),
             MarketInstrument(
@@ -153,12 +159,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "S&P 500",
                 category = MarketCategory.INDICES,
                 currentPrice = 5815.20,
-                priceChange24h = 32.40,
-                priceChangePercentage24h = 0.56,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NYSE",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             MarketInstrument(
@@ -167,12 +174,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Nasdaq Composite",
                 category = MarketCategory.INDICES,
                 currentPrice = 18518.60,
-                priceChange24h = 142.10,
-                priceChangePercentage24h = 0.77,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             MarketInstrument(
@@ -181,12 +189,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Nikkei 225",
                 category = MarketCategory.INDICES,
                 currentPrice = 38981.75,
-                priceChange24h = -125.50,
-                priceChangePercentage24h = -0.32,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "JPY",
                 exchange = "TSE",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "JP"
             )
         )
@@ -198,7 +207,8 @@ class MarketRepository private constructor(context: Context) {
         gbpUsd: Double,
         jpy: Double,
         audUsd: Double,
-        chfUsd: Double
+        chf: Double,
+        status: MarketDataStatus
     ): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
@@ -208,12 +218,12 @@ class MarketRepository private constructor(context: Context) {
                 name = "US Dollar / Indonesian Rupiah",
                 category = MarketCategory.FOREX,
                 currentPrice = idr,
-                priceChange24h = 35.0,
-                priceChangePercentage24h = 0.22,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             ),
             MarketInstrument(
                 id = "eur_usd",
@@ -221,12 +231,12 @@ class MarketRepository private constructor(context: Context) {
                 name = "Euro / US Dollar",
                 category = MarketCategory.FOREX,
                 currentPrice = eurUsd,
-                priceChange24h = -0.0015,
-                priceChangePercentage24h = -0.14,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             ),
             MarketInstrument(
                 id = "gbp_usd",
@@ -234,12 +244,12 @@ class MarketRepository private constructor(context: Context) {
                 name = "British Pound / US Dollar",
                 category = MarketCategory.FOREX,
                 currentPrice = gbpUsd,
-                priceChange24h = 0.0024,
-                priceChangePercentage24h = 0.19,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             ),
             MarketInstrument(
                 id = "usd_jpy",
@@ -247,12 +257,12 @@ class MarketRepository private constructor(context: Context) {
                 name = "US Dollar / Japanese Yen",
                 category = MarketCategory.FOREX,
                 currentPrice = jpy,
-                priceChange24h = 0.45,
-                priceChangePercentage24h = 0.30,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "JPY",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             ),
             MarketInstrument(
                 id = "aud_usd",
@@ -260,25 +270,25 @@ class MarketRepository private constructor(context: Context) {
                 name = "Australian Dollar / US Dollar",
                 category = MarketCategory.FOREX,
                 currentPrice = audUsd,
-                priceChange24h = -0.0010,
-                priceChangePercentage24h = -0.15,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             ),
             MarketInstrument(
                 id = "usd_chf",
                 symbol = "USD/CHF",
                 name = "US Dollar / Swiss Franc",
                 category = MarketCategory.FOREX,
-                currentPrice = chfUsd,
-                priceChange24h = 0.0005,
-                priceChangePercentage24h = 0.06,
+                currentPrice = chf,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "CHF",
                 exchange = "FX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE
+                dataStatus = status
             )
         )
     }
@@ -292,12 +302,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Gold Spot",
                 category = MarketCategory.COMMODITIES,
                 currentPrice = 2735.80,
-                priceChange24h = 18.40,
-                priceChangePercentage24h = 0.68,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "COMEX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/oz"
             ),
             MarketInstrument(
@@ -306,12 +317,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Silver Spot",
                 category = MarketCategory.COMMODITIES,
                 currentPrice = 32.45,
-                priceChange24h = 0.35,
-                priceChangePercentage24h = 1.09,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "COMEX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/oz"
             ),
             MarketInstrument(
@@ -320,12 +332,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Crude Oil WTI",
                 category = MarketCategory.COMMODITIES,
                 currentPrice = 71.42,
-                priceChange24h = -1.12,
-                priceChangePercentage24h = -1.54,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NYMEX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/bbl"
             ),
             MarketInstrument(
@@ -334,12 +347,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Natural Gas",
                 category = MarketCategory.COMMODITIES,
                 currentPrice = 2.78,
-                priceChange24h = 0.04,
-                priceChangePercentage24h = 1.46,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NYMEX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/MMBtu"
             )
         )
@@ -354,12 +368,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Bank Indonesia Policy Rate",
                 category = MarketCategory.ECONOMICS,
                 currentPrice = 6.00,
-                priceChange24h = 0.0,
-                priceChangePercentage24h = 0.0,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "%",
                 exchange = "BI",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
                 macroPeriod = "Target Rate",
                 countryCode = "ID"
@@ -370,12 +385,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "US Federal Reserve Target Rate",
                 category = MarketCategory.ECONOMICS,
                 currentPrice = 4.75,
-                priceChange24h = -0.25,
-                priceChangePercentage24h = -5.00,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "%",
                 exchange = "FED",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
                 macroPeriod = "Target Rate",
                 countryCode = "US"
@@ -386,12 +402,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Indonesia Inflation Rate (YoY)",
                 category = MarketCategory.ECONOMICS,
                 currentPrice = 2.57,
-                priceChange24h = -0.05,
-                priceChangePercentage24h = -1.91,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "%",
                 exchange = "BPS",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
                 macroPeriod = "YoY",
                 countryCode = "ID"
@@ -402,12 +419,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "US 10-Year Treasury Yield",
                 category = MarketCategory.ECONOMICS,
                 currentPrice = 4.24,
-                priceChange24h = 0.03,
-                priceChangePercentage24h = 0.71,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "%",
                 exchange = "BOND",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
                 macroPeriod = "Yield",
                 countryCode = "US"
@@ -418,12 +436,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Indonesia GDP Growth (YoY)",
                 category = MarketCategory.ECONOMICS,
                 currentPrice = 5.05,
-                priceChange24h = 0.02,
-                priceChangePercentage24h = 0.40,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "%",
                 exchange = "BPS",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
                 macroPeriod = "YoY",
                 countryCode = "ID"
@@ -441,12 +460,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Bank Central Asia Tbk",
                 category = MarketCategory.STOCKS,
                 currentPrice = 10250.0,
-                priceChange24h = 125.0,
-                priceChangePercentage24h = 1.23,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
             ),
             MarketInstrument(
@@ -455,12 +475,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Bank Rakyat Indonesia Tbk",
                 category = MarketCategory.STOCKS,
                 currentPrice = 4980.0,
-                priceChange24h = 60.0,
-                priceChangePercentage24h = 1.22,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
             ),
             MarketInstrument(
@@ -469,12 +490,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Bank Mandiri Tbk",
                 category = MarketCategory.STOCKS,
                 currentPrice = 6725.0,
-                priceChange24h = 75.0,
-                priceChangePercentage24h = 1.13,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
             ),
             // Global Stocks
@@ -484,12 +506,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Apple Inc.",
                 category = MarketCategory.STOCKS,
                 currentPrice = 235.40,
-                priceChange24h = 2.80,
-                priceChangePercentage24h = 1.20,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             MarketInstrument(
@@ -498,12 +521,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "NVIDIA Corporation",
                 category = MarketCategory.STOCKS,
                 currentPrice = 138.20,
-                priceChange24h = 3.40,
-                priceChangePercentage24h = 2.52,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             MarketInstrument(
@@ -512,12 +536,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Tesla, Inc.",
                 category = MarketCategory.STOCKS,
                 currentPrice = 218.50,
-                priceChange24h = -1.90,
-                priceChangePercentage24h = -0.86,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             // ETFs
@@ -527,12 +552,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "SPDR S&P 500 ETF Trust",
                 category = MarketCategory.ETFS,
                 currentPrice = 580.40,
-                priceChange24h = 3.10,
-                priceChangePercentage24h = 0.54,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NYSE",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             ),
             MarketInstrument(
@@ -541,12 +567,13 @@ class MarketRepository private constructor(context: Context) {
                 name = "Invesco QQQ Trust",
                 category = MarketCategory.ETFS,
                 currentPrice = 498.20,
-                priceChange24h = 4.50,
-                priceChangePercentage24h = 0.91,
+                priceChange24h = null,
+                priceChangePercentage24h = null,
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
-                dataStatus = MarketDataStatus.LIVE,
+                isDemo = true,
+                dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
             )
         )
@@ -755,8 +782,12 @@ class MarketRepository private constructor(context: Context) {
             if (!alert.isActive || alert.isTriggered) continue
 
             val inst = instrumentsMap[alert.instrumentId] ?: continue
-            val price = inst.currentPrice ?: continue
+            val price = inst.currentPrice
             val pctChange = inst.priceChangePercentage24h
+
+            if (price == null || inst.dataStatus == MarketDataStatus.UNAVAILABLE) {
+                continue
+            }
 
             var isTriggered = false
             when (alert.alertType) {
