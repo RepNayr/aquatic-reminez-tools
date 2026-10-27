@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_glass_sheet"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- DRAG HANDLE -->
+    <View
+        android:layout_width="36dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_dot_inactive" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="ADD PORTFOLIO HOLDING"
+        android:textColor="@color/text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="Track asset positions and profit/loss"
+        android:textColor="@color/text_secondary"
+        android:textSize="12sp" />
+
+    <!-- SELECT INSTRUMENT -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="Select Instrument"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+
+    <Spinner
+        android:id="@+id/spinnerHoldingInstrument"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_input_field"
+        android:paddingHorizontal="12dp" />
+
+    <!-- QUANTITY -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="Quantity / Units"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etHoldingQuantity"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_input_field"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:hint="e.g. 0.5 or 100"
+        android:inputType="numberDecimal"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_muted"
+        android:textSize="14sp" />
+
+    <!-- AVERAGE COST -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="Average Cost Basis (per unit)"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+
+    <EditText
+        android:id="@+id/etHoldingCost"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_input_field"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:hint="e.g. 90000.00"
+        android:inputType="numberDecimal"
+        android:paddingHorizontal="12dp"
+        android:textColor="@color/text_primary"
+        android:textColorHint="@color/text_muted"
+        android:textSize="14sp" />
+
+    <!-- CURRENCY -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="Valuation Currency"
+        android:textColor="@color/text_primary"
+        android:textSize="13sp" />
+
+    <Spinner
+        android:id="@+id/spinnerHoldingCurrency"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/bg_input_field"
+        android:paddingHorizontal="12dp" />
+
+    <!-- ACTIONS -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnCancelHolding"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_outline"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="Cancel"
+            android:textColor="@color/text_primary"
+            android:textSize="13.5sp" />
+
+        <Button
+            android:id="@+id/btnSaveHolding"
+            android:layout_width="0dp"
+            android:layout_height="46dp"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_btn_primary"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="Save Holding"
+            android:textColor="@color/black"
+            android:textSize="13.5sp" />
+    </LinearLayout>
+
+</LinearLayout>

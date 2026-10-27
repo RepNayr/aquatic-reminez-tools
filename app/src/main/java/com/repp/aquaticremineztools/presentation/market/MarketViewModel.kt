@@ -12,12 +12,27 @@ import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.repository.MarketRepository
 import kotlinx.coroutines.launch
 
+enum class MarketNavDestination {
+    OVERVIEW,
+    WATCHLIST,
+    ALERTS,
+    PORTFOLIO
+}
+
+enum class MarketScope {
+    OVERVIEW,
+    INDONESIA,
+    GLOBAL
+}
+
 sealed class MarketUiState {
     object Loading : MarketUiState()
     data class Success(
         val allInstruments: List<MarketInstrument>,
         val marketPulse: List<MarketInstrument>,
         val keyMarkets: List<MarketInstrument>,
+        val topGainers: List<MarketInstrument>,
+        val topLosers: List<MarketInstrument>,
         val cryptoInstruments: List<MarketInstrument>,
         val forexInstruments: List<MarketInstrument>,
         val stocksInstruments: List<MarketInstrument>,
@@ -25,7 +40,10 @@ sealed class MarketUiState {
         val economicIndicators: List<MarketInstrument>,
         val economicEvents: List<EconomicEvent>,
         val activeAlertsCount: Int,
-        val bannerMessage: String?
+        val bannerMessage: String?,
+        val activeScope: MarketScope = MarketScope.OVERVIEW,
+        val selectedHeroBenchmarkId: String = "sp500",
+        val selectedHeroTimeRange: String = "1D"
     ) : MarketUiState()
     data class Error(val message: String) : MarketUiState()
 }
@@ -34,6 +52,60 @@ class MarketViewModel : ViewModel() {
 
     private val _uiState = MutableLiveData<MarketUiState>(MarketUiState.Loading)
     val uiState: LiveData<MarketUiState> = _uiState
+
+    private val _currentDestination = MutableLiveData(MarketNavDestination.OVERVIEW)
+    val currentDestination: LiveData<MarketNavDestination> = _currentDestination
+
+    private var currentScope = MarketScope.OVERVIEW
+    private var heroBenchmarkId = "sp500"
+    private var heroTimeRange = "1D"
+
+    fun setDestination(destination: MarketNavDestination) {
+        _currentDestination.value = destination
+    }
+
+    fun setScope(context: Context, scope: MarketScope) {
+        currentScope = scope
+        val currentState = _uiState.value
+        if (currentState is MarketUiState.Success) {
+            val filteredPulse = filterInstrumentsByScope(currentState.marketPulse, scope)
+            val filteredKey = filterInstrumentsByScope(currentState.keyMarkets, scope)
+            val filteredCrypto = filterInstrumentsByScope(currentState.cryptoInstruments, scope)
+            val filteredForex = filterInstrumentsByScope(currentState.forexInstruments, scope)
+            val filteredStocks = filterInstrumentsByScope(currentState.stocksInstruments, scope)
+            val filteredCommodities = filterInstrumentsByScope(currentState.commoditiesInstruments, scope)
+            val filteredEconomics = filterInstrumentsByScope(currentState.economicIndicators, scope)
+
+            _uiState.value = currentState.copy(
+                marketPulse = filteredPulse,
+                keyMarkets = filteredKey,
+                cryptoInstruments = filteredCrypto,
+                forexInstruments = filteredForex,
+                stocksInstruments = filteredStocks,
+                commoditiesInstruments = filteredCommodities,
+                economicIndicators = filteredEconomics,
+                activeScope = scope
+            )
+        } else {
+            loadMarket(context, forceRefresh = false)
+        }
+    }
+
+    fun setHeroBenchmark(benchmarkId: String) {
+        heroBenchmarkId = benchmarkId
+        val currentState = _uiState.value
+        if (currentState is MarketUiState.Success) {
+            _uiState.value = currentState.copy(selectedHeroBenchmarkId = benchmarkId)
+        }
+    }
+
+    fun setHeroTimeRange(timeRange: String) {
+        heroTimeRange = timeRange
+        val currentState = _uiState.value
+        if (currentState is MarketUiState.Success) {
+            _uiState.value = currentState.copy(selectedHeroTimeRange = timeRange)
+        }
+    }
 
     fun loadMarket(context: Context, forceRefresh: Boolean = false) {
         viewModelScope.launch {
@@ -48,6 +120,10 @@ class MarketViewModel : ViewModel() {
                 repository.evaluateAlerts(instruments)
                 val activeAlertsCount = repository.getAlerts().count { it.isActive }
 
+                val validChangeList = instruments.filter { it.priceChangePercentage24h != null }
+                val gainers = validChangeList.sortedByDescending { it.priceChangePercentage24h }.take(4)
+                val losers = validChangeList.sortedBy { it.priceChangePercentage24h }.take(4)
+
                 val byCategory = instruments.groupBy { it.category }
 
                 val cryptoList = byCategory[MarketCategory.CRYPTO] ?: emptyList()
@@ -56,11 +132,9 @@ class MarketViewModel : ViewModel() {
                 val economicsList = byCategory[MarketCategory.ECONOMICS] ?: emptyList()
                 val stocksList = (byCategory[MarketCategory.STOCKS] ?: emptyList()) + (byCategory[MarketCategory.ETFS] ?: emptyList())
 
-                // Market Pulse Priority: IHSG, SPX, IXIC, NI225, USD/IDR
                 val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
                 val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
-                // Key Markets Priority: IHSG, SPX, IXIC, USD/IDR, BTC
                 val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
                 val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
@@ -68,26 +142,51 @@ class MarketViewModel : ViewModel() {
 
                 val cryptoStatus = cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
                 val bannerMessage = when (cryptoStatus) {
-                    MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Other Markets Feed Pending Integration"
-                    MarketDataStatus.CACHED -> "Cached Crypto Data · Other Markets Feed Pending Integration"
-                    else -> "Crypto Feed Unavailable · Other Markets Feed Pending Integration"
+                    MarketDataStatus.LIVE -> "Live Crypto Data (CoinGecko) · Forex (ExchangeRate-API)"
+                    MarketDataStatus.CACHED -> "Cached Crypto Data · Forex (ExchangeRate-API)"
+                    else -> "Crypto Feed Unavailable · Forex (ExchangeRate-API)"
                 }
+
+                val scopedPulse = filterInstrumentsByScope(marketPulse, currentScope)
+                val scopedKey = filterInstrumentsByScope(keyMarkets, currentScope)
+                val scopedCrypto = filterInstrumentsByScope(cryptoList, currentScope)
+                val scopedForex = filterInstrumentsByScope(forexList, currentScope)
+                val scopedStocks = filterInstrumentsByScope(stocksList, currentScope)
+                val scopedCommodities = filterInstrumentsByScope(commoditiesList, currentScope)
+                val scopedEconomics = filterInstrumentsByScope(economicsList, currentScope)
 
                 _uiState.value = MarketUiState.Success(
                     allInstruments = instruments,
-                    marketPulse = marketPulse,
-                    keyMarkets = keyMarkets,
-                    cryptoInstruments = cryptoList,
-                    forexInstruments = forexList,
-                    stocksInstruments = stocksList,
-                    commoditiesInstruments = commoditiesList,
-                    economicIndicators = economicsList,
+                    marketPulse = scopedPulse,
+                    keyMarkets = scopedKey,
+                    topGainers = gainers,
+                    topLosers = losers,
+                    cryptoInstruments = scopedCrypto,
+                    forexInstruments = scopedForex,
+                    stocksInstruments = scopedStocks,
+                    commoditiesInstruments = scopedCommodities,
+                    economicIndicators = scopedEconomics,
                     economicEvents = events,
                     activeAlertsCount = activeAlertsCount,
-                    bannerMessage = bannerMessage
+                    bannerMessage = bannerMessage,
+                    activeScope = currentScope,
+                    selectedHeroBenchmarkId = heroBenchmarkId,
+                    selectedHeroTimeRange = heroTimeRange
                 )
             }.onFailure { e ->
                 _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market dashboard data")
+            }
+        }
+    }
+
+    private fun filterInstrumentsByScope(list: List<MarketInstrument>, scope: MarketScope): List<MarketInstrument> {
+        return when (scope) {
+            MarketScope.OVERVIEW -> list
+            MarketScope.INDONESIA -> list.filter {
+                it.countryCode == "ID" || it.currency == "IDR" || it.exchange == "IDX" || it.id == "usd_idr"
+            }
+            MarketScope.GLOBAL -> list.filter {
+                it.countryCode != "ID" && it.currency != "IDR" && it.exchange != "IDX" && it.id != "usd_idr"
             }
         }
     }

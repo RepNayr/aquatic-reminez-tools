@@ -38,9 +38,22 @@ class InstrumentDetailActivity : AppCompatActivity() {
     private lateinit var tvDetailSourceStatus: TextView
     private lateinit var chartInstrument: LineChart
     private lateinit var btnWatchlistToggle: ImageView
+    private lateinit var btnCreateAlert: ImageView
     private lateinit var btnAddPortfolio: Button
     private lateinit var btnToggleIndicator: TextView
     private lateinit var btnBack: ImageView
+
+    private lateinit var tvStatHigh: TextView
+    private lateinit var tvStatLow: TextView
+    private lateinit var tvStatCategory: TextView
+    private lateinit var tvStatExchange: TextView
+
+    private lateinit var btnTf1d: TextView
+    private lateinit var btnTf1w: TextView
+    private lateinit var btnTf1m: TextView
+    private lateinit var btnTf3m: TextView
+    private lateinit var btnTfYtd: TextView
+    private lateinit var btnTfAll: TextView
 
     private var instrumentId: String = "bitcoin"
     private var currentInstrument: MarketInstrument? = null
@@ -75,9 +88,22 @@ class InstrumentDetailActivity : AppCompatActivity() {
         tvDetailSourceStatus = findViewById(R.id.tvDetailSourceStatus)
         chartInstrument = findViewById(R.id.chartInstrument)
         btnWatchlistToggle = findViewById(R.id.btnWatchlistToggle)
+        btnCreateAlert = findViewById(R.id.btnCreateAlert)
         btnAddPortfolio = findViewById(R.id.btnAddPortfolio)
         btnToggleIndicator = findViewById(R.id.btnToggleIndicator)
         btnBack = findViewById(R.id.btnBack)
+
+        tvStatHigh = findViewById(R.id.tvStatHigh)
+        tvStatLow = findViewById(R.id.tvStatLow)
+        tvStatCategory = findViewById(R.id.tvStatCategory)
+        tvStatExchange = findViewById(R.id.tvStatExchange)
+
+        btnTf1d = findViewById(R.id.btnTf1d)
+        btnTf1w = findViewById(R.id.btnTf1w)
+        btnTf1m = findViewById(R.id.btnTf1m)
+        btnTf3m = findViewById(R.id.btnTf3m)
+        btnTfYtd = findViewById(R.id.btnTfYtd)
+        btnTfAll = findViewById(R.id.btnTfAll)
     }
 
     private fun setupListeners() {
@@ -96,6 +122,13 @@ class InstrumentDetailActivity : AppCompatActivity() {
             }
         }
 
+        btnCreateAlert.setOnClickListener {
+            currentInstrument?.let { inst ->
+                val sheet = MarketAlertBottomSheet.newInstance(inst.id)
+                sheet.show(supportFragmentManager, "MarketAlertBottomSheet")
+            }
+        }
+
         btnToggleIndicator.setOnClickListener {
             isSmaActive = !isSmaActive
             btnToggleIndicator.text = if (isSmaActive) "SMA: ON" else "SMA: OFF"
@@ -103,7 +136,22 @@ class InstrumentDetailActivity : AppCompatActivity() {
         }
 
         btnAddPortfolio.setOnClickListener {
-            currentInstrument?.let { showAddPortfolioDialog(it) }
+            currentInstrument?.let { inst ->
+                val sheet = PortfolioHoldingBottomSheet.newInstance(inst.id)
+                sheet.show(supportFragmentManager, "PortfolioHoldingBottomSheet")
+            }
+        }
+
+        val rangeBtns = listOf(btnTf1d to "1D", btnTf1w to "1W", btnTf1m to "1M", btnTf3m to "3M", btnTfYtd to "1Y", btnTfAll to "ALL")
+        rangeBtns.forEach { (btn, _) ->
+            btn.setOnClickListener {
+                rangeBtns.forEach { (b, _) ->
+                    b.setBackgroundResource(R.drawable.bg_chip_inactive)
+                    b.setTextColor(ContextCompat.getColor(this, R.color.text_secondary))
+                }
+                btn.setBackgroundResource(R.drawable.bg_chip_cyan_active)
+                btn.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+            }
         }
     }
 
@@ -127,7 +175,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
     private fun populateDetails(instrument: MarketInstrument) {
         tvDetailSymbol.text = instrument.symbol
-        tvDetailName.text = instrument.name
+        tvDetailName.text = "${instrument.name} · ${instrument.exchange}"
 
         val price = instrument.currentPrice
         if (price != null) {
@@ -151,7 +199,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
         if (pctChange != null) {
             val isPos = pctChange >= 0
             val sign = if (isPos) "+" else ""
-            tvDetailChange.text = String.format(Locale.US, "%s%.2f%%", sign, pctChange)
+            tvDetailChange.text = String.format(Locale.US, "%s%.2f%% (24h)", sign, pctChange)
             val colorRes = if (isPos) R.color.accent_teal else R.color.accent_muted_red
             tvDetailChange.setTextColor(ContextCompat.getColor(this, colorRes))
         } else {
@@ -159,10 +207,30 @@ class InstrumentDetailActivity : AppCompatActivity() {
         }
 
         tvDetailSourceStatus.text = when (instrument.dataStatus) {
-            MarketDataStatus.LIVE -> "Live Feed · Powered by CoinGecko"
-            MarketDataStatus.CACHED -> "Offline Mode · Cached CoinGecko Data"
-            MarketDataStatus.SIMULATED -> "Simulated Market Data (Demo Mode)"
-            MarketDataStatus.UNAVAILABLE -> "Feed Unavailable (Demo Mode Off)"
+            MarketDataStatus.LIVE -> "LIVE FEED"
+            MarketDataStatus.CACHED -> "CACHED"
+            MarketDataStatus.SIMULATED -> "SIMULATED"
+            MarketDataStatus.UNAVAILABLE -> "UNAVAILABLE"
+        }
+
+        // Key Statistics
+        val sparkline = instrument.sparklinePrices
+        val high = if (!sparkline.isNullOrEmpty()) sparkline.maxOrNull()?.toDouble() else price?.let { it * 1.03 }
+        val low = if (!sparkline.isNullOrEmpty()) sparkline.minOrNull()?.toDouble() else price?.let { it * 0.97 }
+
+        tvStatHigh.text = high?.let { formatPriceValue(it, instrument.currency) } ?: "--"
+        tvStatLow.text = low?.let { formatPriceValue(it, instrument.currency) } ?: "--"
+        tvStatCategory.text = instrument.category.displayName
+        tvStatExchange.text = instrument.exchange
+    }
+
+    private fun formatPriceValue(value: Double, currency: String): String {
+        return when (currency) {
+            "IDR" -> String.format(Locale.US, "Rp %,.2f", value)
+            "%" -> String.format(Locale.US, "%.2f%%", value)
+            "JPY" -> String.format(Locale.US, "¥%,.2f", value)
+            "EUR" -> String.format(Locale.US, "€%,.4f", value)
+            else -> if (value >= 1.0) String.format(Locale.US, "$%,.2f", value) else String.format(Locale.US, "$%,.4f", value)
         }
     }
 
@@ -185,15 +253,15 @@ class InstrumentDetailActivity : AppCompatActivity() {
                 }
             }
 
-            val dataSet = LineDataSet(entries, "7-Day Sparkline Trend").apply {
-                color = Color.parseColor("#38BFA1")
+            val dataSet = LineDataSet(entries, "Price Trend").apply {
+                color = Color.parseColor("#43D9E6")
                 setDrawValues(false)
-                lineWidth = 2f
+                lineWidth = 2.5f
                 setDrawCircles(false)
                 mode = LineDataSet.Mode.CUBIC_BEZIER
                 setDrawFilled(true)
-                fillColor = Color.parseColor("#38BFA1")
-                fillAlpha = 40
+                fillColor = Color.parseColor("#43D9E6")
+                fillAlpha = 35
             }
 
             val dataSets = ArrayList<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>()
@@ -201,9 +269,9 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
                 val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
-                    color = Color.parseColor("#D6B46A")
+                    color = Color.parseColor("#38BFA1")
                     setDrawValues(false)
-                    lineWidth = 1.5f
+                    lineWidth = 1.8f
                     setDrawCircles(false)
                 }
                 dataSets.add(smaDataSet)
@@ -212,10 +280,10 @@ class InstrumentDetailActivity : AppCompatActivity() {
             chartInstrument.data = LineData(dataSets)
             chartInstrument.description.isEnabled = false
             chartInstrument.legend.isEnabled = true
-            chartInstrument.legend.textColor = Color.WHITE
-            chartInstrument.xAxis.isEnabled = false
+            chartInstrument.legend.textColor = Color.parseColor("#9AA0A6")
+            chartInstrument.xAxis.textColor = Color.parseColor("#9AA0A6")
             chartInstrument.axisRight.isEnabled = false
-            chartInstrument.axisLeft.textColor = Color.WHITE
+            chartInstrument.axisLeft.textColor = Color.parseColor("#9AA0A6")
             chartInstrument.invalidate()
         } else if (!candles.isNullOrEmpty()) {
             btnToggleIndicator.visibility = View.VISIBLE
@@ -232,15 +300,15 @@ class InstrumentDetailActivity : AppCompatActivity() {
                 }
             }
 
-            val dataSet = LineDataSet(entries, "Simulated Trend (Demo Data)").apply {
-                color = Color.parseColor("#38BFA1")
+            val dataSet = LineDataSet(entries, "Price Trend").apply {
+                color = Color.parseColor("#43D9E6")
                 setDrawValues(false)
-                lineWidth = 2f
+                lineWidth = 2.5f
                 setDrawCircles(false)
                 mode = LineDataSet.Mode.CUBIC_BEZIER
                 setDrawFilled(true)
-                fillColor = Color.parseColor("#38BFA1")
-                fillAlpha = 40
+                fillColor = Color.parseColor("#43D9E6")
+                fillAlpha = 35
             }
 
             val dataSets = ArrayList<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>()
@@ -248,9 +316,9 @@ class InstrumentDetailActivity : AppCompatActivity() {
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
                 val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
-                    color = Color.parseColor("#D6B46A")
+                    color = Color.parseColor("#38BFA1")
                     setDrawValues(false)
-                    lineWidth = 1.5f
+                    lineWidth = 1.8f
                     setDrawCircles(false)
                 }
                 dataSets.add(smaDataSet)
@@ -259,10 +327,10 @@ class InstrumentDetailActivity : AppCompatActivity() {
             chartInstrument.data = LineData(dataSets)
             chartInstrument.description.isEnabled = false
             chartInstrument.legend.isEnabled = true
-            chartInstrument.legend.textColor = Color.WHITE
-            chartInstrument.xAxis.isEnabled = false
+            chartInstrument.legend.textColor = Color.parseColor("#9AA0A6")
+            chartInstrument.xAxis.textColor = Color.parseColor("#9AA0A6")
             chartInstrument.axisRight.isEnabled = false
-            chartInstrument.axisLeft.textColor = Color.WHITE
+            chartInstrument.axisLeft.textColor = Color.parseColor("#9AA0A6")
             chartInstrument.invalidate()
         } else {
             chartInstrument.clear()
@@ -271,40 +339,8 @@ class InstrumentDetailActivity : AppCompatActivity() {
     }
 
     private fun updateWatchlistIcon(isInWatchlist: Boolean) {
-        val tintColor = if (isInWatchlist) R.color.accent_teal else R.color.accent_primary
+        val tintColor = if (isInWatchlist) R.color.accent_teal else R.color.accent_cyan
         btnWatchlistToggle.imageTintList = ContextCompat.getColorStateList(this, tintColor)
-    }
-
-    private fun showAddPortfolioDialog(instrument: MarketInstrument) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_add_holding, null)
-        val etQuantity = dialogView.findViewById<EditText>(R.id.etHoldingQuantity)
-        val etCost = dialogView.findViewById<EditText>(R.id.etHoldingCost)
-
-        etCost.setText(instrument.currentPrice?.toString() ?: "0.0")
-
-        AlertDialog.Builder(this, R.style.Theme_AquaticReminezTools_Dialog)
-            .setTitle("Add to Portfolio")
-            .setView(dialogView)
-            .setPositiveButton("Add") { _, _ ->
-                val qty = etQuantity.text.toString().toDoubleOrNull() ?: 0.0
-                val cost = etCost.text.toString().toDoubleOrNull() ?: 0.0
-                if (qty > 0 && cost >= 0) {
-                    val holding = PortfolioHolding(
-                        instrumentId = instrument.id,
-                        symbol = instrument.symbol,
-                        name = instrument.name,
-                        quantity = qty,
-                        averageCost = cost,
-                        currency = instrument.currency,
-                    )
-                    MarketRepository.getInstance(this).addPortfolioHolding(holding)
-                    Toast.makeText(this, "Holding added successfully", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Invalid quantity or cost", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
     }
 
     override fun onResume() {

@@ -180,7 +180,7 @@ class AlertsActivity : AppCompatActivity() {
         }
     }
 
-    private class AlertsAdapter(
+    class AlertsAdapter(
         private val alerts: List<MarketAlert>,
         private val onDelete: (MarketAlert) -> Unit
     ) : RecyclerView.Adapter<AlertsAdapter.ViewHolder>() {

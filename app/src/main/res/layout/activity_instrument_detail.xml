@@ -25,8 +25,8 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
-            android:src="@drawable/ic_activity"
-            app:tint="@color/accent_primary"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="@color/text_primary"
             android:contentDescription="Back" />
 
         <LinearLayout
@@ -43,9 +43,9 @@
                 android:fontFamily="@font/times_new_roman_bold"
                 android:letterSpacing="0.08"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                tools:text="BTC/USD" />
+                tools:text="BTC" />
 
             <TextView
                 android:id="@+id/tvDetailName"
@@ -53,8 +53,8 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/times_new_roman_regular"
                 android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                tools:text="Bitcoin" />
+                android:textSize="11.5sp"
+                tools:text="Bitcoin · CoinGecko" />
 
         </LinearLayout>
 
@@ -65,8 +65,18 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="8dp"
             android:src="@drawable/ic_favorite"
-            app:tint="@color/accent_primary"
+            app:tint="@color/accent_cyan"
             android:contentDescription="Watchlist" />
+
+        <ImageView
+            android:id="@+id/btnCreateAlert"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
+            android:src="@drawable/ic_notification"
+            app:tint="@color/accent_cyan"
+            android:contentDescription="Create Alert" />
 
     </LinearLayout>
 
@@ -87,174 +97,301 @@
             android:padding="16dp">
 
             <!-- PRICE HEADER CARD -->
-            <eightbitlab.com.blurview.BlurView
+            <LinearLayout
                 android:id="@+id/cardPriceHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_glass_card_clip">
+                android:background="@drawable/bg_glass_card_clip"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay" />
+                <TextView
+                    android:id="@+id/tvDetailCurrentPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="26sp"
+                    android:textStyle="bold"
+                    tools:text="$96,432.50" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginTop="4dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
                     <TextView
-                        android:id="@+id/tvDetailCurrentPrice"
+                        android:id="@+id/tvDetailChange"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:textColor="@color/text_primary"
-                        android:textSize="26sp"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="14.5sp"
                         android:textStyle="bold"
-                        tools:text="$96,432.50" />
+                        tools:text="+3.24% (24h)" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvDetailSourceStatus"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <TextView
-                            android:id="@+id/tvDetailChange"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:textColor="@color/accent_teal"
-                            android:textSize="14sp"
-                            android:textStyle="bold"
-                            tools:text="+3.24% (+$3,024.10)" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" />
-
-                        <TextView
-                            android:id="@+id/tvDetailSourceStatus"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/times_new_roman_regular"
-                            android:textColor="@color/text_muted"
-                            android:textSize="11sp"
-                            tools:text="Live · CoinGecko" />
-
-                    </LinearLayout>
+                        android:background="@drawable/bg_info_chip"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:paddingHorizontal="8dp"
+                        android:paddingVertical="4dp"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="11sp"
+                        tools:text="LIVE FEED" />
 
                 </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
+
+            </LinearLayout>
 
             <!-- INTERACTIVE CHART CARD -->
-            <eightbitlab.com.blurview.BlurView
+            <LinearLayout
                 android:id="@+id/cardChartContainer"
                 android:layout_width="match_parent"
                 android:layout_height="320dp"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_glass_card_clip">
+                android:background="@drawable/bg_glass_card_clip"
+                android:orientation="vertical"
+                android:padding="12dp">
 
-                <View
+                <!-- TIMEFRAME SELECTOR -->
+                <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@drawable/bg_glass_card_overlay" />
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/btnTf1d"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_chip_cyan_active"
+                        android:gravity="center"
+                        android:text="1D"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnTf1w"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="1W"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/btnTf1m"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="1M"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/btnTf3m"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="3M"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/btnTfYtd"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="1Y"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/btnTfAll"
+                        android:layout_width="0dp"
+                        android:layout_height="28dp"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:text="ALL"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/btnToggleIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="?attr/selectableItemBackground"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:padding="6dp"
+                        android:text="SMA: ON"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="11sp" />
+
+                </LinearLayout>
+
+                <!-- MPANDROIDCHART LINE/CANDLESTICK -->
+                <com.github.mikephil.charting.charts.LineChart
+                    android:id="@+id/chartInstrument"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginTop="8dp" />
+
+            </LinearLayout>
+
+            <!-- KEY STATISTICS GRID -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_glass_card_clip"
+                android:orientation="vertical"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:text="KEY STATISTICS"
+                    android:textColor="@color/text_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="12dp">
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
 
-                    <!-- TIMEFRAME SELECTOR -->
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <Button
-                            android:id="@+id/btnTf1d"
-                            style="@style/Widget.AppCompat.Button.Borderless"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="1D"
-                            android:textColor="@color/accent_primary"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnTf1w"
-                            style="@style/Widget.AppCompat.Button.Borderless"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="1W"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnTf1m"
-                            style="@style/Widget.AppCompat.Button.Borderless"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="1M"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-
-                        <Button
-                            android:id="@+id/btnTfYtd"
-                            style="@style/Widget.AppCompat.Button.Borderless"
-                            android:layout_width="wrap_content"
-                            android:layout_height="32dp"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:text="1Y"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="11sp" />
-
-                        <View
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:layout_weight="1" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
                         <TextView
-                            android:id="@+id/btnToggleIndicator"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="?attr/selectableItemBackground"
-                            android:fontFamily="@font/times_new_roman_bold"
-                            android:padding="6dp"
-                            android:text="SMA: ON"
-                            android:textColor="@color/accent_teal"
+                            android:text="24h High"
+                            android:textColor="@color/text_secondary"
                             android:textSize="11sp" />
 
+                        <TextView
+                            android:id="@+id/tvStatHigh"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            tools:text="$97,200.00" />
                     </LinearLayout>
 
-                    <!-- MPANDROIDCHART LINE/CANDLESTICK -->
-                    <com.github.mikephil.charting.charts.LineChart
-                        android:id="@+id/chartInstrument"
-                        android:layout_width="match_parent"
-                        android:layout_height="0dp"
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:layout_marginTop="8dp" />
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="24h Low"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvStatLow"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            tools:text="$93,450.00" />
+                    </LinearLayout>
                 </LinearLayout>
-            </eightbitlab.com.blurview.BlurView>
 
-            <!-- PORTFOLIO / ACTION BUTTON -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Category"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvStatCategory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            tools:text="Crypto" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Exchange / Source"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="11sp" />
+
+                        <TextView
+                            android:id="@+id/tvStatExchange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:textColor="@color/text_primary"
+                            android:textSize="14sp"
+                            tools:text="COINGECKO" />
+                    </LinearLayout>
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- ACTION BUTTON -->
             <Button
                 android:id="@+id/btnAddPortfolio"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:layout_marginTop="16dp"
-                android:backgroundTint="@color/accent_primary"
+                android:background="@drawable/bg_btn_primary"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:text="Add to Portfolio Holdings"
-                android:textColor="@color/bg_primary"
+                android:textColor="@color/black"
                 android:textSize="13.5sp"
                 android:textStyle="bold" />
 
