@@ -58,6 +58,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
     private var instrumentId: String = "bitcoin"
     private var currentInstrument: MarketInstrument? = null
     private var isSmaActive: Boolean = true
+    private var currentTimeRange: String = "1D"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -143,7 +144,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
         }
 
         val rangeBtns = listOf(btnTf1d to "1D", btnTf1w to "1W", btnTf1m to "1M", btnTf3m to "3M", btnTfYtd to "1Y", btnTfAll to "ALL")
-        rangeBtns.forEach { (btn, _) ->
+        rangeBtns.forEach { (btn, label) ->
             btn.setOnClickListener {
                 rangeBtns.forEach { (b, _) ->
                     b.setBackgroundResource(R.drawable.bg_chip_inactive)
@@ -151,6 +152,8 @@ class InstrumentDetailActivity : AppCompatActivity() {
                 }
                 btn.setBackgroundResource(R.drawable.bg_chip_cyan_active)
                 btn.setTextColor(ContextCompat.getColor(this, R.color.accent_cyan))
+                currentTimeRange = label
+                currentInstrument?.let { inst -> renderChart(inst) }
             }
         }
     }
@@ -213,11 +216,13 @@ class InstrumentDetailActivity : AppCompatActivity() {
             MarketDataStatus.UNAVAILABLE -> "UNAVAILABLE"
         }
 
-        // Key Statistics
+        // Key Statistics (24h High / Low based on recent 24 data points)
         val sparkline = instrument.sparklinePrices
         val candles = instrument.historicalCandles
-        val high = sparkline?.maxOrNull()?.toDouble() ?: candles?.maxOfOrNull { it.high }?.toDouble()
-        val low = sparkline?.minOrNull()?.toDouble() ?: candles?.minOfOrNull { it.low }?.toDouble()
+        val recentSparkline = if (!sparkline.isNullOrEmpty()) sparkline.takeLast(24) else null
+        val recentCandles = if (!candles.isNullOrEmpty()) candles.takeLast(24) else null
+        val high = recentSparkline?.maxOrNull()?.toDouble() ?: recentCandles?.maxOfOrNull { it.high }?.toDouble()
+        val low = recentSparkline?.minOrNull()?.toDouble() ?: recentCandles?.minOfOrNull { it.low }?.toDouble()
 
         tvStatHigh.text = high?.let { formatPriceValue(it, instrument.currency) } ?: "--"
         tvStatLow.text = low?.let { formatPriceValue(it, instrument.currency) } ?: "--"
@@ -239,22 +244,33 @@ class InstrumentDetailActivity : AppCompatActivity() {
         val sparkline = instrument.sparklinePrices
         val candles = instrument.historicalCandles
 
-        if (!sparkline.isNullOrEmpty()) {
+        val limit = when (currentTimeRange) {
+            "1D" -> 24
+            "1W" -> 7
+            "1M" -> 30
+            "3M" -> 90
+            else -> Int.MAX_VALUE
+        }
+
+        val slicedSparkline = if (!sparkline.isNullOrEmpty()) sparkline.takeLast(limit) else null
+        val slicedCandles = if (!candles.isNullOrEmpty()) candles.takeLast(limit) else null
+
+        if (!slicedSparkline.isNullOrEmpty()) {
             btnToggleIndicator.visibility = View.VISIBLE
             val entries = ArrayList<Entry>()
             val smaEntries = ArrayList<Entry>()
-            val window = 5
+            val window = minOf(5, slicedSparkline.size)
 
-            sparkline.forEachIndexed { index, price ->
+            slicedSparkline.forEachIndexed { index, price ->
                 entries.add(Entry(index.toFloat(), price))
                 if (isSmaActive && (index >= window - 1)) {
-                    val slice = sparkline.subList(index - window + 1, index + 1)
+                    val slice = slicedSparkline.subList(index - window + 1, index + 1)
                     val avg = slice.average().toFloat()
                     smaEntries.add(Entry(index.toFloat(), avg))
                 }
             }
 
-            val dataSet = LineDataSet(entries, "Price Trend").apply {
+            val dataSet = LineDataSet(entries, "Price Trend ($currentTimeRange)").apply {
                 color = Color.parseColor("#43D9E6")
                 setDrawValues(false)
                 lineWidth = 2.5f
@@ -269,7 +285,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
             dataSets.add(dataSet)
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
-                val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
+                val smaDataSet = LineDataSet(smaEntries, "SMA").apply {
                     color = Color.parseColor("#38BFA1")
                     setDrawValues(false)
                     lineWidth = 1.8f
@@ -286,22 +302,22 @@ class InstrumentDetailActivity : AppCompatActivity() {
             chartInstrument.axisRight.isEnabled = false
             chartInstrument.axisLeft.textColor = Color.parseColor("#9AA0A6")
             chartInstrument.invalidate()
-        } else if (!candles.isNullOrEmpty()) {
+        } else if (!slicedCandles.isNullOrEmpty()) {
             btnToggleIndicator.visibility = View.VISIBLE
             val entries = ArrayList<Entry>()
             val smaEntries = ArrayList<Entry>()
-            val window = 5
+            val window = minOf(5, slicedCandles.size)
 
-            candles.forEachIndexed { index, candle ->
+            slicedCandles.forEachIndexed { index, candle ->
                 entries.add(Entry(index.toFloat(), candle.close))
                 if (isSmaActive && (index >= window - 1)) {
-                    val slice = candles.subList(index - window + 1, index + 1)
+                    val slice = slicedCandles.subList(index - window + 1, index + 1)
                     val avg = slice.map { it.close }.average().toFloat()
                     smaEntries.add(Entry(index.toFloat(), avg))
                 }
             }
 
-            val dataSet = LineDataSet(entries, "Price Trend").apply {
+            val dataSet = LineDataSet(entries, "Price Trend ($currentTimeRange)").apply {
                 color = Color.parseColor("#43D9E6")
                 setDrawValues(false)
                 lineWidth = 2.5f
@@ -316,7 +332,7 @@ class InstrumentDetailActivity : AppCompatActivity() {
             dataSets.add(dataSet)
 
             if (isSmaActive && smaEntries.isNotEmpty()) {
-                val smaDataSet = LineDataSet(smaEntries, "SMA 5").apply {
+                val smaDataSet = LineDataSet(smaEntries, "SMA").apply {
                     color = Color.parseColor("#38BFA1")
                     setDrawValues(false)
                     lineWidth = 1.8f

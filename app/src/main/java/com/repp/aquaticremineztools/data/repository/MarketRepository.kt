@@ -17,6 +17,7 @@ import com.repp.aquaticremineztools.data.model.WatchlistEntry
 import com.repp.aquaticremineztools.data.remote.forex.ExchangeRateApiClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.util.Locale
 import kotlin.math.abs
 
 data class PortfolioValuationResult(
@@ -160,6 +161,11 @@ class MarketRepository private constructor(context: Context) {
         }
     }
 
+    private fun sampleSparkline(price: Double?): List<Float> {
+        val p = (price ?: 100.0).toFloat()
+        return listOf(p * 0.98f, p * 0.985f, p * 0.99f, p * 0.988f, p * 0.995f, p * 1.002f, p)
+    }
+
     private fun getIndicesInstruments(): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(
@@ -174,6 +180,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(7324.50),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
@@ -189,6 +196,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NYSE",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(5815.20),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -204,6 +212,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(18518.60),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -219,6 +228,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "JPY",
                 exchange = "TSE",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(38981.75),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "JP"
@@ -248,6 +258,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "IDR",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(idr),
                 dataStatus = if (idr != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
@@ -261,6 +272,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(eurUsd),
                 dataStatus = if (eurUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
@@ -274,6 +286,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(gbpUsd),
                 dataStatus = if (gbpUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
@@ -287,6 +300,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "JPY",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(jpy),
                 dataStatus = if (jpy != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
@@ -300,12 +314,13 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(audUsd),
                 dataStatus = if (audUsd != null) status else MarketDataStatus.UNAVAILABLE
             ),
             MarketInstrument(
                 id = "usd_chf",
                 symbol = "USD/CHF",
-                name = "US Dollar / Swiss Franc",
+                name = "USD / Swiss Franc",
                 category = MarketCategory.FOREX,
                 currentPrice = chf,
                 priceChange24h = null,
@@ -313,6 +328,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "CHF",
                 exchange = "FX",
                 timestampEpoch = timestamp,
+                sparklinePrices = sampleSparkline(chf),
                 dataStatus = if (chf != null) status else MarketDataStatus.UNAVAILABLE
             )
         )
@@ -332,6 +348,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "COMEX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(2735.80),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/oz"
@@ -347,6 +364,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "COMEX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(32.45),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/oz"
@@ -362,6 +380,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NYMEX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(71.42),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/bbl"
@@ -377,6 +396,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NYMEX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(2.78),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "USD/MMBtu"
@@ -398,6 +418,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "%",
                 exchange = "BI",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(6.00),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
@@ -415,6 +436,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "%",
                 exchange = "FED",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(4.75),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
@@ -432,6 +454,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "%",
                 exchange = "BPS",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(2.57),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
@@ -449,6 +472,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "%",
                 exchange = "BOND",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(4.24),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
@@ -466,6 +490,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "%",
                 exchange = "BPS",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(5.05),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 measurementUnit = "%",
@@ -490,6 +515,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(10250.0),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
@@ -505,6 +531,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(4980.0),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
@@ -520,6 +547,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "IDR",
                 exchange = "IDX",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(6725.0),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "ID"
@@ -536,6 +564,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(235.40),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -551,6 +580,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(138.20),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -566,6 +596,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(218.50),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -582,6 +613,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NYSE",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(580.40),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -597,6 +629,7 @@ class MarketRepository private constructor(context: Context) {
                 currency = "USD",
                 exchange = "NASDAQ",
                 timestampEpoch = now,
+                sparklinePrices = sampleSparkline(4982.20),
                 isDemo = true,
                 dataStatus = MarketDataStatus.SIMULATED,
                 countryCode = "US"
@@ -721,25 +754,59 @@ class MarketRepository private constructor(context: Context) {
         var totalValuationIdr = 0.0
         var totalCostIdr = 0.0
         var hasUnpriced = false
+        val currentTime = System.currentTimeMillis()
+        val maxFreshnessMs = 30 * 60 * 1000L
+
+        val eurUsdRate = instrumentsMap["eur_usd"]?.currentPrice ?: 1.0852
+        val gbpUsdRate = instrumentsMap["gbp_usd"]?.currentPrice ?: 1.2985
+        val audUsdRate = instrumentsMap["aud_usd"]?.currentPrice ?: 0.6580
+        val jpyRate = instrumentsMap["usd_jpy"]?.currentPrice ?: 152.0
+        val jpyUsdRate = if (jpyRate > 0.0) 1.0 / jpyRate else 0.0065
+        val chfUsdRate = instrumentsMap["usd_chf"]?.currentPrice ?: 1.1250
 
         holdings.forEach { holding ->
             val inst = instrumentsMap[holding.instrumentId]
-            val currentUnitPrice = inst?.currentPrice
+            val isLiveOrFreshCached = inst != null &&
+                    inst.currentPrice != null &&
+                    inst.dataStatus != MarketDataStatus.SIMULATED &&
+                    inst.dataStatus != MarketDataStatus.UNAVAILABLE &&
+                    (inst.dataStatus == MarketDataStatus.LIVE || (inst.dataStatus == MarketDataStatus.CACHED && (currentTime - inst.timestampEpoch) <= maxFreshnessMs))
+
+            val currentUnitPrice = if (isLiveOrFreshCached) inst!!.currentPrice else null
             val isUnpriced = (currentUnitPrice == null)
             if (isUnpriced) {
                 hasUnpriced = true
             }
 
-            val priceToUse = currentUnitPrice ?: holding.averageCost
+            val priceToUse = currentUnitPrice ?: 0.0
             val valuation = holding.quantity * priceToUse
             val cost = holding.quantity * holding.averageCost
 
-            if (holding.currency.equals("IDR", ignoreCase = true) || inst?.currency?.equals("IDR", ignoreCase = true) == true) {
+            val currency = holding.currency.uppercase(Locale.ROOT)
+            val isIdr = currency == "IDR" || inst?.currency?.equals("IDR", ignoreCase = true) == true
+
+            if (isIdr) {
                 totalValuationIdr += valuation
                 totalCostIdr += cost
             } else {
-                totalValuationUsd += valuation
-                totalCostUsd += cost
+                val convertedValuation = when (currency) {
+                    "EUR" -> valuation * eurUsdRate
+                    "GBP" -> valuation * gbpUsdRate
+                    "AUD" -> valuation * audUsdRate
+                    "JPY" -> valuation * jpyUsdRate
+                    "CHF" -> valuation * chfUsdRate
+                    else -> valuation
+                }
+                val convertedCost = when (currency) {
+                    "EUR" -> cost * eurUsdRate
+                    "GBP" -> cost * gbpUsdRate
+                    "AUD" -> cost * audUsdRate
+                    "JPY" -> cost * jpyUsdRate
+                    "CHF" -> cost * chfUsdRate
+                    else -> cost
+                }
+                totalValuationUsd += convertedValuation
+                totalCostUsd += convertedCost
             }
         }
 

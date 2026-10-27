@@ -3,23 +3,31 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/blurAlertCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
     android:background="@drawable/bg_glass_card_clip">
 
+    <!-- OVERLAY LAYERS -->
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/bg_glass_card_overlay" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_specular" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="12dp">
+        android:padding="14dp">
 
+        <!-- LEFT COL: SYMBOL, TYPE CHIP, CONDITION & DISTANCE -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -38,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/times_new_roman_bold"
                     android:textColor="@color/text_primary"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"
                     tools:text="BTC" />
 
@@ -52,29 +60,69 @@
                     android:textSize="12sp"
                     tools:text="Bitcoin" />
 
+                <TextView
+                    android:id="@+id/tvAlertTypeChip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_info_chip"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="10sp"
+                    tools:text="ABOVE" />
+
             </LinearLayout>
 
             <TextView
                 android:id="@+id/tvAlertCondition"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:textColor="@color/accent_teal"
-                android:textSize="12sp"
+                android:textSize="13sp"
                 tools:text="Price Above $70,000.00" />
+
+            <TextView
+                android:id="@+id/tvAlertDistance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp"
+                tools:text="2.15% away from target price" />
 
         </LinearLayout>
 
-        <ImageView
-            android:id="@+id/btnDeleteAlert"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="6dp"
-            android:src="@drawable/ic_close"
-            app:tint="@color/status_error"
-            android:contentDescription="Delete Alert" />
+        <!-- RIGHT COL: TOGGLE SWITCH & DELETE BUTTON -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switchAlertActive"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                app:theme="@style/Theme.AquaticReminezTools" />
+
+            <ImageView
+                android:id="@+id/btnDeleteAlert"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="6dp"
+                android:src="@drawable/ic_close"
+                app:tint="@color/status_error"
+                android:contentDescription="Delete Alert" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

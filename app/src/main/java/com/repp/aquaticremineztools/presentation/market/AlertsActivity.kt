@@ -97,10 +97,17 @@ class AlertsActivity : AppCompatActivity() {
                     rvAlerts.visibility = View.VISIBLE
                     layoutAlertsEmptyState.visibility = View.GONE
                     rvAlerts.layoutManager = LinearLayoutManager(this@AlertsActivity)
-                    rvAlerts.adapter = AlertsAdapter(alerts) { alertToDelete ->
-                        repository.deleteAlert(alertToDelete.id)
-                        loadAlerts()
-                    }
+                    rvAlerts.adapter = AlertsAdapter(
+                        alerts = alerts,
+                        onToggleActive = { alertToToggle, isChecked ->
+                            repository.updateAlert(alertToToggle.copy(isActive = isChecked))
+                            loadAlerts()
+                        },
+                        onDelete = { alertToDelete ->
+                            repository.deleteAlert(alertToDelete.id)
+                            loadAlerts()
+                        }
+                    )
                 }
             }
         }
@@ -182,6 +189,7 @@ class AlertsActivity : AppCompatActivity() {
 
     class AlertsAdapter(
         private val alerts: List<MarketAlert>,
+        private val onToggleActive: ((MarketAlert, Boolean) -> Unit)? = null,
         private val onDelete: (MarketAlert) -> Unit
     ) : RecyclerView.Adapter<AlertsAdapter.ViewHolder>() {
 
@@ -191,7 +199,7 @@ class AlertsActivity : AppCompatActivity() {
         }
 
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(alerts[position], onDelete)
+            holder.bind(alerts[position], onToggleActive, onDelete)
         }
 
         override fun getItemCount(): Int = alerts.size
@@ -199,19 +207,52 @@ class AlertsActivity : AppCompatActivity() {
         class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
             private val tvAlertSymbol = itemView.findViewById<TextView>(R.id.tvAlertSymbol)
             private val tvAlertName = itemView.findViewById<TextView>(R.id.tvAlertName)
+            private val tvAlertTypeChip = itemView.findViewById<TextView>(R.id.tvAlertTypeChip)
             private val tvAlertCondition = itemView.findViewById<TextView>(R.id.tvAlertCondition)
+            private val tvAlertDistance = itemView.findViewById<TextView>(R.id.tvAlertDistance)
+            private val switchAlertActive = itemView.findViewById<androidx.appcompat.widget.SwitchCompat>(R.id.switchAlertActive)
             private val btnDeleteAlert = itemView.findViewById<ImageView>(R.id.btnDeleteAlert)
 
-            fun bind(alert: MarketAlert, onDelete: (MarketAlert) -> Unit) {
+            fun bind(
+                alert: MarketAlert,
+                onToggleActive: ((MarketAlert, Boolean) -> Unit)?,
+                onDelete: (MarketAlert) -> Unit
+            ) {
                 tvAlertSymbol.text = alert.symbol
                 tvAlertName.text = alert.name
 
+                if (tvAlertTypeChip != null) {
+                    tvAlertTypeChip.text = when (alert.alertType) {
+                        AlertType.PRICE_ABOVE -> "ABOVE"
+                        AlertType.PRICE_BELOW -> "BELOW"
+                        AlertType.PCT_CHANGE_24H -> "% MOVE"
+                    }
+                }
+
                 val conditionText = when (alert.alertType) {
-                    AlertType.PRICE_ABOVE -> String.format(Locale.US, "Price Above %,.2f", alert.targetValue)
-                    AlertType.PRICE_BELOW -> String.format(Locale.US, "Price Below %,.2f", alert.targetValue)
+                    AlertType.PRICE_ABOVE -> String.format(Locale.US, "Price Above $%,.2f", alert.targetValue)
+                    AlertType.PRICE_BELOW -> String.format(Locale.US, "Price Below $%,.2f", alert.targetValue)
                     AlertType.PCT_CHANGE_24H -> String.format(Locale.US, "24h Move >= %.2f%%", alert.targetValue)
                 }
                 tvAlertCondition.text = conditionText
+
+                if (tvAlertDistance != null) {
+                    tvAlertDistance.text = if (alert.isTriggered) {
+                        "Triggered rule"
+                    } else if (alert.isActive) {
+                        "Active monitoring"
+                    } else {
+                        "Rule paused"
+                    }
+                }
+
+                if (switchAlertActive != null) {
+                    switchAlertActive.setOnCheckedChangeListener(null)
+                    switchAlertActive.isChecked = alert.isActive
+                    switchAlertActive.setOnCheckedChangeListener { _, isChecked ->
+                        onToggleActive?.invoke(alert, isChecked)
+                    }
+                }
 
                 btnDeleteAlert.setOnClickListener { onDelete(alert) }
             }

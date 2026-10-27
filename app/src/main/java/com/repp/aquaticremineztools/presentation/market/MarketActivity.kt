@@ -40,8 +40,10 @@ import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.PortfolioHolding
 import com.repp.aquaticremineztools.data.repository.MarketRepository
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -51,31 +53,9 @@ class MarketActivity : AppCompatActivity() {
 
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var marketBlurTarget: BlurTarget
-    private lateinit var viewTopSpacer: View
     private lateinit var btnBack: FrameLayout
     private lateinit var tvHeaderTitle: TextView
     private lateinit var tvMarketStatusBanner: TextView
-
-    // Bottom Navigation Bar Items (Homepage Pill Concept)
-    private lateinit var tabOverview: FrameLayout
-    private lateinit var tabWatchlist: FrameLayout
-    private lateinit var tabAlerts: FrameLayout
-    private lateinit var tabPortfolio: FrameLayout
-
-    private lateinit var pillOverview: LinearLayout
-    private lateinit var pillWatchlist: LinearLayout
-    private lateinit var pillAlerts: LinearLayout
-    private lateinit var pillPortfolio: LinearLayout
-
-    private lateinit var iconOverview: ImageView
-    private lateinit var iconWatchlist: ImageView
-    private lateinit var iconAlerts: ImageView
-    private lateinit var iconPortfolio: ImageView
-
-    private lateinit var textOverview: TextView
-    private lateinit var textWatchlist: TextView
-    private lateinit var textAlerts: TextView
-    private lateinit var textPortfolio: TextView
 
     // Destination View Containers
     private lateinit var scrollOverview: View
@@ -110,6 +90,8 @@ class MarketActivity : AppCompatActivity() {
 
     // Watchlist Destination Views
     private lateinit var etWatchlistSearch: EditText
+    private lateinit var btnWlToggleLayout: FrameLayout
+    private lateinit var ivWlToggleIcon: ImageView
     private lateinit var rvWatchlistGrid: RecyclerView
     private lateinit var layoutWatchlistEmpty: View
     private lateinit var chipWlAll: TextView
@@ -118,6 +100,7 @@ class MarketActivity : AppCompatActivity() {
     private lateinit var chipWlStocks: TextView
     private lateinit var chipWlIndices: TextView
     private lateinit var chipWlCommodities: TextView
+    private var isWatchlistGridMode: Boolean = true
 
     // Alerts Destination Views
     private lateinit var tvActiveAlertsCount: TextView
@@ -163,7 +146,7 @@ class MarketActivity : AppCompatActivity() {
         setContentView(R.layout.activity_market)
 
         bindViews()
-        setupWindowInsets()
+        setupGlassCards()
         setupDrawer()
         setupRecyclerViews()
         setupViewModel()
@@ -174,31 +157,9 @@ class MarketActivity : AppCompatActivity() {
     private fun bindViews() {
         drawerLayout = findViewById(R.id.drawerLayout)
         marketBlurTarget = findViewById(R.id.marketBlurTarget)
-        viewTopSpacer = findViewById(R.id.viewTopSpacer)
         btnBack = findViewById(R.id.btnBack)
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         tvMarketStatusBanner = findViewById(R.id.tvMarketStatusBanner)
-
-        // Bottom Navigation Tabs
-        tabOverview = findViewById(R.id.tabOverview)
-        tabWatchlist = findViewById(R.id.tabWatchlist)
-        tabAlerts = findViewById(R.id.tabAlerts)
-        tabPortfolio = findViewById(R.id.tabPortfolio)
-
-        pillOverview = findViewById(R.id.pillOverview)
-        pillWatchlist = findViewById(R.id.pillWatchlist)
-        pillAlerts = findViewById(R.id.pillAlerts)
-        pillPortfolio = findViewById(R.id.pillPortfolio)
-
-        iconOverview = findViewById(R.id.iconOverview)
-        iconWatchlist = findViewById(R.id.iconWatchlist)
-        iconAlerts = findViewById(R.id.iconAlerts)
-        iconPortfolio = findViewById(R.id.iconPortfolio)
-
-        textOverview = findViewById(R.id.textOverview)
-        textWatchlist = findViewById(R.id.textWatchlist)
-        textAlerts = findViewById(R.id.textAlerts)
-        textPortfolio = findViewById(R.id.textPortfolio)
 
         // Destination Containers
         scrollOverview = findViewById(R.id.scrollOverview)
@@ -233,6 +194,8 @@ class MarketActivity : AppCompatActivity() {
 
         // Watchlist Views
         etWatchlistSearch = findViewById(R.id.etWatchlistSearch)
+        btnWlToggleLayout = findViewById(R.id.btnWlToggleLayout)
+        ivWlToggleIcon = findViewById(R.id.ivWlToggleIcon)
         rvWatchlistGrid = findViewById(R.id.rvWatchlistGrid)
         layoutWatchlistEmpty = findViewById(R.id.layoutWatchlistEmpty)
         chipWlAll = findViewById(R.id.chipWlAll)
@@ -258,13 +221,27 @@ class MarketActivity : AppCompatActivity() {
         layoutPortfolioEmpty = findViewById(R.id.layoutPortfolioEmpty)
     }
 
-    private fun setupWindowInsets() {
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.mainContentContainer)) { _, insets ->
-            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
-            val lpSpacer = viewTopSpacer.layoutParams
-            lpSpacer.height = statusBarHeight
-            viewTopSpacer.layoutParams = lpSpacer
-            insets
+    private fun setupGlassCards() {
+        val frameClearDrawable = window.decorView.background
+        val blurViews = listOf<BlurView?>(
+            findViewById(R.id.blurMarketPulse),
+            findViewById(R.id.blurHeroChart),
+            findViewById(R.id.blurKeyMarkets),
+            findViewById(R.id.blurTopGainers),
+            findViewById(R.id.blurTopLosers),
+            findViewById(R.id.blurCryptoMarket),
+            findViewById(R.id.blurStocksAndEtfs),
+            findViewById(R.id.blurForexMatrix),
+            findViewById(R.id.blurEconomicCalendar),
+            findViewById(R.id.blurAlertsActiveCard),
+            findViewById(R.id.blurAlertsTriggeredCard),
+            findViewById(R.id.blurAlertsPausedCard),
+            findViewById(R.id.blurPortfolioValuationCard)
+        )
+        blurViews.forEach { blurView ->
+            if (blurView != null) {
+                GlassBlurHelper.setupBlur(blurView, marketBlurTarget, frameClearDrawable)
+            }
         }
     }
 
@@ -318,7 +295,10 @@ class MarketActivity : AppCompatActivity() {
         rvEconomicEvents.adapter = economicEventAdapter
 
         // Watchlist Grid
-        watchlistAdapter = WatchlistAdapter { showInstrumentBottomSheet(it) }
+        watchlistAdapter = WatchlistAdapter(
+            blurTarget = marketBlurTarget,
+            frameClearDrawable = window.decorView.background
+        ) { showInstrumentBottomSheet(it) }
         val isWideScreen = resources.configuration.screenWidthDp >= 600
         rvWatchlistGrid.layoutManager = GridLayoutManager(this, if (isWideScreen) 2 else 1)
         rvWatchlistGrid.adapter = watchlistAdapter
@@ -406,11 +386,25 @@ class MarketActivity : AppCompatActivity() {
             finish()
         }
 
-        // Homepage-style Bottom Navigation Bar Tabs
-        tabOverview.setOnClickListener { viewModel.setDestination(MarketNavDestination.OVERVIEW) }
-        tabWatchlist.setOnClickListener { viewModel.setDestination(MarketNavDestination.WATCHLIST) }
-        tabAlerts.setOnClickListener { viewModel.setDestination(MarketNavDestination.ALERTS) }
-        tabPortfolio.setOnClickListener { viewModel.setDestination(MarketNavDestination.PORTFOLIO) }
+        // Hamburger Menu Button (Sidebar Navigation)
+        val btnHamburger = findViewById<View>(R.id.btnHamburger)
+        btnHamburger.setOnClickListener { view ->
+            val popup = android.widget.PopupMenu(this, view)
+            popup.menu.add(0, 1, 0, "Overview")
+            popup.menu.add(0, 2, 1, "Watchlist")
+            popup.menu.add(0, 3, 2, "Alerts")
+            popup.menu.add(0, 4, 3, "Portfolio")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> { viewModel.setDestination(MarketNavDestination.OVERVIEW); true }
+                    2 -> { viewModel.setDestination(MarketNavDestination.WATCHLIST); true }
+                    3 -> { viewModel.setDestination(MarketNavDestination.ALERTS); true }
+                    4 -> { viewModel.setDestination(MarketNavDestination.PORTFOLIO); true }
+                    else -> false
+                }
+            }
+            popup.show()
+        }
 
         // Hero Time Range Buttons
         val rangeButtons = listOf(
@@ -433,6 +427,17 @@ class MarketActivity : AppCompatActivity() {
         setupBenchmarkSpinner()
 
         // Watchlist Search & Category Filter
+        btnWlToggleLayout.setOnClickListener {
+            isWatchlistGridMode = !isWatchlistGridMode
+            if (isWatchlistGridMode) {
+                ivWlToggleIcon.setImageResource(R.drawable.ic_categories)
+                rvWatchlistGrid.layoutManager = GridLayoutManager(this, 2)
+            } else {
+                ivWlToggleIcon.setImageResource(R.drawable.ic_menu)
+                rvWatchlistGrid.layoutManager = LinearLayoutManager(this)
+            }
+        }
+
         etWatchlistSearch.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -487,18 +492,6 @@ class MarketActivity : AppCompatActivity() {
     }
 
     private fun switchDestination(destination: MarketNavDestination) {
-        val activeTextColor = ContextCompat.getColor(this, R.color.text_primary)
-        val inactiveIconColor = ContextCompat.getColor(this, R.color.text_secondary)
-
-        // Reset all 4 tabs to inactive
-        val pills = listOf(pillOverview, pillWatchlist, pillAlerts, pillPortfolio)
-        val icons = listOf(iconOverview, iconWatchlist, iconAlerts, iconPortfolio)
-        val texts = listOf(textOverview, textWatchlist, textAlerts, textPortfolio)
-
-        pills.forEach { it.setBackgroundColor(Color.TRANSPARENT) }
-        icons.forEach { it.setColorFilter(inactiveIconColor) }
-        texts.forEach { it.visibility = View.GONE }
-
         // Hide all destination containers
         scrollOverview.visibility = View.GONE
         layoutWatchlistContainer.visibility = View.GONE
@@ -508,32 +501,20 @@ class MarketActivity : AppCompatActivity() {
         when (destination) {
             MarketNavDestination.OVERVIEW -> {
                 tvHeaderTitle.text = "OVERVIEW"
-                pillOverview.setBackgroundResource(R.drawable.bg_nav_active_pill)
-                iconOverview.setColorFilter(activeTextColor)
-                textOverview.visibility = View.VISIBLE
                 scrollOverview.visibility = View.VISIBLE
             }
             MarketNavDestination.WATCHLIST -> {
                 tvHeaderTitle.text = "WATCHLIST"
-                pillWatchlist.setBackgroundResource(R.drawable.bg_nav_active_pill)
-                iconWatchlist.setColorFilter(activeTextColor)
-                textWatchlist.visibility = View.VISIBLE
                 layoutWatchlistContainer.visibility = View.VISIBLE
                 refreshWatchlistData()
             }
             MarketNavDestination.ALERTS -> {
                 tvHeaderTitle.text = "ALERTS"
-                pillAlerts.setBackgroundResource(R.drawable.bg_nav_active_pill)
-                iconAlerts.setColorFilter(activeTextColor)
-                textAlerts.visibility = View.VISIBLE
                 layoutAlertsContainer.visibility = View.VISIBLE
                 refreshAlertsData()
             }
             MarketNavDestination.PORTFOLIO -> {
                 tvHeaderTitle.text = "PORTFOLIO"
-                pillPortfolio.setBackgroundResource(R.drawable.bg_nav_active_pill)
-                iconPortfolio.setColorFilter(activeTextColor)
-                textPortfolio.visibility = View.VISIBLE
                 layoutPortfolioContainer.visibility = View.VISIBLE
                 refreshPortfolioData()
             }
@@ -678,10 +659,17 @@ class MarketActivity : AppCompatActivity() {
                     rvAlertsList.visibility = View.VISIBLE
                     layoutAlertsEmpty.visibility = View.GONE
                     rvAlertsList.layoutManager = LinearLayoutManager(this@MarketActivity)
-                    rvAlertsList.adapter = AlertsActivity.AlertsAdapter(alerts) { alertToDelete ->
-                        repository.deleteAlert(alertToDelete.id)
-                        refreshAlertsData()
-                    }
+                    rvAlertsList.adapter = AlertsActivity.AlertsAdapter(
+                        alerts = alerts,
+                        onToggleActive = { alertToToggle, isChecked ->
+                            repository.updateAlert(alertToToggle.copy(isActive = isChecked))
+                            refreshAlertsData()
+                        },
+                        onDelete = { alertToDelete ->
+                            repository.deleteAlert(alertToDelete.id)
+                            refreshAlertsData()
+                        }
+                    )
                 }
             }
         }

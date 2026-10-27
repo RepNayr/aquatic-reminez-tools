@@ -1,124 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<eightbitlab.com.blurview.BlurView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/blurWatchlistCard"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="6dp"
-    android:background="@drawable/bg_glass_card_clip"
-    android:orientation="vertical"
-    android:padding="14dp">
+    android:layout_margin="5dp"
+    android:background="@drawable/bg_glass_card_clip">
 
-    <!-- HEADER ROW -->
+    <!-- OVERLAY LAYERS -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_overlay" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_glass_card_specular" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="vertical"
+        android:padding="12dp">
 
-        <FrameLayout
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="@drawable/bg_icon_circle">
-
-            <ImageView
-                android:id="@+id/ivWlLogo"
-                android:layout_width="22dp"
-                android:layout_height="22dp"
-                android:layout_gravity="center"
-                android:contentDescription="Asset Icon"
-                tools:src="@drawable/ic_activity" />
-
-            <TextView
-                android:id="@+id/tvWlFallback"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:textColor="@color/text_primary"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:visibility="gone"
-                tools:text="BTC" />
-        </FrameLayout>
-
+        <!-- HEADER ROW -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/bg_icon_circle">
+
+                <ImageView
+                    android:id="@+id/ivWlLogo"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Asset Icon"
+                    tools:src="@drawable/ic_activity" />
+
+                <TextView
+                    android:id="@+id/tvWlFallback"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="BTC" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvWlSymbol"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="BTC" />
+
+                <TextView
+                    android:id="@+id/tvWlName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp"
+                    tools:text="Bitcoin" />
+            </LinearLayout>
 
             <TextView
-                android:id="@+id/tvWlSymbol"
+                android:id="@+id/tvWlStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:background="@drawable/bg_info_chip"
                 android:fontFamily="@font/times_new_roman_bold"
-                android:textColor="@color/text_primary"
-                android:textSize="14.5sp"
-                android:textStyle="bold"
-                tools:text="BTC" />
-
-            <TextView
-                android:id="@+id/tvWlName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/times_new_roman_regular"
-                android:maxLines="1"
-                android:textColor="@color/text_secondary"
-                android:textSize="11sp"
-                tools:text="Bitcoin" />
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="@color/accent_cyan"
+                android:textSize="9sp"
+                tools:text="LIVE" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvWlStatus"
-            android:layout_width="wrap_content"
+        <!-- SPARKLINE TREND -->
+        <com.repp.aquaticremineztools.presentation.home.SparklineView
+            android:id="@+id/sparklineWl"
+            android:layout_width="match_parent"
+            android:layout_height="36dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- PRICE AND CHANGE ROW -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_info_chip"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:paddingHorizontal="6dp"
-            android:paddingVertical="2dp"
-            android:textColor="@color/accent_cyan"
-            android:textSize="9.5sp"
-            tools:text="LIVE" />
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvWlPrice"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="$96,420.00" />
+
+            <TextView
+                android:id="@+id/tvWlChange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/accent_teal"
+                android:textSize="12.5sp"
+                android:textStyle="bold"
+                tools:text="+3.42%" />
+        </LinearLayout>
+
     </LinearLayout>
 
-    <!-- SPARKLINE TREND -->
-    <com.repp.aquaticremineztools.presentation.home.SparklineView
-        android:id="@+id/sparklineWl"
-        android:layout_width="match_parent"
-        android:layout_height="40dp"
-        android:layout_marginTop="10dp" />
-
-    <!-- PRICE AND CHANGE ROW -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <TextView
-            android:id="@+id/tvWlPrice"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            tools:text="$96,420.00" />
-
-        <TextView
-            android:id="@+id/tvWlChange"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:textColor="@color/accent_teal"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            tools:text="+3.42%" />
-    </LinearLayout>
-
-</LinearLayout>
+</eightbitlab.com.blurview.BlurView>

@@ -38,7 +38,7 @@ class EconomicEventAdapter(
 
         fun bind(event: EconomicEvent, onClick: ((EconomicEvent) -> Unit)?) {
             tvEventFlag.text = event.countryFlag
-            tvEventTitle.text = event.title
+            tvEventTitle.text = if (event.isDemo) "${event.title} [DEMO]" else event.title
             tvEventDate.text = "${event.eventDate} · ${event.country}"
             tvEventActual.text = event.actualValue ?: "--"
             tvEventForecast.text = if (!event.forecastValue.isNullOrEmpty()) "Exp: ${event.forecastValue}" else ""

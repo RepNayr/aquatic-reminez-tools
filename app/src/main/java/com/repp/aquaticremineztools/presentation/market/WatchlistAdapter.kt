@@ -1,5 +1,6 @@
 package com.repp.aquaticremineztools.presentation.market
 
+import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +12,16 @@ import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.home.SparklineView
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 import java.util.Locale
 
 class WatchlistAdapter(
     private var items: List<MarketInstrument> = emptyList(),
+    private val blurTarget: BlurTarget? = null,
+    private val frameClearDrawable: Drawable? = null,
     private val onItemClick: (MarketInstrument) -> Unit
 ) : RecyclerView.Adapter<WatchlistAdapter.ViewHolder>() {
 
@@ -30,12 +36,13 @@ class WatchlistAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position], onItemClick)
+        holder.bind(items[position], blurTarget, frameClearDrawable, onItemClick)
     }
 
     override fun getItemCount(): Int = items.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val blurWatchlistCard: BlurView? = itemView.findViewById(R.id.blurWatchlistCard)
         private val ivWlLogo: ImageView = itemView.findViewById(R.id.ivWlLogo)
         private val tvWlFallback: TextView = itemView.findViewById(R.id.tvWlFallback)
         private val tvWlSymbol: TextView = itemView.findViewById(R.id.tvWlSymbol)
@@ -45,7 +52,16 @@ class WatchlistAdapter(
         private val tvWlPrice: TextView = itemView.findViewById(R.id.tvWlPrice)
         private val tvWlChange: TextView = itemView.findViewById(R.id.tvWlChange)
 
-        fun bind(instrument: MarketInstrument, onClick: (MarketInstrument) -> Unit) {
+        fun bind(
+            instrument: MarketInstrument,
+            blurTarget: BlurTarget?,
+            frameClearDrawable: Drawable?,
+            onClick: (MarketInstrument) -> Unit
+        ) {
+            if (blurWatchlistCard != null && blurTarget != null) {
+                GlassBlurHelper.setupBlur(blurWatchlistCard, blurTarget, frameClearDrawable)
+            }
+
             tvWlSymbol.text = instrument.symbol
             tvWlName.text = instrument.name
 

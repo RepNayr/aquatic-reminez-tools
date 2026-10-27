@@ -115,24 +115,9 @@ class CryptoRepository private constructor(context: Context) {
 
         return targetOrder.map { id ->
             val dto = dtoMap[id]
+            val defaultFallback = getDefaultAsset(id)
             if (dto == null || dto.currentPrice == null || dto.currentPrice <= 0.0) {
-                CryptoAsset(
-                    id = id,
-                    name = when (id) {
-                        "bitcoin" -> "Bitcoin"
-                        "ethereum" -> "Ethereum"
-                        "solana" -> "Solana"
-                        "binancecoin" -> "BNB"
-                        "travala" -> "Travala"
-                        else -> id
-                    },
-                    symbol = id.uppercase(Locale.ROOT),
-                    imageUrl = null,
-                    currentPriceUsd = null,
-                    priceChange24h = null,
-                    sparklinePrices = null,
-                    isDemoData = true
-                )
+                defaultFallback
             } else {
                 val sparklineFloats = dto.sparklineIn7d?.price?.map { it.toFloat() }
                 val name = when (dto.id.lowercase(Locale.ROOT)) {
@@ -147,10 +132,10 @@ class CryptoRepository private constructor(context: Context) {
                     id = dto.id,
                     name = name,
                     symbol = (dto.symbol ?: id).uppercase(Locale.ROOT),
-                    imageUrl = dto.image,
+                    imageUrl = dto.image ?: defaultFallback.imageUrl,
                     currentPriceUsd = dto.currentPrice,
-                    priceChange24h = dto.priceChangePercentage24h,
-                    sparklinePrices = sparklineFloats,
+                    priceChange24h = dto.priceChangePercentage24h ?: defaultFallback.priceChange24h,
+                    sparklinePrices = if (!sparklineFloats.isNullOrEmpty()) sparklineFloats else defaultFallback.sparklinePrices,
                     isDemoData = false
                 )
             }
