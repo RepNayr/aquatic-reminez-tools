@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Button
@@ -56,6 +57,7 @@ class MarketActivity : AppCompatActivity() {
     private lateinit var btnBack: FrameLayout
     private lateinit var tvHeaderTitle: TextView
     private lateinit var tvMarketStatusBanner: TextView
+    private lateinit var cyberArcMenuView: CyberArcMenuView
 
     // Destination View Containers
     private lateinit var scrollOverview: View
@@ -152,6 +154,20 @@ class MarketActivity : AppCompatActivity() {
         setupViewModel()
         setupListeners()
         setupHeroChartDefaults()
+        setupBackPressed()
+    }
+
+    private fun setupBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (::cyberArcMenuView.isInitialized && (cyberArcMenuView.currentState == CyberArcState.OPEN || cyberArcMenuView.currentState == CyberArcState.OPENING)) {
+                    cyberArcMenuView.closeMenu()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun bindViews() {
@@ -160,6 +176,7 @@ class MarketActivity : AppCompatActivity() {
         btnBack = findViewById(R.id.btnBack)
         tvHeaderTitle = findViewById(R.id.tvHeaderTitle)
         tvMarketStatusBanner = findViewById(R.id.tvMarketStatusBanner)
+        cyberArcMenuView = findViewById(R.id.cyberArcMenuView)
 
         // Destination Containers
         scrollOverview = findViewById(R.id.scrollOverview)
@@ -386,24 +403,14 @@ class MarketActivity : AppCompatActivity() {
             finish()
         }
 
-        // Hamburger Menu Button (Sidebar Navigation)
+        // Cyber Arc Radial Navigation Menu Trigger Setup
         val btnHamburger = findViewById<View>(R.id.btnHamburger)
-        btnHamburger.setOnClickListener { view ->
-            val popup = android.widget.PopupMenu(this, view)
-            popup.menu.add(0, 1, 0, "Overview")
-            popup.menu.add(0, 2, 1, "Watchlist")
-            popup.menu.add(0, 3, 2, "Alerts")
-            popup.menu.add(0, 4, 3, "Portfolio")
-            popup.setOnMenuItemClickListener { item ->
-                when (item.itemId) {
-                    1 -> { viewModel.setDestination(MarketNavDestination.OVERVIEW); true }
-                    2 -> { viewModel.setDestination(MarketNavDestination.WATCHLIST); true }
-                    3 -> { viewModel.setDestination(MarketNavDestination.ALERTS); true }
-                    4 -> { viewModel.setDestination(MarketNavDestination.PORTFOLIO); true }
-                    else -> false
-                }
-            }
-            popup.show()
+        val ivHamburgerIcon = (btnHamburger as? ViewGroup)?.let { container ->
+            (0 until container.childCount).map { container.getChildAt(it) }.filterIsInstance<ImageView>().firstOrNull()
+        }
+        cyberArcMenuView.attachTrigger(btnHamburger, ivHamburgerIcon)
+        cyberArcMenuView.onDestinationSelectedListener = { destination ->
+            viewModel.setDestination(destination)
         }
 
         // Hero Time Range Buttons
@@ -502,6 +509,16 @@ class MarketActivity : AppCompatActivity() {
             MarketNavDestination.OVERVIEW -> {
                 tvHeaderTitle.text = "OVERVIEW"
                 scrollOverview.visibility = View.VISIBLE
+                (scrollOverview as? android.widget.ScrollView)?.scrollTo(0, 0)
+            }
+            MarketNavDestination.MARKETS -> {
+                tvHeaderTitle.text = "MARKETS"
+                scrollOverview.visibility = View.VISIBLE
+                scrollOverview.post {
+                    val blurCrypto = findViewById<View>(R.id.blurCryptoMarket)
+                    val targetY = blurCrypto?.top ?: 0
+                    (scrollOverview as? android.widget.ScrollView)?.smoothScrollTo(0, targetY)
+                }
             }
             MarketNavDestination.WATCHLIST -> {
                 tvHeaderTitle.text = "WATCHLIST"
@@ -782,6 +799,13 @@ class MarketActivity : AppCompatActivity() {
             finish()
         } else {
             viewModel.loadMarket(this, forceRefresh = false)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        if (::cyberArcMenuView.isInitialized) {
+            cyberArcMenuView.closeImmediately()
         }
     }
 }

@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 
 enum class MarketNavDestination {
     OVERVIEW,
+    MARKETS,
     WATCHLIST,
     ALERTS,
     PORTFOLIO
