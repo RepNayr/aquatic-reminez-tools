@@ -8,7 +8,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
@@ -66,24 +65,7 @@ class WatchlistAdapter(
             tvWlName.text = instrument.name
 
             // Logo
-            if (!instrument.imageUrl.isNullOrEmpty()) {
-                tvWlFallback.visibility = View.GONE
-                ivWlLogo.visibility = View.VISIBLE
-                ivWlLogo.load(instrument.imageUrl) {
-                    crossfade(true)
-                    listener(
-                        onError = { _, _ ->
-                            ivWlLogo.visibility = View.GONE
-                            tvWlFallback.visibility = View.VISIBLE
-                            tvWlFallback.text = instrument.symbol.take(3)
-                        }
-                    )
-                }
-            } else {
-                ivWlLogo.visibility = View.GONE
-                tvWlFallback.visibility = View.VISIBLE
-                tvWlFallback.text = instrument.symbol.take(3)
-            }
+            MarketAssetIconHelper.bindIcon(ivWlLogo, tvWlFallback, instrument)
 
             // Status Badge
             tvWlStatus.text = when (instrument.dataStatus) {

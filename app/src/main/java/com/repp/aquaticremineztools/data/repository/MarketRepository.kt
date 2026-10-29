@@ -47,6 +47,24 @@ class MarketRepository private constructor(context: Context) {
             marketPreferences.isDemoModeEnabled = value
         }
 
+    fun getInstantInitialInstruments(): List<MarketInstrument> {
+        val list = mutableListOf<MarketInstrument>()
+        val now = System.currentTimeMillis()
+        list.addAll(listOf(
+            MarketInstrument("bitcoin", "BTC", "Bitcoin", MarketCategory.CRYPTO, 68450.0, 1500.0, 2.34, "USD", "COINGECKO", "https://assets.coingecko.com/coins/images/1/large/bitcoin.png", sampleSparkline(68450.0), null, now, false, true, MarketDataStatus.SIMULATED),
+            MarketInstrument("ethereum", "ETH", "Ethereum", MarketCategory.CRYPTO, 2650.0, 45.0, 1.72, "USD", "COINGECKO", "https://assets.coingecko.com/coins/images/279/large/ethereum.png", sampleSparkline(2650.0), null, now, false, true, MarketDataStatus.SIMULATED),
+            MarketInstrument("solana", "SOL", "Solana", MarketCategory.CRYPTO, 175.5, 5.2, 3.05, "USD", "COINGECKO", "https://assets.coingecko.com/coins/images/4128/large/solana.png", sampleSparkline(175.5), null, now, false, true, MarketDataStatus.SIMULATED),
+            MarketInstrument("binancecoin", "BNB", "BNB", MarketCategory.CRYPTO, 595.0, -4.0, -0.67, "USD", "COINGECKO", "https://assets.coingecko.com/coins/images/825/large/bnb-icon2_2x.png", sampleSparkline(595.0), null, now, false, true, MarketDataStatus.SIMULATED),
+            MarketInstrument("travala", "AVA", "Travala", MarketCategory.CRYPTO, 0.65, 0.02, 3.17, "USD", "COINGECKO", "https://assets.coingecko.com/coins/images/2972/large/AVA-logo.png", sampleSparkline(0.65), null, now, false, true, MarketDataStatus.SIMULATED)
+        ))
+        list.addAll(getIndicesInstruments())
+        list.addAll(getForexInstruments(15820.0, 1.0850, 1.2950, 152.5, 0.6750, 0.8650, MarketDataStatus.SIMULATED, now))
+        list.addAll(getCommoditiesInstruments())
+        list.addAll(getEconomicsInstruments())
+        list.addAll(getStocksAndEtfsInstruments())
+        return list
+    }
+
     suspend fun getAllMarketInstruments(forceRefresh: Boolean = false): Result<List<MarketInstrument>> = withContext(Dispatchers.IO) {
         try {
             val list = mutableListOf<MarketInstrument>()

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp"
+    android:paddingVertical="4dp">
+
+    <FrameLayout
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginEnd="10dp">
+
+        <ImageView
+            android:id="@+id/ivSelectedLogo"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:contentDescription="@null"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/ic_asset_crypto_btc" />
+
+        <TextView
+            android:id="@+id/tvSelectedFallback"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:background="@drawable/bg_icon_circle"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:gravity="center"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10.5sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            tools:text="BTC" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvSelectedSymbolName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:maxLines="1"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="BTC — Bitcoin" />
+
+        <TextView
+            android:id="@+id/tvSelectedSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:maxLines="1"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            tools:text="COINGECKO · USD · Crypto" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/ivChevron"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_dropdown_chevron" />
+
+</LinearLayout>

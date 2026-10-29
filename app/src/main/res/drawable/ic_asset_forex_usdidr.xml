@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#121820"
+        android:pathData="M12,24 C18.627,24 24,18.627 24,12 C24,5.373 18.627,0 12,0 C5.373,0 0,5.373 0,12 C0,18.627 5.373,24 12,24 Z" />
+    <!-- USD Green Circle Left -->
+    <path
+        android:fillColor="#1B4D3E"
+        android:pathData="M9,15 C11.76,15 14,12.76 14,10 C14,7.24 11.76,5 9,5 C6.24,5 4,7.24 4,10 C4,12.76 6.24,15 9,15 Z" />
+    <path
+        android:fillColor="#38BFA1"
+        android:pathData="M8.5,7 L10,7 L10,8 C10.8,8 11.5,8.5 11.5,9.5 C11.5,10.8 10,11 9.5,11.2 C9,11.4 8.5,11.5 8.5,12 C8.5,12.5 9,13 10,13 C10.5,13 11,12.7 11.3,12.3 L12.2,13.1 C11.6,13.8 10.8,14.2 10,14.2 L10,15 L8.5,15 L8.5,14 C7.7,14 7,13.5 7,12.5 C7,11.2 8.5,11 9,10.8 C9.5,10.6 10,10.5 10,10 C10,9.5 9.5,9 8.5,9 C8,9 7.5,9.3 7.2,9.7 L6.3,8.9 C6.9,8.2 7.7,7.8 8.5,7.8 Z" />
+    <!-- ID Red/White Circle Right -->
+    <path
+        android:fillColor="#CE1126"
+        android:pathData="M15,19 C17.76,19 20,16.76 20,14 C20,11.24 17.76,9 15,9 C12.24,9 10,11.24 10,14 C10,16.76 12.24,19 15,19 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M10,14 C10,16.76 12.24,19 15,19 C17.76,19 20,16.76 20,14 Z" />
+</vector>

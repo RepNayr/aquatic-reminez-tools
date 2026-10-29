@@ -175,86 +175,97 @@ class MarketViewModel : ViewModel() {
 
     fun loadMarket(context: Context, forceRefresh: Boolean = false) {
         viewModelScope.launch {
+            val repository = MarketRepository.getInstance(context)
             if (forceRefresh || _uiState.value !is MarketUiState.Success) {
-                _uiState.value = MarketUiState.Loading
+                val initialInstruments = repository.getInstantInitialInstruments()
+                _uiState.value = buildSuccessState(repository, initialInstruments, MarketDataStatus.SIMULATED)
             }
 
-            val repository = MarketRepository.getInstance(context)
             val result = repository.getAllMarketInstruments(forceRefresh)
 
             result.onSuccess { instruments ->
                 repository.evaluateAlerts(instruments)
-                val activeAlertsCount = repository.getAlerts().count { it.isActive }
-
-                val validChangeList = instruments.filter { it.priceChangePercentage24h != null }
-                val gainers = validChangeList.sortedByDescending { it.priceChangePercentage24h }.take(4)
-                val losers = validChangeList.sortedBy { it.priceChangePercentage24h }.take(4)
-
-                val byCategory = instruments.groupBy { it.category }
-
-                val cryptoList = byCategory[MarketCategory.CRYPTO] ?: emptyList()
-                val forexList = byCategory[MarketCategory.FOREX] ?: emptyList()
-                val commoditiesList = byCategory[MarketCategory.COMMODITIES] ?: emptyList()
-                val economicsList = byCategory[MarketCategory.ECONOMICS] ?: emptyList()
-                val stocksList = (byCategory[MarketCategory.STOCKS] ?: emptyList()) + (byCategory[MarketCategory.ETFS] ?: emptyList())
-
-                val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
-                val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
-
-                val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
-                val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
-
-                val events = repository.getEconomicEvents()
-
-                val cryptoStatus = cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
-                val forexStatus = forexList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
-                val bannerMessage = "Crypto: $cryptoStatus · Forex: $forexStatus · Ref: SIMULATED"
-
-                val marketConditionSummary = repository.generateMarketConditionSummary(instruments)
-                val sessionStatus = repository.getMarketSessionStatus()
-                val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
-                val lastUpdatedFormatted = "Updated ${dateFormat.format(Date())}"
-
-                val scopedPulse = filterInstrumentsByScope(marketPulse, currentScope)
-                val scopedKey = filterInstrumentsByScope(keyMarkets, currentScope)
-                val scopedCrypto = filterInstrumentsByScope(cryptoList, currentScope)
-                val scopedForex = filterInstrumentsByScope(forexList, currentScope)
-                val scopedStocks = filterInstrumentsByScope(stocksList, currentScope)
-                val scopedCommodities = filterInstrumentsByScope(commoditiesList, currentScope)
-                val scopedEconomics = filterInstrumentsByScope(economicsList, currentScope)
-
-                _uiState.value = MarketUiState.Success(
-                    allInstruments = instruments,
-                    marketPulse = scopedPulse,
-                    keyMarkets = scopedKey,
-                    topGainers = gainers,
-                    topLosers = losers,
-                    cryptoInstruments = scopedCrypto,
-                    forexInstruments = scopedForex,
-                    stocksInstruments = scopedStocks,
-                    commoditiesInstruments = scopedCommodities,
-                    economicIndicators = scopedEconomics,
-                    economicEvents = events,
-                    activeAlertsCount = activeAlertsCount,
-                    bannerMessage = bannerMessage,
-                    marketConditionSummary = marketConditionSummary,
-                    sessionStatus = sessionStatus,
-                    lastUpdatedFormatted = lastUpdatedFormatted,
-                    activeScope = currentScope,
-                    selectedHeroCategory = heroCategory,
-                    selectedHeroBenchmarkId = heroBenchmarkId,
-                    selectedHeroTimeRange = heroTimeRange,
-                    heroStartDateMs = heroStartDateMs,
-                    heroEndDateMs = heroEndDateMs,
-                    isMaEnabled = isMaEnabled,
-                    isEmaEnabled = isEmaEnabled,
-                    isRsiEnabled = isRsiEnabled,
-                    isMacdEnabled = isMacdEnabled
-                )
+                _uiState.value = buildSuccessState(repository, instruments, null)
             }.onFailure { e ->
-                _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market dashboard data")
+                if (_uiState.value !is MarketUiState.Success) {
+                    _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market dashboard data")
+                }
             }
         }
+    }
+
+    private fun buildSuccessState(
+        repository: MarketRepository,
+        instruments: List<MarketInstrument>,
+        overrideStatus: MarketDataStatus?
+    ): MarketUiState.Success {
+        val activeAlertsCount = repository.getAlerts().count { it.isActive }
+
+        val validChangeList = instruments.filter { it.priceChangePercentage24h != null }
+        val gainers = validChangeList.sortedByDescending { it.priceChangePercentage24h }.take(4)
+        val losers = validChangeList.sortedBy { it.priceChangePercentage24h }.take(4)
+
+        val byCategory = instruments.groupBy { it.category }
+
+        val cryptoList = byCategory[MarketCategory.CRYPTO] ?: emptyList()
+        val forexList = byCategory[MarketCategory.FOREX] ?: emptyList()
+        val commoditiesList = byCategory[MarketCategory.COMMODITIES] ?: emptyList()
+        val economicsList = byCategory[MarketCategory.ECONOMICS] ?: emptyList()
+        val stocksList = (byCategory[MarketCategory.STOCKS] ?: emptyList()) + (byCategory[MarketCategory.ETFS] ?: emptyList())
+
+        val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
+        val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
+
+        val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
+        val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
+
+        val events = repository.getEconomicEvents()
+
+        val cryptoStatus = overrideStatus ?: (cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE)
+        val forexStatus = overrideStatus ?: (forexList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE)
+        val bannerMessage = "Crypto: $cryptoStatus · Forex: $forexStatus · Ref: SIMULATED"
+
+        val marketConditionSummary = repository.generateMarketConditionSummary(instruments)
+        val sessionStatus = repository.getMarketSessionStatus()
+        val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
+        val lastUpdatedFormatted = "Updated ${dateFormat.format(Date())}"
+
+        val scopedPulse = filterInstrumentsByScope(marketPulse, currentScope)
+        val scopedKey = filterInstrumentsByScope(keyMarkets, currentScope)
+        val scopedCrypto = filterInstrumentsByScope(cryptoList, currentScope)
+        val scopedForex = filterInstrumentsByScope(forexList, currentScope)
+        val scopedStocks = filterInstrumentsByScope(stocksList, currentScope)
+        val scopedCommodities = filterInstrumentsByScope(commoditiesList, currentScope)
+        val scopedEconomics = filterInstrumentsByScope(economicsList, currentScope)
+
+        return MarketUiState.Success(
+            allInstruments = instruments,
+            marketPulse = scopedPulse,
+            keyMarkets = scopedKey,
+            topGainers = gainers,
+            topLosers = losers,
+            cryptoInstruments = scopedCrypto,
+            forexInstruments = scopedForex,
+            stocksInstruments = scopedStocks,
+            commoditiesInstruments = scopedCommodities,
+            economicIndicators = scopedEconomics,
+            economicEvents = events,
+            activeAlertsCount = activeAlertsCount,
+            bannerMessage = bannerMessage,
+            marketConditionSummary = marketConditionSummary,
+            sessionStatus = sessionStatus,
+            lastUpdatedFormatted = lastUpdatedFormatted,
+            activeScope = currentScope,
+            selectedHeroCategory = heroCategory,
+            selectedHeroBenchmarkId = heroBenchmarkId,
+            selectedHeroTimeRange = heroTimeRange,
+            heroStartDateMs = heroStartDateMs,
+            heroEndDateMs = heroEndDateMs,
+            isMaEnabled = isMaEnabled,
+            isEmaEnabled = isEmaEnabled,
+            isRsiEnabled = isRsiEnabled,
+            isMacdEnabled = isMacdEnabled
+        )
     }
 
     private fun filterInstrumentsByScope(list: List<MarketInstrument>, scope: MarketScope): List<MarketInstrument> {

@@ -7,7 +7,6 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.presentation.home.SparklineView
@@ -47,28 +46,7 @@ class CryptoDashboardAdapter(
             tvCryptoSymbol.text = "${instrument.symbol} · ${instrument.name}"
             tvCryptoExchange.text = "${instrument.exchange} · ${instrument.currency}"
 
-            if (instrument.id.equals("travala", ignoreCase = true)) {
-                tvCryptoFallback.visibility = View.GONE
-                ivCryptoLogo.visibility = View.VISIBLE
-                ivCryptoLogo.setImageResource(R.drawable.ic_crypto_travala)
-            } else if (!instrument.imageUrl.isNullOrEmpty()) {
-                tvCryptoFallback.visibility = View.GONE
-                ivCryptoLogo.visibility = View.VISIBLE
-                ivCryptoLogo.load(instrument.imageUrl) {
-                    crossfade(true)
-                    listener(
-                        onError = { _, _ ->
-                            ivCryptoLogo.visibility = View.GONE
-                            tvCryptoFallback.visibility = View.VISIBLE
-                            tvCryptoFallback.text = instrument.symbol.take(3)
-                        }
-                    )
-                }
-            } else {
-                ivCryptoLogo.visibility = View.GONE
-                tvCryptoFallback.visibility = View.VISIBLE
-                tvCryptoFallback.text = instrument.symbol.take(3)
-            }
+            MarketAssetIconHelper.bindIcon(ivCryptoLogo, tvCryptoFallback, instrument)
 
             val price = instrument.currentPrice
             if (price != null) {

@@ -63,6 +63,7 @@ import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.NewsArticle
 import com.repp.aquaticremineztools.presentation.market.CryptoDashboardAdapter
 import com.repp.aquaticremineztools.presentation.market.EconomicEventAdapter
+import com.repp.aquaticremineztools.presentation.market.HeroInstrumentSpinnerAdapter
 import com.repp.aquaticremineztools.presentation.market.EconomicIndicatorAdapter
 import com.repp.aquaticremineztools.presentation.market.ForexMatrixAdapter
 import com.repp.aquaticremineztools.presentation.market.KeyMarketsAdapter
@@ -179,6 +180,7 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var chipHeroIndices: TextView
     private lateinit var chipHeroForex: TextView
     private lateinit var spinnerHeroBenchmark: Spinner
+    private var heroSpinnerAdapter: HeroInstrumentSpinnerAdapter? = null
     private lateinit var tvHeroSymbol: TextView
     private lateinit var tvHeroPrice: TextView
     private lateinit var tvHeroChange: TextView
@@ -888,13 +890,16 @@ class HomeActivity : AppCompatActivity() {
                     }
 
                     if (filteredCategoryInstruments.isNotEmpty()) {
-                        val names = filteredCategoryInstruments.map { "${it.symbol} - ${it.name}" }
-                        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
-                        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-                        spinnerHeroBenchmark.adapter = spinnerAdapter
+                        if (heroSpinnerAdapter == null) {
+                            heroSpinnerAdapter = HeroInstrumentSpinnerAdapter(this, filteredCategoryInstruments)
+                            spinnerHeroBenchmark.adapter = heroSpinnerAdapter
+                        }
+                        heroSpinnerAdapter?.updateData(filteredCategoryInstruments, state.selectedHeroBenchmarkId)
 
                         var selectedIdx = filteredCategoryInstruments.indexOfFirst { it.id == state.selectedHeroBenchmarkId }
                         if (selectedIdx == -1) selectedIdx = 0
+
+                        spinnerHeroBenchmark.onItemSelectedListener = null
                         spinnerHeroBenchmark.setSelection(selectedIdx, false)
 
                         spinnerHeroBenchmark.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
@@ -907,7 +912,9 @@ class HomeActivity : AppCompatActivity() {
                             override fun onNothingSelected(parent: AdapterView<*>?) {}
                         }
 
-                        val activeHeroInst = filteredCategoryInstruments.find { it.id == state.selectedHeroBenchmarkId } ?: filteredCategoryInstruments.first()
+                        val activeHeroInst = filteredCategoryInstruments.find { it.id == state.selectedHeroBenchmarkId } 
+                            ?: filteredCategoryInstruments.firstOrNull() 
+                            ?: return@observe
                         renderHeroChart(
                             activeHeroInst,
                             state.selectedHeroTimeRange,

@@ -11,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
-import coil.load
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
@@ -105,24 +104,7 @@ class MarketInstrumentBottomSheet : BottomSheetDialogFragment() {
         tvBsExchange.text = "${inst.exchange} · ${inst.category.displayName}"
 
         // Logo
-        if (!inst.imageUrl.isNullOrEmpty()) {
-            tvBsFallback.visibility = View.GONE
-            ivBsLogo.visibility = View.VISIBLE
-            ivBsLogo.load(inst.imageUrl) {
-                crossfade(true)
-                listener(
-                    onError = { _, _ ->
-                        ivBsLogo.visibility = View.GONE
-                        tvBsFallback.visibility = View.VISIBLE
-                        tvBsFallback.text = inst.symbol.take(3)
-                    }
-                )
-            }
-        } else {
-            ivBsLogo.visibility = View.GONE
-            tvBsFallback.visibility = View.VISIBLE
-            tvBsFallback.text = inst.symbol.take(3)
-        }
+        MarketAssetIconHelper.bindIcon(ivBsLogo, tvBsFallback, inst)
 
         // Price & Change
         val price = inst.currentPrice

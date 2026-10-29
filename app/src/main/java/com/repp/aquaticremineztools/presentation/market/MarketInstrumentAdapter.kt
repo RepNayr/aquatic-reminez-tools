@@ -9,7 +9,6 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
@@ -50,25 +49,8 @@ class MarketInstrumentAdapter(
             tvInstrumentSymbol.text = instrument.symbol
             tvInstrumentExchange.text = instrument.exchange
 
-            // Logo or Fallback
-            if (!instrument.imageUrl.isNullOrEmpty()) {
-                tvInstrumentFallback.visibility = View.GONE
-                ivInstrumentLogo.visibility = View.VISIBLE
-                ivInstrumentLogo.load(instrument.imageUrl) {
-                    crossfade(enable = true)
-                    listener(
-                        onError = { _, _ ->
-                            ivInstrumentLogo.visibility = View.GONE
-                            tvInstrumentFallback.visibility = View.VISIBLE
-                            tvInstrumentFallback.text = instrument.symbol.take(3)
-                        },
-                    )
-                }
-            } else {
-                ivInstrumentLogo.visibility = View.GONE
-                tvInstrumentFallback.visibility = View.VISIBLE
-                tvInstrumentFallback.text = instrument.symbol.take(3)
-            }
+            // Logo or Fallback using MarketAssetIconHelper
+            MarketAssetIconHelper.bindIcon(ivInstrumentLogo, tvInstrumentFallback, instrument)
 
             // Price formatting
             val price = instrument.currentPrice
