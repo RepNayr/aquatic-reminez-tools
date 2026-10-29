@@ -101,7 +101,7 @@ class MarketViewModel : ViewModel() {
             val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
             val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
-            val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
+            val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr", "bitcoin")
             val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
             _uiState.value = currentState.copy(
@@ -216,7 +216,7 @@ class MarketViewModel : ViewModel() {
         val pulseTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr")
         val marketPulse = pulseTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
-        val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "usd_idr", "bitcoin")
+        val keyTargetIds = listOf("ihsg", "sp500", "nasdaq", "nikkei", "usd_idr", "bitcoin")
         val keyMarkets = keyTargetIds.mapNotNull { id -> instruments.find { it.id == id } }
 
         val events = repository.getEconomicEvents()
