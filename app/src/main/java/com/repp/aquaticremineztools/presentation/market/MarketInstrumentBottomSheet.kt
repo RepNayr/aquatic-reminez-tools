@@ -1,6 +1,5 @@
 package com.repp.aquaticremineztools.presentation.market
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -15,7 +14,6 @@ import androidx.core.content.ContextCompat
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.repp.aquaticremineztools.R
-import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.PortfolioHolding
@@ -40,8 +38,6 @@ class MarketInstrumentBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnBsFullDetails: Button
 
     private var currentInstrument: MarketInstrument? = null
-
-
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -79,6 +75,7 @@ class MarketInstrumentBottomSheet : BottomSheetDialogFragment() {
         btnBsWatchlist = view.findViewById(R.id.btnBsWatchlist)
         btnBsPortfolio = view.findViewById(R.id.btnBsPortfolio)
         btnBsFullDetails = view.findViewById(R.id.btnBsFullDetails)
+        btnBsFullDetails.visibility = View.GONE
     }
 
     private fun setupListeners() {
@@ -90,24 +87,12 @@ class MarketInstrumentBottomSheet : BottomSheetDialogFragment() {
             val repo = MarketRepository.getInstance(context)
             val added = repo.toggleWatchlist(inst)
             updateWatchlistButton(added)
-            Toast.makeText(context, if (added) "Added to Watchlist" else "Removed from Watchlist", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, if (added) "Saved to Watchlist" else "Removed from Watchlist", Toast.LENGTH_SHORT).show()
         }
 
         btnBsPortfolio.setOnClickListener {
             val inst = currentInstrument ?: return@setOnClickListener
             showAddPortfolioDialog(inst)
-        }
-
-        btnBsFullDetails.setOnClickListener {
-            val inst = currentInstrument ?: return@setOnClickListener
-            val context = requireContext()
-            val intent = Intent(context, InstrumentDetailActivity::class.java).apply {
-                putExtra("instrument_id", inst.id)
-                putExtra("instrument_symbol", inst.symbol)
-                putExtra("instrument_name", inst.name)
-            }
-            dismiss()
-            ActivityTransition.startActivitySmooth(requireActivity(), intent)
         }
     }
 

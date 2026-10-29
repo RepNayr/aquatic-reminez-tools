@@ -23,7 +23,7 @@
             android:layout_height="16dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_categories"
-            app:tint="@color/accent_primary" />
+            app:tint="@color/accent_cyan" />
 
         <TextView
             android:id="@+id/tvQuickMenuTitle"
@@ -34,29 +34,63 @@
             android:letterSpacing="0.12"
             android:text="@string/home_quick_menu"
             android:textColor="@color/text_primary"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvQuickMenuSubtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:fontFamily="@font/times_new_roman_bold"
-            android:text="@string/home_quick_menu_desc"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:text="QUICK LAUNCH · 108 TOOLS"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10.5sp" />
+
+        <FrameLayout
+            android:id="@+id/btnQuickMenuRefresh"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="Refresh Quick Menu"
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/accent_cyan" />
+        </FrameLayout>
 
     </LinearLayout>
 
     <View
         android:id="@+id/sectionLine"
         android:layout_width="3dp"
-        android:layout_height="14dp"
-        android:background="@color/accent_primary"
+        android:layout_height="16dp"
+        android:background="@color/accent_cyan"
         app:layout_constraintTop_toTopOf="@id/layoutQuickMenuHeaderTitle"
         app:layout_constraintBottom_toBottomOf="@id/layoutQuickMenuHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tvQuickMenuSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="11dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="Access high-performance developer, security, and utility tools instantly."
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        app:layout_constraintTop_toBottomOf="@id/layoutQuickMenuHeaderTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- GRID -->
     <androidx.recyclerview.widget.RecyclerView
@@ -65,7 +99,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:nestedScrollingEnabled="false"
-        app:layout_constraintTop_toBottomOf="@id/layoutQuickMenuHeaderTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvQuickMenuSummary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

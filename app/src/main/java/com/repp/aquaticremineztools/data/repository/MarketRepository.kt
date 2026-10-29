@@ -166,6 +166,114 @@ class MarketRepository private constructor(context: Context) {
         return listOf(p * 0.98f, p * 0.985f, p * 0.99f, p * 0.988f, p * 0.995f, p * 1.002f, p)
     }
 
+    fun generateMarketConditionSummary(instruments: List<MarketInstrument>): String {
+        val cryptoList = instruments.filter { it.category == MarketCategory.CRYPTO && it.priceChangePercentage24h != null }
+        val avgCryptoChange = if (cryptoList.isNotEmpty()) cryptoList.mapNotNull { it.priceChangePercentage24h }.average() else 0.0
+
+        val usdIdr = instruments.find { it.id == "usd_idr" }
+        val idrPriceStr = if (usdIdr?.currentPrice != null) String.format(Locale.US, "%,.0f", usdIdr.currentPrice) else "15,820"
+
+        val indicesList = instruments.filter { it.category == MarketCategory.INDICES && it.priceChangePercentage24h != null }
+        val avgIndicesChange = if (indicesList.isNotEmpty()) indicesList.mapNotNull { it.priceChangePercentage24h }.average() else 0.0
+
+        val cryptoSentiment = when {
+            avgCryptoChange >= 1.5 -> "Crypto bullish (+${String.format(Locale.US, "%.1f", avgCryptoChange)}%)"
+            avgCryptoChange <= -1.5 -> "Crypto bearish (${String.format(Locale.US, "%.1f", avgCryptoChange)}%)"
+            else -> "Crypto neutral (${String.format(Locale.US, "%.1f", avgCryptoChange)}%)"
+        }
+
+        val indicesSentiment = when {
+            avgIndicesChange >= 0.5 -> "Global equities positive"
+            avgIndicesChange <= -0.5 -> "Global equities under pressure"
+            else -> "Global equities mixed"
+        }
+
+        return "$cryptoSentiment · USD/IDR $idrPriceStr · $indicesSentiment"
+    }
+
+    fun getMarketSessionStatus(): String {
+        val calendar = java.util.Calendar.getInstance(java.util.TimeZone.getTimeZone("Asia/Jakarta"))
+        val dayOfWeek = calendar.get(java.util.Calendar.DAY_OF_WEEK)
+        val hour = calendar.get(java.util.Calendar.HOUR_OF_DAY)
+
+        val isWeekend = dayOfWeek == java.util.Calendar.SATURDAY || dayOfWeek == java.util.Calendar.SUNDAY
+        val idxStatus = if (!isWeekend && hour in 9..16) "IDX OPEN" else "IDX CLOSED"
+        val usStatus = if (!isWeekend && hour in 21..23) "US OPEN" else if (!isWeekend && hour in 16..20) "US PRE-MARKET" else "US CLOSED"
+
+        return "LIVE FEED · $idxStatus · $usStatus · FX/CRYPTO 24/7"
+    }
+
+    fun getHistoricalEntriesForHero(
+        instrument: MarketInstrument,
+        timeRange: String,
+        startDateMs: Long? = null,
+        endDateMs: Long? = null
+    ): List<com.github.mikephil.charting.data.Entry> {
+        val current = (instrument.currentPrice ?: 100.0).toFloat()
+        val sparkline = instrument.sparklinePrices
+
+        val now = System.currentTimeMillis()
+        val entries = mutableListOf<com.github.mikephil.charting.data.Entry>()
+
+        if (startDateMs != null && endDateMs != null && startDateMs < endDateMs) {
+            val totalPoints = 30
+            val step = (endDateMs - startDateMs) / totalPoints
+            var valPrice = current * 0.95f
+            for (i in 0..totalPoints) {
+                val timestamp = startDateMs + (i * step)
+                val delta = (Math.sin(i * 0.5) * 0.02f * valPrice).toFloat()
+                valPrice += delta
+                if (i == totalPoints) valPrice = current
+                entries.add(com.github.mikephil.charting.data.Entry(i.toFloat(), valPrice, timestamp))
+            }
+            return entries
+        }
+
+        val numPoints = when (timeRange) {
+            "1D" -> 24
+            "1W" -> 28
+            "1M" -> 30
+            "3M" -> 45
+            "6M" -> 60
+            "1Y" -> 52
+            "ALL" -> 70
+            else -> 24
+        }
+
+        val rangeMs = when (timeRange) {
+            "1D" -> 24 * 3600 * 1000L
+            "1W" -> 7 * 24 * 3600 * 1000L
+            "1M" -> 30L * 24 * 3600 * 1000L
+            "3M" -> 90L * 24 * 3600 * 1000L
+            "6M" -> 180L * 24 * 3600 * 1000L
+            "1Y" -> 365L * 24 * 3600 * 1000L
+            "ALL" -> 1095L * 24 * 3600 * 1000L
+            else -> 24 * 3600 * 1000L
+        }
+
+        val stepMs = rangeMs / numPoints
+        val startTimestamp = now - rangeMs
+
+        if (!sparkline.isNullOrEmpty() && sparkline.size >= 2) {
+            val scale = numPoints.toFloat() / (sparkline.size - 1)
+            for (i in 0 until numPoints) {
+                val idx = (i / scale).toInt().coerceIn(0, sparkline.size - 1)
+                val priceVal = sparkline[idx]
+                val t = startTimestamp + (i * stepMs)
+                entries.add(com.github.mikephil.charting.data.Entry(i.toFloat(), priceVal, t))
+            }
+        } else {
+            val base = current * 0.92f
+            for (i in 0 until numPoints) {
+                val factor = (1f + Math.sin(i * 0.35).toFloat() * 0.03f + (i.toFloat() / numPoints) * 0.08f)
+                val priceVal = if (i == numPoints - 1) current else (base * factor)
+                val t = startTimestamp + (i * stepMs)
+                entries.add(com.github.mikephil.charting.data.Entry(i.toFloat(), priceVal, t))
+            }
+        }
+        return entries
+    }
+
     private fun getIndicesInstruments(): List<MarketInstrument> {
         val now = System.currentTimeMillis()
         return listOf(

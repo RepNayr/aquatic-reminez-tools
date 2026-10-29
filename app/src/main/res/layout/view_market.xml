@@ -20,11 +20,11 @@
 
         <ImageView
             android:id="@+id/ivMarketHeaderIcon"
-            android:layout_width="16dp"
-            android:layout_height="16dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_activity"
-            app:tint="@color/accent_primary" />
+            app:tint="@color/accent_cyan" />
 
         <TextView
             android:id="@+id/tvMarketTitle"
@@ -33,33 +33,67 @@
             android:layout_marginStart="6dp"
             android:fontFamily="@font/times_new_roman_bold"
             android:letterSpacing="0.12"
-            android:text="@string/market_title"
+            android:text="MARKET HUB"
             android:textColor="@color/text_primary"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvMarketSubtitle"
-            android:layout_width="wrap_content"
+            android:id="@+id/tvMarketSessionStatus"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
             android:fontFamily="@font/times_new_roman_bold"
-            android:text="@string/market_desc"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:maxLines="1"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10.5sp"
+            tools:text="LIVE FEED · IDX CLOSED · US PRE-MARKET" />
+
+        <FrameLayout
+            android:id="@+id/btnMarketRefresh"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="Refresh Market Hub"
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/accent_cyan" />
+        </FrameLayout>
 
     </LinearLayout>
 
     <View
         android:id="@+id/sectionLineMarket"
         android:layout_width="3dp"
-        android:layout_height="14dp"
-        android:background="@color/accent_primary"
+        android:layout_height="16dp"
+        android:background="@color/accent_cyan"
         app:layout_constraintTop_toTopOf="@id/layoutMarketHeaderTitle"
         app:layout_constraintBottom_toBottomOf="@id/layoutMarketHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- SINGLE UNIFIED GLASS CARD -->
+    <TextView
+        android:id="@+id/tvMarketConditionSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="11dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        app:layout_constraintTop_toBottomOf="@id/layoutMarketHeaderTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Crypto bullish (+2.8%) · USD/IDR 15,820 · Updated 10:45:12 AM" />
+
+    <!-- SINGLE UNIFIED GLASS CONTAINER FOR MARKET HUB -->
     <eightbitlab.com.blurview.BlurView
         android:id="@+id/cardMarket"
         android:layout_width="0dp"
@@ -68,7 +102,7 @@
         android:layout_marginStart="3dp"
         android:layout_marginEnd="3dp"
         android:background="@drawable/bg_glass_card_clip"
-        app:layout_constraintTop_toBottomOf="@id/layoutMarketHeaderTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvMarketConditionSummary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -86,22 +120,638 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="14dp"
+            android:paddingHorizontal="12dp"
             android:paddingTop="12dp"
             android:paddingBottom="12dp">
 
-            <!-- CRYPTO ROWS CONTAINER -->
+            <!-- SECTION 1: ADVANCED MARKET PULSE -->
             <LinearLayout
-                android:id="@+id/layoutCryptoRows"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <!-- ATTRIBUTION / STATUS FOOTER -->
-            <LinearLayout
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_cyan" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="1. ADVANCED MARKET PULSE"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvMarketPulse"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_market_pulse_card" />
+
+            <!-- SECTION 2: INTERACTIVE HERO CHART -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_teal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="2. INTERACTIVE HERO CHART"
+                    android:textColor="@color/accent_teal"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- HERO CATEGORY SELECTOR CHIPS -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/chipHeroCrypto"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_chip_cyan_active"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="Crypto"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chipHeroStocks"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_chip_inactive"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="Stocks"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipHeroIndices"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/bg_chip_inactive"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="Indices"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+
+                    <TextView
+                        android:id="@+id/chipHeroForex"
+                        android:layout_width="wrap_content"
+                        android:layout_height="28dp"
+                        android:background="@drawable/bg_chip_inactive"
+                        android:gravity="center"
+                        android:paddingHorizontal="12dp"
+                        android:text="Forex"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/spinnerHeroBenchmark"
+                    android:layout_width="0dp"
+                    android:layout_height="34dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_input_field"
+                    android:paddingHorizontal="8dp" />
+
+                <TextView
+                    android:id="@+id/tvHeroDataStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_info_chip"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:paddingHorizontal="8dp"
+                    android:paddingVertical="4dp"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="9.5sp"
+                    tools:text="LIVE FEED" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvHeroSymbol"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        tools:text="BTC · Bitcoin" />
+
+                    <TextView
+                        android:id="@+id/tvHeroPrice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="1dp"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        tools:text="$68,450.00" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvHeroChange"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/accent_teal"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="+3.45% (24h)" />
+            </LinearLayout>
+
+            <!-- TECHNICAL INDICATOR OVERLAY TOGGLES -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Overlays: "
+                    android:textColor="@color/text_muted"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnIndicatorMa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_chip_inactive"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="MA(20)"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/btnIndicatorEma"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_chip_inactive"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="EMA(50)"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/btnIndicatorRsi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_chip_inactive"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="RSI(14)"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/btnIndicatorMacd"
+                    android:layout_width="wrap_content"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="4dp"
+                    android:background="@drawable/bg_chip_inactive"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp"
+                    android:text="MACD"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvIndicatorStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/accent_gold"
+                android:textSize="10sp"
+                android:visibility="gone"
+                tools:text="RSI(14): 58.4 (Neutral) · MACD: +12.4 (Bullish)"
+                tools:visibility="visible" />
+
+            <!-- MPANDROIDCHART LINECHART -->
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/chartHero"
+                android:layout_width="match_parent"
+                android:layout_height="180dp"
+                android:layout_marginTop="8dp" />
+
+            <!-- TIME RANGE SELECTOR -->
+            <LinearLayout
+                android:id="@+id/layoutHeroTimeRanges"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnHero1D"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chip_cyan_active"
+                    android:gravity="center"
+                    android:text="1D"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="10.5sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnHero1W"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="1W"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnHero1M"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="1M"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnHero3M"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="3M"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnHero1Y"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="1Y"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnHeroALL"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="ALL"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10.5sp" />
+
+                <TextView
+                    android:id="@+id/btnHeroCustomDate"
+                    android:layout_width="0dp"
+                    android:layout_height="28dp"
+                    android:layout_weight="1.2"
+                    android:gravity="center"
+                    android:text="Custom..."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- SECTION 3: KEY MARKETS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_blue" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="3. KEY MARKETS"
+                    android:textColor="@color/accent_blue"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvKeyMarkets"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_key_market_card" />
+
+            <!-- SECTION 4: TOP GAINERS & LOSERS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <!-- GAINERS PANEL -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_glass_card_clip"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="4A. TOP GAINERS"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTopGainers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_market_mover" />
+                </LinearLayout>
+
+                <!-- LOSERS PANEL -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_glass_card_clip"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="4B. TOP LOSERS"
+                        android:textColor="@color/accent_muted_red"
+                        android:textSize="10.5sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvTopLosers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:nestedScrollingEnabled="false"
+                        tools:listitem="@layout/item_market_mover" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- SECTION 5: CRYPTO TERMINAL -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_gold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="5. CRYPTO TERMINAL (COINGECKO)"
+                    android:textColor="@color/accent_gold"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvCryptoMarket"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_market_instrument" />
+
+            <!-- SECTION 6: STOCKS & ETFS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_violet" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="6. STOCKS &amp; ETFS (IDX / US)"
+                    android:textColor="@color/accent_violet"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvStocksAndEtfs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_market_instrument" />
+
+            <!-- SECTION 7: FOREX MATRIX -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/cat_utility" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="7. FOREX MATRIX (EXCHANGERATE-API)"
+                    android:textColor="@color/cat_utility"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvForexMatrix"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_key_market_card" />
+
+            <!-- SECTION 8: ECONOMIC INDICATORS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_cyan" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="8. MACROECONOMIC INDICATORS"
+                    android:textColor="@color/accent_cyan"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEconomicIndicators"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_key_market_card" />
+
+            <!-- SECTION 9: ECONOMIC EVENTS -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="3dp"
+                    android:layout_height="12dp"
+                    android:background="@color/accent_teal" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:letterSpacing="0.06"
+                    android:text="9. ECONOMIC CALENDAR &amp; EVENTS"
+                    android:textColor="@color/accent_teal"
+                    android:textSize="11.5sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEconomicEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_market_instrument" />
+
+            <!-- FOOTER ATTRIBUTION -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -112,7 +762,7 @@
                     android:layout_weight="1"
                     android:fontFamily="@font/times_new_roman_bold"
                     android:textColor="@color/status_warning"
-                    android:textSize="9sp"
+                    android:textSize="9.5sp"
                     android:visibility="gone"
                     tools:text="Offline Data"
                     tools:visibility="visible" />
@@ -125,7 +775,7 @@
                     android:letterSpacing="0.02"
                     android:text="@string/market_attribution"
                     android:textColor="@color/text_muted"
-                    android:textSize="9sp" />
+                    android:textSize="9.5sp" />
 
             </LinearLayout>
 

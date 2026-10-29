@@ -17,17 +17,20 @@ import android.os.BatteryManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.text.format.DateUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import android.text.format.DateUtils
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -40,6 +43,7 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.repp.aquaticremineztools.R
@@ -48,12 +52,29 @@ import com.repp.aquaticremineztools.core.security.AppLockManager
 import com.repp.aquaticremineztools.core.security.PinManager
 import com.repp.aquaticremineztools.core.settings.PrayerPreferences
 import com.repp.aquaticremineztools.core.settings.SettingsPreferences
+import com.repp.aquaticremineztools.core.util.ActivityTransition
+import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import com.repp.aquaticremineztools.core.util.HijriCalendarHelper
 import com.repp.aquaticremineztools.data.QuickCategory
 import com.repp.aquaticremineztools.data.model.CryptoAsset
+import com.repp.aquaticremineztools.data.model.MarketCategory
+import com.repp.aquaticremineztools.data.model.MarketDataStatus
+import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.model.NewsArticle
-import com.repp.aquaticremineztools.presentation.news.NewsViewModel
+import com.repp.aquaticremineztools.presentation.market.CryptoDashboardAdapter
+import com.repp.aquaticremineztools.presentation.market.EconomicEventAdapter
+import com.repp.aquaticremineztools.presentation.market.EconomicIndicatorAdapter
+import com.repp.aquaticremineztools.presentation.market.ForexMatrixAdapter
+import com.repp.aquaticremineztools.presentation.market.KeyMarketsAdapter
+import com.repp.aquaticremineztools.presentation.market.MarketChartMarkerView
+import com.repp.aquaticremineztools.presentation.market.MarketInstrumentBottomSheet
+import com.repp.aquaticremineztools.presentation.market.MarketMoversAdapter
+import com.repp.aquaticremineztools.presentation.market.MarketPulseAdapter
+import com.repp.aquaticremineztools.presentation.market.MarketUiState
+import com.repp.aquaticremineztools.presentation.market.MarketViewModel
+import com.repp.aquaticremineztools.presentation.market.StockWatchlistAdapter
 import com.repp.aquaticremineztools.presentation.news.NewsUiState
+import com.repp.aquaticremineztools.presentation.news.NewsViewModel
 import com.repp.aquaticremineztools.presentation.search.SearchActivity
 import com.repp.aquaticremineztools.presentation.security.PinChangeActivity
 import com.repp.aquaticremineztools.presentation.security.PinSetupActivity
@@ -61,8 +82,6 @@ import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.presentation.storage.StorageActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
 import com.repp.aquaticremineztools.presentation.about.AboutActivity
-import com.repp.aquaticremineztools.core.util.ActivityTransition
-import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import eightbitlab.com.blurview.BlurTarget
 import eightbitlab.com.blurview.BlurView
 import org.json.JSONObject
@@ -141,12 +160,72 @@ class HomeActivity : AppCompatActivity() {
     private lateinit var tvCalendarStatus: TextView
     private lateinit var calendarDayAdapter: CalendarDayAdapter
 
-    // Market Widget
-    private lateinit var cryptoViewModel: CryptoViewModel
+    // Market Hub Widget
+    private lateinit var marketViewModel: MarketViewModel
     private lateinit var cardMarketBlur: BlurView
-    private lateinit var layoutCryptoRows: LinearLayout
-    private lateinit var tvMarketStatusIndicator: TextView
     private lateinit var tvMarketTitle: TextView
+    private lateinit var tvMarketSessionStatus: TextView
+    private lateinit var tvMarketConditionSummary: TextView
+    private lateinit var btnMarketRefresh: FrameLayout
+    private lateinit var tvMarketStatusIndicator: TextView
+
+    // Section 1: Pulse
+    private lateinit var rvMarketPulse: RecyclerView
+    private lateinit var pulseAdapter: MarketPulseAdapter
+
+    // Section 2: Hero Chart
+    private lateinit var chipHeroCrypto: TextView
+    private lateinit var chipHeroStocks: TextView
+    private lateinit var chipHeroIndices: TextView
+    private lateinit var chipHeroForex: TextView
+    private lateinit var spinnerHeroBenchmark: Spinner
+    private lateinit var tvHeroSymbol: TextView
+    private lateinit var tvHeroPrice: TextView
+    private lateinit var tvHeroChange: TextView
+    private lateinit var tvHeroDataStatus: TextView
+    private lateinit var btnIndicatorMa: TextView
+    private lateinit var btnIndicatorEma: TextView
+    private lateinit var btnIndicatorRsi: TextView
+    private lateinit var btnIndicatorMacd: TextView
+    private lateinit var tvIndicatorStatus: TextView
+    private lateinit var chartHero: com.github.mikephil.charting.charts.LineChart
+    private lateinit var btnHero1D: TextView
+    private lateinit var btnHero1W: TextView
+    private lateinit var btnHero1M: TextView
+    private lateinit var btnHero3M: TextView
+    private lateinit var btnHero1Y: TextView
+    private lateinit var btnHeroALL: TextView
+    private lateinit var btnHeroCustomDate: TextView
+
+    // Section 3: Key Markets
+    private lateinit var rvKeyMarkets: RecyclerView
+    private lateinit var keyMarketsAdapter: KeyMarketsAdapter
+
+    // Section 4: Top Gainers & Losers
+    private lateinit var rvTopGainers: RecyclerView
+    private lateinit var topGainersAdapter: MarketMoversAdapter
+    private lateinit var rvTopLosers: RecyclerView
+    private lateinit var topLosersAdapter: MarketMoversAdapter
+
+    // Section 5: Crypto
+    private lateinit var rvCryptoMarket: RecyclerView
+    private lateinit var cryptoDashboardAdapter: CryptoDashboardAdapter
+
+    // Section 6: Stocks & ETFs
+    private lateinit var rvStocksAndEtfs: RecyclerView
+    private lateinit var stockAdapter: StockWatchlistAdapter
+
+    // Section 7: Forex Matrix
+    private lateinit var rvForexMatrix: RecyclerView
+    private lateinit var forexAdapter: ForexMatrixAdapter
+
+    // Section 8: Economic Indicators
+    private lateinit var rvEconomicIndicators: RecyclerView
+    private lateinit var economicIndicatorAdapter: EconomicIndicatorAdapter
+
+    // Section 9: Economic Events
+    private lateinit var rvEconomicEvents: RecyclerView
+    private lateinit var economicEventAdapter: EconomicEventAdapter
 
     // News Widget
     private lateinit var newsViewModel: NewsViewModel
@@ -243,9 +322,12 @@ class HomeActivity : AppCompatActivity() {
         lastLocationFetch = 0L
 
         prayerViewModel = ViewModelProvider(this)[PrayerViewModel::class.java]
-        cryptoViewModel = ViewModelProvider(this)[CryptoViewModel::class.java]
+        marketViewModel = ViewModelProvider(this)[MarketViewModel::class.java]
         calendarViewModel = ViewModelProvider(this)[CalendarViewModel::class.java]
         newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]
+
+        prayerViewModel.loadSchedule(this)
+        prayerCountdownHandler.post(prayerCountdownRunnable)
 
         bindViews()
         setupSwipeRefresh()
@@ -269,14 +351,14 @@ class HomeActivity : AppCompatActivity() {
 
     private fun setupSwipeRefresh() {
         val swipeRefreshLayout = findViewById<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.swipeRefreshLayout)
-        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(android.graphics.Color.parseColor("#1E222B"))
-        swipeRefreshLayout.setColorSchemeColors(android.graphics.Color.parseColor("#00E5FF"), android.graphics.Color.parseColor("#10B981"))
+        swipeRefreshLayout.setProgressBackgroundColorSchemeColor(Color.parseColor("#1E222B"))
+        swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#00E5FF"), Color.parseColor("#10B981"))
         swipeRefreshLayout.setOnRefreshListener {
-            cryptoViewModel.loadMarketData(this, true)
+            marketViewModel.loadMarket(this, true)
             newsViewModel.loadHomepageNews(this, true)
             updateIpAndConnection()
             updatePingValue()
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+            Handler(Looper.getMainLooper()).postDelayed({
                 swipeRefreshLayout.isRefreshing = false
             }, 1200L)
         }
@@ -337,11 +419,46 @@ class HomeActivity : AppCompatActivity() {
         layoutActiveDetail = findViewById(R.id.layoutActiveDetail)
         tvCalendarStatus = findViewById(R.id.tvCalendarStatus)
 
-        // Market Widget
+        // Market Hub Views
         cardMarketBlur = findViewById(R.id.cardMarket)
-        layoutCryptoRows = findViewById(R.id.layoutCryptoRows)
-        tvMarketStatusIndicator = findViewById(R.id.tvMarketStatusIndicator)
         tvMarketTitle = findViewById(R.id.tvMarketTitle)
+        tvMarketSessionStatus = findViewById(R.id.tvMarketSessionStatus)
+        tvMarketConditionSummary = findViewById(R.id.tvMarketConditionSummary)
+        btnMarketRefresh = findViewById(R.id.btnMarketRefresh)
+        tvMarketStatusIndicator = findViewById(R.id.tvMarketStatusIndicator)
+
+        rvMarketPulse = findViewById(R.id.rvMarketPulse)
+        chipHeroCrypto = findViewById(R.id.chipHeroCrypto)
+        chipHeroStocks = findViewById(R.id.chipHeroStocks)
+        chipHeroIndices = findViewById(R.id.chipHeroIndices)
+        chipHeroForex = findViewById(R.id.chipHeroForex)
+        spinnerHeroBenchmark = findViewById(R.id.spinnerHeroBenchmark)
+        tvHeroSymbol = findViewById(R.id.tvHeroSymbol)
+        tvHeroPrice = findViewById(R.id.tvHeroPrice)
+        tvHeroChange = findViewById(R.id.tvHeroChange)
+        tvHeroDataStatus = findViewById(R.id.tvHeroDataStatus)
+        btnIndicatorMa = findViewById(R.id.btnIndicatorMa)
+        btnIndicatorEma = findViewById(R.id.btnIndicatorEma)
+        btnIndicatorRsi = findViewById(R.id.btnIndicatorRsi)
+        btnIndicatorMacd = findViewById(R.id.btnIndicatorMacd)
+        tvIndicatorStatus = findViewById(R.id.tvIndicatorStatus)
+        chartHero = findViewById(R.id.chartHero)
+        btnHero1D = findViewById(R.id.btnHero1D)
+        btnHero1W = findViewById(R.id.btnHero1W)
+        btnHero1M = findViewById(R.id.btnHero1M)
+        btnHero3M = findViewById(R.id.btnHero3M)
+        btnHero1Y = findViewById(R.id.btnHero1Y)
+        btnHeroALL = findViewById(R.id.btnHeroALL)
+        btnHeroCustomDate = findViewById(R.id.btnHeroCustomDate)
+
+        rvKeyMarkets = findViewById(R.id.rvKeyMarkets)
+        rvTopGainers = findViewById(R.id.rvTopGainers)
+        rvTopLosers = findViewById(R.id.rvTopLosers)
+        rvCryptoMarket = findViewById(R.id.rvCryptoMarket)
+        rvStocksAndEtfs = findViewById(R.id.rvStocksAndEtfs)
+        rvForexMatrix = findViewById(R.id.rvForexMatrix)
+        rvEconomicIndicators = findViewById(R.id.rvEconomicIndicators)
+        rvEconomicEvents = findViewById(R.id.rvEconomicEvents)
 
         // News Widget
         cardNewsBlur = findViewById(R.id.cardNews)
@@ -461,21 +578,6 @@ class HomeActivity : AppCompatActivity() {
         DrawerMenuHelper.setup(this, drawerLayout, listOf(cardIpBlur, cardConnectionBlur, cardPingBlur, cardPrayerBlur, cardCalendarBlur, cardMarketBlur))
     }
 
-    private fun closeDrawer() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        }
-    }
-
-    private fun openUrl(url: String) {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(intent)
-        } catch (e: Exception) {
-            Toast.makeText(this, "Cannot open link", Toast.LENGTH_SHORT).show()
-        }
-    }
-
     private fun updatePasswordLabel() {
         if (::tvPasswordLabel.isInitialized) {
             tvPasswordLabel.text = if (PinManager.hasPin(this)) {
@@ -484,36 +586,6 @@ class HomeActivity : AppCompatActivity() {
                 getString(R.string.drawer_create_password)
             }
         }
-    }
-
-    private fun showPasswordOptionsDialog() {
-        val options = arrayOf(
-            getString(R.string.drawer_change_password),
-            getString(R.string.drawer_delete_password),
-        )
-
-        AlertDialog.Builder(this, R.style.Theme_AquaticReminezTools_Dialog)
-            .setTitle(R.string.drawer_features)
-            .setItems(options) { _, which ->
-                when (which) {
-                    0 -> startActivity(Intent(this, PinChangeActivity::class.java))
-                    1 -> confirmDeletePassword()
-                }
-            }
-            .show()
-    }
-
-    private fun confirmDeletePassword() {
-        AlertDialog.Builder(this, R.style.Theme_AquaticReminezTools_Dialog)
-            .setTitle(R.string.delete_pin_title)
-            .setMessage(R.string.delete_pin_message)
-            .setPositiveButton(R.string.delete) { _, _ ->
-                PinManager.deletePin(this)
-                Toast.makeText(this, "Password deleted", Toast.LENGTH_SHORT).show()
-                updatePasswordLabel()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun setupGlassCards() {
@@ -541,6 +613,11 @@ class HomeActivity : AppCompatActivity() {
     // PRAYER SCHEDULE WIDGET
     // ============================
     private fun setupPrayerSchedule() {
+        findViewById<View>(R.id.btnPrayerRefresh)?.setOnClickListener {
+            prayerViewModel.loadSchedule(this)
+            Toast.makeText(this, "Refreshing Prayer Schedule...", Toast.LENGTH_SHORT).show()
+        }
+
         prayerViewModel.uiState.observe(this) { state ->
             when (state) {
                 is PrayerUiState.Loading -> {
@@ -607,6 +684,11 @@ class HomeActivity : AppCompatActivity() {
     // GREGORIAN-HIJRI CALENDAR WIDGET
     // ============================
     private fun setupCalendarSection() {
+        findViewById<View>(R.id.btnCalendarRefresh)?.setOnClickListener {
+            calendarViewModel.initCalendar(this)
+            Toast.makeText(this, "Refreshing Calendar...", Toast.LENGTH_SHORT).show()
+        }
+
         rvCalendarGrid.layoutManager = GridLayoutManager(this, 7)
         calendarDayAdapter = CalendarDayAdapter { selectedDay ->
             calendarViewModel.onSelectDay(this, selectedDay)
@@ -682,150 +764,439 @@ class HomeActivity : AppCompatActivity() {
     }
 
     // ============================
-    // MARKET WIDGET
+    // MARKET HUB WIDGET (ALL 9 SECTIONS)
     // ============================
     private fun setupMarketSection() {
-        tvMarketTitle.setOnClickListener {
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
-            ActivityTransition.startActivitySmooth(this, intent)
+        btnMarketRefresh.setOnClickListener {
+            marketViewModel.loadMarket(this, forceRefresh = true)
         }
 
-        cardMarketBlur.setOnClickListener {
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.market.MarketActivity::class.java)
-            ActivityTransition.startActivitySmooth(this, intent)
+        pulseAdapter = MarketPulseAdapter(emptyList(), ::onInstrumentClicked)
+        keyMarketsAdapter = KeyMarketsAdapter(emptyList(), ::onInstrumentClicked)
+        topGainersAdapter = MarketMoversAdapter(emptyList(), ::onInstrumentClicked)
+        topLosersAdapter = MarketMoversAdapter(emptyList(), ::onInstrumentClicked)
+        cryptoDashboardAdapter = CryptoDashboardAdapter(emptyList(), ::onInstrumentClicked)
+        stockAdapter = StockWatchlistAdapter(emptyList(), ::onInstrumentClicked)
+        forexAdapter = ForexMatrixAdapter(emptyList(), ::onInstrumentClicked)
+        economicIndicatorAdapter = EconomicIndicatorAdapter(emptyList(), ::onInstrumentClicked)
+        economicEventAdapter = EconomicEventAdapter(emptyList())
+
+        rvMarketPulse.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
+        rvMarketPulse.adapter = pulseAdapter
+        rvMarketPulse.isNestedScrollingEnabled = false
+
+        rvKeyMarkets.layoutManager = GridLayoutManager(this, 2)
+        rvKeyMarkets.adapter = keyMarketsAdapter
+        rvKeyMarkets.isNestedScrollingEnabled = false
+
+        rvTopGainers.layoutManager = LinearLayoutManager(this)
+        rvTopGainers.adapter = topGainersAdapter
+        rvTopGainers.isNestedScrollingEnabled = false
+
+        rvTopLosers.layoutManager = LinearLayoutManager(this)
+        rvTopLosers.adapter = topLosersAdapter
+        rvTopLosers.isNestedScrollingEnabled = false
+
+        rvCryptoMarket.layoutManager = LinearLayoutManager(this)
+        rvCryptoMarket.adapter = cryptoDashboardAdapter
+        rvCryptoMarket.isNestedScrollingEnabled = false
+
+        rvStocksAndEtfs.layoutManager = LinearLayoutManager(this)
+        rvStocksAndEtfs.adapter = stockAdapter
+        rvStocksAndEtfs.isNestedScrollingEnabled = false
+
+        rvForexMatrix.layoutManager = GridLayoutManager(this, 2)
+        rvForexMatrix.adapter = forexAdapter
+        rvForexMatrix.isNestedScrollingEnabled = false
+
+        rvEconomicIndicators.layoutManager = GridLayoutManager(this, 2)
+        rvEconomicIndicators.adapter = economicIndicatorAdapter
+        rvEconomicIndicators.isNestedScrollingEnabled = false
+
+        rvEconomicEvents.layoutManager = LinearLayoutManager(this)
+        rvEconomicEvents.adapter = economicEventAdapter
+        rvEconomicEvents.isNestedScrollingEnabled = false
+
+        // Category Chips for Hero Chart
+        chipHeroCrypto.setOnClickListener {
+            marketViewModel.setHeroCategory(MarketCategory.CRYPTO, "bitcoin")
+        }
+        chipHeroStocks.setOnClickListener {
+            marketViewModel.setHeroCategory(MarketCategory.STOCKS, "bbca")
+        }
+        chipHeroIndices.setOnClickListener {
+            marketViewModel.setHeroCategory(MarketCategory.INDICES, "ihsg")
+        }
+        chipHeroForex.setOnClickListener {
+            marketViewModel.setHeroCategory(MarketCategory.FOREX, "usd_idr")
         }
 
-        cryptoViewModel.uiState.observe(this) { state ->
+        // Time Range Buttons
+        val rangeButtons = listOf(
+            Pair(btnHero1D, "1D"),
+            Pair(btnHero1W, "1W"),
+            Pair(btnHero1M, "1M"),
+            Pair(btnHero3M, "3M"),
+            Pair(btnHero1Y, "1Y"),
+            Pair(btnHeroALL, "ALL")
+        )
+        rangeButtons.forEach { (btn, range) ->
+            btn.setOnClickListener { marketViewModel.setHeroTimeRange(range) }
+        }
+
+        btnHeroCustomDate.setOnClickListener {
+            showCustomDatePicker()
+        }
+
+        // Technical Indicator Toggles
+        btnIndicatorMa.setOnClickListener { marketViewModel.toggleIndicator("MA") }
+        btnIndicatorEma.setOnClickListener { marketViewModel.toggleIndicator("EMA") }
+        btnIndicatorRsi.setOnClickListener { marketViewModel.toggleIndicator("RSI") }
+        btnIndicatorMacd.setOnClickListener { marketViewModel.toggleIndicator("MACD") }
+
+        // Observe ViewModel State
+        marketViewModel.uiState.observe(this) { state ->
             when (state) {
-                is CryptoUiState.Loading -> {
-                    // Retain current view state during loading
+                is MarketUiState.Loading -> {
+                    tvMarketStatusIndicator.text = "Syncing Market Feeds..."
+                    tvMarketStatusIndicator.visibility = View.VISIBLE
                 }
-                is CryptoUiState.Success -> {
-                    displayCryptoRows(state.assets)
+                is MarketUiState.Success -> {
+                    tvMarketStatusIndicator.visibility = View.GONE
 
-                    if (state.isDemo) {
-                        tvMarketStatusIndicator.text = getString(R.string.market_status_demo)
-                        tvMarketStatusIndicator.visibility = View.VISIBLE
-                    } else if (state.isCached) {
-                        tvMarketStatusIndicator.text = getString(R.string.market_status_offline)
-                        tvMarketStatusIndicator.visibility = View.VISIBLE
-                    } else {
-                        tvMarketStatusIndicator.visibility = View.GONE
+                    tvMarketSessionStatus.text = state.sessionStatus
+                    tvMarketConditionSummary.text = "${state.marketConditionSummary} · ${state.lastUpdatedFormatted}"
+
+                    pulseAdapter.updateData(state.marketPulse)
+                    keyMarketsAdapter.updateData(state.keyMarkets)
+                    topGainersAdapter.updateData(state.topGainers)
+                    topLosersAdapter.updateData(state.topLosers)
+                    cryptoDashboardAdapter.updateData(state.cryptoInstruments)
+                    stockAdapter.updateData(state.stocksInstruments)
+                    forexAdapter.updateData(state.forexInstruments)
+                    economicIndicatorAdapter.updateData(state.economicIndicators)
+                    economicEventAdapter.updateData(state.economicEvents)
+
+                    updateCategoryChipsStyle(state.selectedHeroCategory)
+
+                    val filteredCategoryInstruments = state.allInstruments.filter {
+                        if (state.selectedHeroCategory == MarketCategory.STOCKS) {
+                            it.category == MarketCategory.STOCKS || it.category == MarketCategory.ETFS
+                        } else {
+                            it.category == state.selectedHeroCategory
+                        }
                     }
+
+                    if (filteredCategoryInstruments.isNotEmpty()) {
+                        val names = filteredCategoryInstruments.map { "${it.symbol} - ${it.name}" }
+                        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, names)
+                        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+                        spinnerHeroBenchmark.adapter = spinnerAdapter
+
+                        var selectedIdx = filteredCategoryInstruments.indexOfFirst { it.id == state.selectedHeroBenchmarkId }
+                        if (selectedIdx == -1) selectedIdx = 0
+                        spinnerHeroBenchmark.setSelection(selectedIdx, false)
+
+                        spinnerHeroBenchmark.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+                            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                                val selectedInst = filteredCategoryInstruments.getOrNull(position)
+                                if (selectedInst != null && selectedInst.id != state.selectedHeroBenchmarkId) {
+                                    marketViewModel.setHeroBenchmark(selectedInst.id)
+                                }
+                            }
+                            override fun onNothingSelected(parent: AdapterView<*>?) {}
+                        }
+
+                        val activeHeroInst = filteredCategoryInstruments.find { it.id == state.selectedHeroBenchmarkId } ?: filteredCategoryInstruments.first()
+                        renderHeroChart(
+                            activeHeroInst,
+                            state.selectedHeroTimeRange,
+                            state.heroStartDateMs,
+                            state.heroEndDateMs,
+                            state.isMaEnabled,
+                            state.isEmaEnabled,
+                            state.isRsiEnabled,
+                            state.isMacdEnabled
+                        )
+                    }
+
+                    updateTimeRangeButtonsStyle(state.selectedHeroTimeRange)
+                    updateIndicatorButtonsStyle(state.isMaEnabled, state.isEmaEnabled, state.isRsiEnabled, state.isMacdEnabled)
                 }
-                is CryptoUiState.Error -> {
+                is MarketUiState.Error -> {
                     tvMarketStatusIndicator.text = state.message
                     tvMarketStatusIndicator.visibility = View.VISIBLE
                 }
             }
         }
 
-        cryptoViewModel.loadMarketData(this)
+        marketViewModel.loadMarket(this)
     }
 
-    private fun displayCryptoRows(assets: List<CryptoAsset>) {
-        layoutCryptoRows.removeAllViews()
-        val inflater = LayoutInflater.from(this)
+    private fun onInstrumentClicked(instrument: MarketInstrument) {
+        val bottomSheet = MarketInstrumentBottomSheet.newInstance(instrument)
+        bottomSheet.show(supportFragmentManager, "MarketInstrumentBottomSheet")
+    }
 
-        assets.forEachIndexed { index, asset ->
-            val rowView = inflater.inflate(R.layout.item_crypto_row, layoutCryptoRows, false)
-
-            val ivCoinLogo = rowView.findViewById<ImageView>(R.id.ivCoinLogo)
-            val tvLogoFallback = rowView.findViewById<TextView>(R.id.tvLogoFallback)
-            val tvCoinName = rowView.findViewById<TextView>(R.id.tvCoinName)
-            val tvCoinSymbol = rowView.findViewById<TextView>(R.id.tvCoinSymbol)
-            val sparklineView = rowView.findViewById<SparklineView>(R.id.sparklineView)
-            val tvCoinPrice = rowView.findViewById<TextView>(R.id.tvCoinPrice)
-            val tvCoinChange = rowView.findViewById<TextView>(R.id.tvCoinChange)
-
-            tvCoinName.text = asset.name
-            tvCoinSymbol.text = asset.symbol
-
-            // Logo
-            if (asset.id.equals("travala", ignoreCase = true)) {
-                tvLogoFallback.visibility = View.GONE
-                ivCoinLogo.visibility = View.VISIBLE
-                ivCoinLogo.setImageResource(R.drawable.ic_crypto_travala)
-            } else if (!asset.imageUrl.isNullOrEmpty()) {
-                tvLogoFallback.visibility = View.GONE
-                ivCoinLogo.visibility = View.VISIBLE
-                ivCoinLogo.load(asset.imageUrl) {
-                    crossfade(true)
-                    listener(
-                        onError = { _, _ ->
-                            ivCoinLogo.visibility = View.GONE
-                            tvLogoFallback.visibility = View.VISIBLE
-                            tvLogoFallback.text = asset.symbol.take(1)
-                        }
-                    )
-                }
-            } else {
-                ivCoinLogo.visibility = View.GONE
-                tvLogoFallback.visibility = View.VISIBLE
-                tvLogoFallback.text = asset.symbol.take(1)
-            }
-
-            // Price
-            if (asset.currentPriceUsd != null) {
-                val formattedPrice = if (asset.currentPriceUsd >= 1.0) {
-                    String.format(Locale.US, "$%,.2f", asset.currentPriceUsd)
-                } else {
-                    String.format(Locale.US, "$%,.4f", asset.currentPriceUsd)
-                }
-                tvCoinPrice.text = formattedPrice
-                tvCoinPrice.setTextColor(ContextCompat.getColor(this, R.color.text_primary))
-            } else {
-                tvCoinPrice.text = "--"
-                tvCoinPrice.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
-            }
-
-            // 24h Change
-            if (asset.priceChange24h != null) {
-                val isPositive = asset.priceChange24h >= 0
-                val changeText = if (isPositive) {
-                    String.format(Locale.US, "+%.2f%%", asset.priceChange24h)
-                } else {
-                    String.format(Locale.US, "%.2f%%", asset.priceChange24h)
-                }
-                tvCoinChange.text = changeText
-                val colorRes = if (isPositive) R.color.accent_teal else R.color.accent_muted_red
-                tvCoinChange.setTextColor(ContextCompat.getColor(this, colorRes))
-                tvCoinChange.visibility = View.VISIBLE
-            } else {
-                tvCoinChange.text = "--"
-                tvCoinChange.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
-            }
-
-            // Sparkline
-            if (!asset.sparklinePrices.isNullOrEmpty() && asset.sparklinePrices.size >= 2) {
-                val isPositive = (asset.priceChange24h ?: 0.0) >= 0
-                sparklineView.setSparklineData(asset.sparklinePrices, isPositive)
-                sparklineView.visibility = View.VISIBLE
-            } else {
-                sparklineView.setSparklineData(null, true)
-                sparklineView.visibility = View.INVISIBLE
-            }
-
-            layoutCryptoRows.addView(rowView)
-
-            // Divider except after the last item
-            if (index < assets.size - 1) {
-                val divider = View(this).apply {
-                    layoutParams = LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        (1 * resources.displayMetrics.density).toInt()
-                    )
-                    setBackgroundColor(Color.parseColor("#1AFFFFFF"))
-                }
-                layoutCryptoRows.addView(divider)
+    private fun showCustomDatePicker() {
+        val builder = com.google.android.material.datepicker.MaterialDatePicker.Builder.dateRangePicker()
+        builder.setTitleText("Select Hero Chart Date Range")
+        val picker = builder.build()
+        picker.addOnPositiveButtonClickListener { selection ->
+            val startMs = selection.first
+            val endMs = selection.second
+            if (startMs != null && endMs != null) {
+                marketViewModel.setHeroTimeRange("CUSTOM", startMs, endMs)
             }
         }
+        picker.show(supportFragmentManager, "hero_date_range_picker")
+    }
+
+    private fun updateCategoryChipsStyle(activeCategory: MarketCategory) {
+        val chipMap = listOf(
+            Pair(chipHeroCrypto, MarketCategory.CRYPTO),
+            Pair(chipHeroStocks, MarketCategory.STOCKS),
+            Pair(chipHeroIndices, MarketCategory.INDICES),
+            Pair(chipHeroForex, MarketCategory.FOREX)
+        )
+        val activeColor = ContextCompat.getColor(this, R.color.accent_cyan)
+        val inactiveColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        chipMap.forEach { (chip, cat) ->
+            if (cat == activeCategory) {
+                chip.setBackgroundResource(R.drawable.bg_chip_cyan_active)
+                chip.setTextColor(activeColor)
+            } else {
+                chip.setBackgroundResource(R.drawable.bg_chip_inactive)
+                chip.setTextColor(inactiveColor)
+            }
+        }
+    }
+
+    private fun updateTimeRangeButtonsStyle(activeRange: String) {
+        val rangeButtons = listOf(
+            Pair(btnHero1D, "1D"),
+            Pair(btnHero1W, "1W"),
+            Pair(btnHero1M, "1M"),
+            Pair(btnHero3M, "3M"),
+            Pair(btnHero1Y, "1Y"),
+            Pair(btnHeroALL, "ALL"),
+            Pair(btnHeroCustomDate, "CUSTOM")
+        )
+        val activeColor = ContextCompat.getColor(this, R.color.accent_cyan)
+        val inactiveColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        rangeButtons.forEach { (btn, range) ->
+            if (range == activeRange) {
+                btn.setBackgroundResource(R.drawable.bg_chip_cyan_active)
+                btn.setTextColor(activeColor)
+            } else {
+                btn.setBackgroundResource(R.drawable.bg_chip_inactive)
+                btn.setTextColor(inactiveColor)
+            }
+        }
+    }
+
+    private fun updateIndicatorButtonsStyle(isMa: Boolean, isEma: Boolean, isRsi: Boolean, isMacd: Boolean) {
+        val activeColor = ContextCompat.getColor(this, R.color.accent_cyan)
+        val inactiveColor = ContextCompat.getColor(this, R.color.text_secondary)
+
+        btnIndicatorMa.setBackgroundResource(if (isMa) R.drawable.bg_chip_cyan_active else R.drawable.bg_chip_inactive)
+        btnIndicatorMa.setTextColor(if (isMa) activeColor else inactiveColor)
+
+        btnIndicatorEma.setBackgroundResource(if (isEma) R.drawable.bg_chip_cyan_active else R.drawable.bg_chip_inactive)
+        btnIndicatorEma.setTextColor(if (isEma) activeColor else inactiveColor)
+
+        btnIndicatorRsi.setBackgroundResource(if (isRsi) R.drawable.bg_chip_cyan_active else R.drawable.bg_chip_inactive)
+        btnIndicatorRsi.setTextColor(if (isRsi) activeColor else inactiveColor)
+
+        btnIndicatorMacd.setBackgroundResource(if (isMacd) R.drawable.bg_chip_cyan_active else R.drawable.bg_chip_inactive)
+        btnIndicatorMacd.setTextColor(if (isMacd) activeColor else inactiveColor)
+    }
+
+    private fun renderHeroChart(
+        activeInstrument: MarketInstrument,
+        timeRange: String,
+        startDateMs: Long?,
+        endDateMs: Long?,
+        isMaEnabled: Boolean,
+        isEmaEnabled: Boolean,
+        isRsiEnabled: Boolean,
+        isMacdEnabled: Boolean
+    ) {
+        val repository = com.repp.aquaticremineztools.data.repository.MarketRepository.getInstance(this)
+        val rawEntries = repository.getHistoricalEntriesForHero(activeInstrument, timeRange, startDateMs, endDateMs)
+
+        tvHeroSymbol.text = "${activeInstrument.symbol} · ${activeInstrument.name}"
+
+        val price = activeInstrument.currentPrice
+        if (price != null) {
+            val formatted = when (activeInstrument.currency) {
+                "IDR" -> String.format(Locale.US, "Rp %,.2f", price)
+                "%" -> String.format(Locale.US, "%.2f%%", price)
+                "JPY" -> String.format(Locale.US, "¥%,.2f", price)
+                "EUR" -> String.format(Locale.US, "€%,.4f", price)
+                else -> if (price >= 1.0) String.format(Locale.US, "$%,.2f", price) else String.format(Locale.US, "$%,.4f", price)
+            }
+            tvHeroPrice.text = formatted
+        } else {
+            tvHeroPrice.text = "--"
+        }
+
+        val pctChange = activeInstrument.priceChangePercentage24h
+        if (pctChange != null) {
+            val isPos = pctChange >= 0
+            val sign = if (isPos) "+" else ""
+            tvHeroChange.text = String.format(Locale.US, "%s%.2f%% (24h)", sign, pctChange)
+            val colorRes = if (isPos) R.color.accent_teal else R.color.accent_muted_red
+            tvHeroChange.setTextColor(ContextCompat.getColor(this, colorRes))
+        } else {
+            tvHeroChange.text = "--"
+        }
+
+        tvHeroDataStatus.text = when (activeInstrument.dataStatus) {
+            MarketDataStatus.LIVE -> "LIVE FEED"
+            MarketDataStatus.CACHED -> "OFFLINE CACHE"
+            MarketDataStatus.SIMULATED -> "DEMO DATA"
+            MarketDataStatus.UNAVAILABLE -> "FEED UNAVAILABLE"
+        }
+
+        if (rawEntries.isEmpty()) {
+            chartHero.clear()
+            return
+        }
+
+        val primaryDataSet = com.github.mikephil.charting.data.LineDataSet(rawEntries, "Price").apply {
+            color = Color.parseColor("#43D9E6")
+            setLineWidth(2f)
+            setDrawCircles(false)
+            setDrawValues(false)
+            mode = com.github.mikephil.charting.data.LineDataSet.Mode.CUBIC_BEZIER
+            setDrawFilled(true)
+            fillColor = Color.parseColor("#43D9E6")
+            fillAlpha = 35
+            highLightColor = Color.parseColor("#00E5FF")
+        }
+
+        val dataSets = mutableListOf<com.github.mikephil.charting.data.LineDataSet>(primaryDataSet)
+        val prices = rawEntries.map { it.y }
+
+        if (isMaEnabled) {
+            val ma20 = com.repp.aquaticremineztools.core.util.TechnicalIndicators.calculateSMA(prices, 20)
+            val maEntries = mutableListOf<com.github.mikephil.charting.data.Entry>()
+            for (i in rawEntries.indices) {
+                val valMa = ma20[i]
+                if (valMa != null) {
+                    maEntries.add(com.github.mikephil.charting.data.Entry(i.toFloat(), valMa))
+                }
+            }
+            if (maEntries.isNotEmpty()) {
+                val maDataSet = com.github.mikephil.charting.data.LineDataSet(maEntries, "MA(20)").apply {
+                    color = Color.parseColor("#FFD700")
+                    setLineWidth(1.5f)
+                    setDrawCircles(false)
+                    setDrawValues(false)
+                }
+                dataSets.add(maDataSet)
+            }
+        }
+
+        if (isEmaEnabled) {
+            val ema50 = com.repp.aquaticremineztools.core.util.TechnicalIndicators.calculateEMA(prices, 50)
+            val emaEntries = mutableListOf<com.github.mikephil.charting.data.Entry>()
+            for (i in rawEntries.indices) {
+                val valEma = ema50[i]
+                if (valEma != null) {
+                    emaEntries.add(com.github.mikephil.charting.data.Entry(i.toFloat(), valEma))
+                }
+            }
+            if (emaEntries.isNotEmpty()) {
+                val emaDataSet = com.github.mikephil.charting.data.LineDataSet(emaEntries, "EMA(50)").apply {
+                    color = Color.parseColor("#8B5CF6")
+                    setLineWidth(1.5f)
+                    setDrawCircles(false)
+                    setDrawValues(false)
+                }
+                dataSets.add(emaDataSet)
+            }
+        }
+
+        val indicatorTextList = mutableListOf<String>()
+        if (isRsiEnabled) {
+            val rsiVal = com.repp.aquaticremineztools.core.util.TechnicalIndicators.calculateRSI(prices, 14)
+            if (rsiVal != null) {
+                val rsiState = when {
+                    rsiVal >= 70 -> "Overbought"
+                    rsiVal <= 30 -> "Oversold"
+                    else -> "Neutral"
+                }
+                indicatorTextList.add(String.format(Locale.US, "RSI(14): %.1f (%s)", rsiVal, rsiState))
+            }
+        }
+
+        if (isMacdEnabled) {
+            val macdPair = com.repp.aquaticremineztools.core.util.TechnicalIndicators.calculateMACD(prices)
+            if (macdPair != null) {
+                val macdState = if (macdPair.first >= macdPair.second) "Bullish" else "Bearish"
+                indicatorTextList.add(String.format(Locale.US, "MACD: %+.2f (%s)", macdPair.first, macdState))
+            }
+        }
+
+        if (indicatorTextList.isNotEmpty()) {
+            tvIndicatorStatus.text = indicatorTextList.joinToString(" · ")
+            tvIndicatorStatus.visibility = View.VISIBLE
+        } else {
+            tvIndicatorStatus.visibility = View.GONE
+        }
+
+        val lineData = com.github.mikephil.charting.data.LineData(dataSets as List<com.github.mikephil.charting.interfaces.datasets.ILineDataSet>)
+        chartHero.data = lineData
+
+        chartHero.description.isEnabled = false
+        chartHero.legend.isEnabled = false
+        chartHero.setTouchEnabled(true)
+        chartHero.isDragEnabled = true
+        chartHero.setScaleEnabled(false)
+
+        val xAxis = chartHero.xAxis
+        xAxis.position = com.github.mikephil.charting.components.XAxis.XAxisPosition.BOTTOM
+        xAxis.setDrawGridLines(false)
+        xAxis.textColor = Color.parseColor("#80FFFFFF")
+        xAxis.setLabelCount(4, false)
+
+        val yAxisLeft = chartHero.axisLeft
+        yAxisLeft.setDrawGridLines(true)
+        yAxisLeft.gridColor = Color.parseColor("#1AFFFFFF")
+        yAxisLeft.textColor = Color.parseColor("#80FFFFFF")
+
+        val yAxisRight = chartHero.axisRight
+        yAxisRight.isEnabled = false
+
+        val markerView = MarketChartMarkerView(
+            this,
+            R.layout.layout_chart_marker_view,
+            when (activeInstrument.currency) {
+                "IDR" -> "Rp"
+                "JPY" -> "¥"
+                "%" -> "%"
+                else -> "$"
+            }
+        )
+        markerView.chartView = chartHero
+        chartHero.marker = markerView
+
+        chartHero.invalidate()
     }
 
     // ============================
     // NEWS WIDGET
     // ============================
     private fun setupNewsSection() {
+        findViewById<View>(R.id.btnNewsRefresh)?.setOnClickListener {
+            newsViewModel.loadHomepageNews(this, true)
+            Toast.makeText(this, "Refreshing News...", Toast.LENGTH_SHORT).show()
+        }
+
         layoutNewsHeaderTitle.setOnClickListener {
             val intent = Intent(this, com.repp.aquaticremineztools.presentation.news.NewsActivity::class.java)
             ActivityTransition.startActivitySmooth(this, intent)
@@ -868,7 +1239,6 @@ class HomeActivity : AppCompatActivity() {
 
         val inflater = LayoutInflater.from(this)
 
-        // 1. Featured Article
         val featuredArticle = articles.firstOrNull { it.isFeatured } ?: articles.first()
         val featuredView = inflater.inflate(R.layout.item_news_featured, containerFeaturedArticle, false)
 
@@ -903,7 +1273,6 @@ class HomeActivity : AppCompatActivity() {
 
         containerFeaturedArticle.addView(featuredView)
 
-        // 2. Compact Articles (4 compact articles, total 5 on homepage)
         val compactList = articles.filter { it.articleUrl != featuredArticle.articleUrl }.take(4)
         compactList.forEach { article ->
             val compactView = inflater.inflate(R.layout.item_news_compact, layoutCompactArticles, false)
@@ -996,7 +1365,6 @@ class HomeActivity : AppCompatActivity() {
                     ip
                 }
 
-                // Update label + value
                 tvConnectionLabel.text = conn.type
 
                 tvConnectionValue.text = if (!conn.isConnected) {
@@ -1098,336 +1466,122 @@ class HomeActivity : AppCompatActivity() {
     private fun updateBatteryUI(pct: Int) {
         tvBattery.text = "$pct%"
 
-        val isCharging = {
-            val intent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            val status = intent?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-            status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL
-        }()
-
-        val iconRes: Int
-        val tintRes: Int
-
         when {
-            isCharging -> {
-                iconRes = R.drawable.ic_battery
-                tintRes = R.color.status_online
+            pct >= 80 -> {
+                ivBatteryIcon.setImageResource(R.drawable.ic_battery_full)
+                ivBatteryIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_teal))
             }
-            pct >= 60 -> {
-                iconRes = R.drawable.ic_battery_full
-                tintRes = R.color.status_online
+            pct >= 50 -> {
+                ivBatteryIcon.setImageResource(R.drawable.ic_battery_half)
+                ivBatteryIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_teal))
             }
             pct >= 20 -> {
-                iconRes = R.drawable.ic_battery_half
-                tintRes = R.color.status_warning
+                ivBatteryIcon.setImageResource(R.drawable.ic_battery_low)
+                ivBatteryIcon.setColorFilter(ContextCompat.getColor(this, R.color.status_warning))
             }
             else -> {
-                iconRes = R.drawable.ic_battery_low
-                tintRes = R.color.status_error
+                ivBatteryIcon.setImageResource(R.drawable.ic_battery_low)
+                ivBatteryIcon.setColorFilter(ContextCompat.getColor(this, R.color.accent_red))
             }
         }
-
-        ivBatteryIcon.setImageResource(iconRes)
-        ivBatteryIcon.setColorFilter(getColor(tintRes))
     }
 
     // ============================
-    // LOCATION + WEATHER
+    // LOCATION & WEATHER
     // ============================
     private fun requestLocationAndWeather() {
-        lastLocationFetch = System.currentTimeMillis()
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED ||
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-            == PackageManager.PERMISSION_GRANTED
-        ) {
-            getLocationAndWeather()
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_CODE)
         } else {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION,
-                ),
-                LOCATION_PERMISSION_CODE,
-            )
-            fetchLocationFromIp()
+            fetchLocationAndWeather()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray,
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == LOCATION_PERMISSION_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                getLocationAndWeather()
-            } else {
-                fetchLocationFromIp()
-            }
+        if (requestCode == LOCATION_PERMISSION_CODE && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            fetchLocationAndWeather()
+        } else {
+            tvLocation.text = "Location Disabled"
+            tvTemperature.text = "--°C"
         }
     }
 
     @SuppressLint("MissingPermission")
-    private fun getLocationAndWeather() {
-        try {
-            val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-
-            val providers = listOf(
-                LocationManager.NETWORK_PROVIDER,
-                LocationManager.GPS_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER,
-            )
-
-            var lastLocation: Location? = null
-            for (provider in providers) {
-                try {
-                    val loc = lm.getLastKnownLocation(provider)
-                    if (loc != null) {
-                        if (lastLocation == null || loc.time > lastLocation.time) {
-                            lastLocation = loc
-                        }
-                    }
-                } catch (_: Exception) { }
-            }
-
-            if (lastLocation != null) {
-                val lat = lastLocation.latitude
-                val lon = lastLocation.longitude
-
-                executor.execute {
-                    val cityName = getCityName(lat, lon)
-                    if (cityName != "Unknown" && cityName.isNotEmpty()) {
-                        runOnUiThread {
-                            tvLocation.text = cityName
-                            prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cityName)
-                        }
-                    } else {
-                        fetchLocationFromIp()
-                    }
-                }
-                fetchWeather(lat, lon)
-            } else {
-                fetchLocationFromIp()
-
-                val listener = object : android.location.LocationListener {
-                    override fun onLocationChanged(location: Location) {
-                        val lat = location.latitude
-                        val lon = location.longitude
-
-                        executor.execute {
-                            val cityName = getCityName(lat, lon)
-                            if (cityName != "Unknown" && cityName.isNotEmpty()) {
-                                runOnUiThread {
-                                    tvLocation.text = cityName
-                                    prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cityName)
-                                }
-                            }
-                        }
-                        fetchWeather(lat, lon)
-                        try { lm.removeUpdates(this) } catch (_: Exception) {}
-                    }
-
-                    override fun onStatusChanged(provider: String?, status: Int, extras: Bundle?) {}
-                    override fun onProviderEnabled(provider: String) {}
-                    override fun onProviderDisabled(provider: String) {}
-                }
-
-                try {
-                    if (lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                        lm.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, listener, Looper.getMainLooper())
-                    } else if (lm.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                        lm.requestSingleUpdate(LocationManager.GPS_PROVIDER, listener, Looper.getMainLooper())
-                    }
-                } catch (_: Exception) {}
-            }
-        } catch (e: Exception) {
-            Log.e("WEATHER_DEBUG", "Error lokasi: ${e.message}", e)
-            fetchLocationFromIp()
+    private fun fetchLocationAndWeather() {
+        val now = System.currentTimeMillis()
+        if (now - lastLocationFetch < LOCATION_REFRESH_INTERVAL && lastLocationFetch != 0L) {
+            return
         }
-    }
+        lastLocationFetch = now
 
-    private fun fetchLocationFromIp() {
         executor.execute {
             try {
-                val url = URL("http://ip-api.com/json/")
-                val conn = url.openConnection() as HttpURLConnection
-                conn.connectTimeout = 5000
-                conn.readTimeout = 5000
+                val lm = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+                val loc: Location? = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+                    ?: lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
 
-                val response = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
+                if (loc != null) {
+                    val lat = loc.latitude
+                    val lon = loc.longitude
 
-                val json = JSONObject(response)
-                if (json.optString("status") == "success") {
-                    val city = json.optString("city", "")
-                    val lat = json.optDouble("lat", 0.0)
-                    val lon = json.optDouble("lon", 0.0)
+                    val geocoder = Geocoder(this, Locale.getDefault())
+                    val addresses: List<Address>? = geocoder.getFromLocation(lat, lon, 1)
+                    val cityName = addresses?.firstOrNull()?.locality ?: addresses?.firstOrNull()?.subAdminArea ?: "Unknown City"
 
-                    val cleanedCity = cleanCityName(city)
-                    if (cleanedCity.isNotEmpty() && cleanedCity != "Unknown") {
+                    val url = URL("https://api.open-meteo.com/v1/forecast?latitude=$lat&longitude=$lon&current_weather=true")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.connectTimeout = 5000
+                    conn.readTimeout = 5000
+
+                    if (conn.responseCode == 200) {
+                        val text = conn.inputStream.bufferedReader().use { it.readText() }
+                        val json = JSONObject(text)
+                        val current = json.getJSONObject("current_weather")
+                        val temp = current.getDouble("temperature")
+                        val code = current.getInt("weathercode")
+
+                        val icon = when (code) {
+                            0 -> "☀️"
+                            1, 2, 3 -> "⛅"
+                            45, 48 -> "🌫️"
+                            51, 53, 55, 61, 63, 65 -> "🌧️"
+                            95, 96, 99 -> "⛈️"
+                            else -> "🌤️"
+                        }
+
                         runOnUiThread {
-                            tvLocation.text = cleanedCity
-                            if (lat != 0.0 && lon != 0.0) {
-                                prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, cleanedCity)
-                            }
-                        }
-                    } else {
-                        if (lat != 0.0 && lon != 0.0) {
-                            prayerViewModel.loadSchedule(this@HomeActivity, lat, lon, "Jakarta")
-                        } else {
-                            prayerViewModel.loadSchedule(this@HomeActivity)
+                            tvWeatherIcon.text = icon
+                            tvTemperature.text = "${temp.roundToInt()}°C"
+                            tvLocation.text = cleanLocationName(cityName)
                         }
                     }
-                    if (lat != 0.0 && lon != 0.0) {
-                        fetchWeather(lat, lon)
-                    }
-                } else {
-                    prayerViewModel.loadSchedule(this@HomeActivity)
                 }
             } catch (e: Exception) {
-                Log.e("WEATHER_DEBUG", "IP location error: ${e.message}", e)
-                prayerViewModel.loadSchedule(this@HomeActivity)
+                Log.e("HomeActivity", "Weather fetch error: ${e.message}")
             }
         }
     }
 
-    private fun getCityName(lat: Double, lon: Double): String {
-        return try {
-            val geocoder = Geocoder(this, Locale.getDefault())
-            @Suppress("DEPRECATION")
-            val addresses: List<Address>? = geocoder.getFromLocation(lat, lon, 1)
-
-            if (addresses.isNullOrEmpty()) return "Unknown"
-
-            val addr = addresses[0]
-            val rawName = addr.locality
-                ?: addr.subAdminArea
-                ?: addr.adminArea
-                ?: "Unknown"
-
-            cleanCityName(rawName)
-        } catch (e: Exception) {
-            Log.e("WEATHER_DEBUG", "Geocoder error: ${e.message}", e)
-            "Unknown"
+    private fun cleanLocationName(rawName: String): String {
+        var name = rawName
+        val prefixes = listOf("Kecamatan", "Kabupaten", "Kota", "Desa", "Kelurahan", "Kec", "Kab", "Kab.")
+        for (prefix in prefixes) {
+            val regex = Regex("(?i)\\b$prefix\\b\\.?\\s*")
+            name = name.replace(regex, "")
         }
-    }
-
-    private fun cleanCityName(raw: String): String {
-        val beforeComma = raw.substringBefore(",").trim()
-        return beforeComma
-            .replace("Kecamatan ", "", ignoreCase = true)
-            .replace("Kabupaten ", "", ignoreCase = true)
-            .replace("Kota ", "", ignoreCase = true)
-            .replace("Desa ", "", ignoreCase = true)
-            .replace("Kelurahan ", "", ignoreCase = true)
-            .replace("Provinsi ", "", ignoreCase = true)
-            .replace("Daerah Istimewa ", "", ignoreCase = true)
-            .replace("DKI ", "", ignoreCase = true)
-            .trim()
-            .ifEmpty { raw.trim() }
-    }
-
-    private fun fetchWeather(lat: Double, lon: Double) {
-        executor.execute {
-            try {
-                val urlStr = "https://api.open-meteo.com/v1/forecast" +
-                        "?latitude=$lat&longitude=$lon" +
-                        "&current_weather=true"
-
-                val url = URL(urlStr)
-                val conn = url.openConnection() as HttpURLConnection
-                conn.requestMethod = "GET"
-                conn.connectTimeout = 10000
-                conn.readTimeout = 10000
-
-                val response = conn.inputStream.bufferedReader().use { it.readText() }
-                conn.disconnect()
-
-                val json = JSONObject(response)
-                val currentWeather = json.getJSONObject("current_weather")
-                val temp = currentWeather.getDouble("temperature")
-                val code = currentWeather.getInt("weathercode")
-
-                val emoji = weatherCodeToEmoji(code)
-                val tempRound = temp.roundToInt()
-
-                runOnUiThread {
-                    tvWeatherIcon.text = emoji
-                    tvTemperature.text = "$tempRound°C"
-                }
-            } catch (e: Exception) {
-                Log.e("WEATHER_DEBUG", "Weather error: ${e.message}", e)
-                runOnUiThread {
-                    tvWeatherIcon.text = "❓"
-                    tvTemperature.text = "--°C"
-                }
-            }
-        }
-    }
-
-    private fun weatherCodeToEmoji(code: Int): String {
-        return when (code) {
-            0 -> "☀️"
-            1, 2, 3 -> "🌤️"
-            45, 48 -> "🌫️"
-            51, 53, 55 -> "🌦️"
-            56, 57 -> "🌧️"
-            61, 63, 65 -> "🌧️"
-            66, 67 -> "🌧️"
-            71, 73, 75 -> "❄️"
-            77 -> "🌨️"
-            80, 81, 82 -> "🌧️"
-            85, 86 -> "🌨️"
-            95 -> "⛈️"
-            96, 99 -> "⛈️"
-            else -> "🌤️"
-        }
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        selectNavTab(0)
-    }
-
-    override fun onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START)
-        } else {
-            @Suppress("DEPRECATION")
-            super.onBackPressed()
-        }
+        return name.trim()
     }
 
     override fun onResume() {
         super.onResume()
-        cardPlayer?.play()
+        cardPlayer?.playWhenReady = true
         updatePasswordLabel()
-        selectNavTab(0)
-        prayerCountdownHandler.post(prayerCountdownRunnable)
-
-        if (PinManager.hasPin(this) && AppLockManager.shouldLock(this)) {
-            AppLockManager.redirectToVerify(this, PinVerifyActivity::class.java)
-            finish()
-            return
-        }
-
-        updateIpAndConnection()
-
-        val now = System.currentTimeMillis()
-        if (now - lastLocationFetch > LOCATION_REFRESH_INTERVAL) {
-            requestLocationAndWeather()
-        }
     }
 
     override fun onPause() {
         super.onPause()
-        cardPlayer?.pause()
-        prayerCountdownHandler.removeCallbacks(prayerCountdownRunnable)
-        AppLockManager.onActivityPaused()
+        cardPlayer?.playWhenReady = false
     }
 
     override fun onDestroy() {
@@ -1435,9 +1589,10 @@ class HomeActivity : AppCompatActivity() {
         clockHandler.removeCallbacks(clockRunnable)
         pingHandler.removeCallbacks(pingRunnable)
         prayerCountdownHandler.removeCallbacks(prayerCountdownRunnable)
-        try { unregisterReceiver(batteryReceiver) } catch (_: Exception) {}
+        try {
+            unregisterReceiver(batteryReceiver)
+        } catch (_: Exception) {}
         cardPlayer?.release()
-        cardPlayer = null
         executor.shutdown()
     }
 }

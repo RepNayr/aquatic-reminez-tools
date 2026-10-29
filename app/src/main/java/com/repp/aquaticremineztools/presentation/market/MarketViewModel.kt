@@ -11,6 +11,9 @@ import com.repp.aquaticremineztools.data.model.MarketDataStatus
 import com.repp.aquaticremineztools.data.model.MarketInstrument
 import com.repp.aquaticremineztools.data.repository.MarketRepository
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 enum class MarketNavDestination {
     OVERVIEW,
@@ -42,9 +45,19 @@ sealed class MarketUiState {
         val economicEvents: List<EconomicEvent>,
         val activeAlertsCount: Int,
         val bannerMessage: String?,
+        val marketConditionSummary: String,
+        val sessionStatus: String,
+        val lastUpdatedFormatted: String,
         val activeScope: MarketScope = MarketScope.OVERVIEW,
-        val selectedHeroBenchmarkId: String = "sp500",
-        val selectedHeroTimeRange: String = "1D"
+        val selectedHeroCategory: MarketCategory = MarketCategory.CRYPTO,
+        val selectedHeroBenchmarkId: String = "bitcoin",
+        val selectedHeroTimeRange: String = "1D",
+        val heroStartDateMs: Long? = null,
+        val heroEndDateMs: Long? = null,
+        val isMaEnabled: Boolean = false,
+        val isEmaEnabled: Boolean = false,
+        val isRsiEnabled: Boolean = false,
+        val isMacdEnabled: Boolean = false
     ) : MarketUiState()
     data class Error(val message: String) : MarketUiState()
 }
@@ -58,8 +71,15 @@ class MarketViewModel : ViewModel() {
     val currentDestination: LiveData<MarketNavDestination> = _currentDestination
 
     private var currentScope = MarketScope.OVERVIEW
-    private var heroBenchmarkId = "sp500"
+    private var heroCategory = MarketCategory.CRYPTO
+    private var heroBenchmarkId = "bitcoin"
     private var heroTimeRange = "1D"
+    private var heroStartDateMs: Long? = null
+    private var heroEndDateMs: Long? = null
+    private var isMaEnabled = false
+    private var isEmaEnabled = false
+    private var isRsiEnabled = false
+    private var isMacdEnabled = false
 
     fun setDestination(destination: MarketNavDestination) {
         _currentDestination.value = destination
@@ -99,6 +119,20 @@ class MarketViewModel : ViewModel() {
         }
     }
 
+    fun setHeroCategory(category: MarketCategory, defaultInstrumentId: String? = null) {
+        heroCategory = category
+        if (defaultInstrumentId != null) {
+            heroBenchmarkId = defaultInstrumentId
+        }
+        val currentState = _uiState.value
+        if (currentState is MarketUiState.Success) {
+            _uiState.value = currentState.copy(
+                selectedHeroCategory = category,
+                selectedHeroBenchmarkId = heroBenchmarkId
+            )
+        }
+    }
+
     fun setHeroBenchmark(benchmarkId: String) {
         heroBenchmarkId = benchmarkId
         val currentState = _uiState.value
@@ -107,11 +141,35 @@ class MarketViewModel : ViewModel() {
         }
     }
 
-    fun setHeroTimeRange(timeRange: String) {
+    fun setHeroTimeRange(timeRange: String, startDateMs: Long? = null, endDateMs: Long? = null) {
         heroTimeRange = timeRange
+        heroStartDateMs = startDateMs
+        heroEndDateMs = endDateMs
         val currentState = _uiState.value
         if (currentState is MarketUiState.Success) {
-            _uiState.value = currentState.copy(selectedHeroTimeRange = timeRange)
+            _uiState.value = currentState.copy(
+                selectedHeroTimeRange = timeRange,
+                heroStartDateMs = startDateMs,
+                heroEndDateMs = endDateMs
+            )
+        }
+    }
+
+    fun toggleIndicator(indicator: String) {
+        when (indicator) {
+            "MA" -> isMaEnabled = !isMaEnabled
+            "EMA" -> isEmaEnabled = !isEmaEnabled
+            "RSI" -> isRsiEnabled = !isRsiEnabled
+            "MACD" -> isMacdEnabled = !isMacdEnabled
+        }
+        val currentState = _uiState.value
+        if (currentState is MarketUiState.Success) {
+            _uiState.value = currentState.copy(
+                isMaEnabled = isMaEnabled,
+                isEmaEnabled = isEmaEnabled,
+                isRsiEnabled = isRsiEnabled,
+                isMacdEnabled = isMacdEnabled
+            )
         }
     }
 
@@ -150,7 +208,12 @@ class MarketViewModel : ViewModel() {
 
                 val cryptoStatus = cryptoList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
                 val forexStatus = forexList.firstOrNull()?.dataStatus ?: MarketDataStatus.UNAVAILABLE
-                val bannerMessage = "Crypto: $cryptoStatus · Forex: $forexStatus · Reference: SIMULATED"
+                val bannerMessage = "Crypto: $cryptoStatus · Forex: $forexStatus · Ref: SIMULATED"
+
+                val marketConditionSummary = repository.generateMarketConditionSummary(instruments)
+                val sessionStatus = repository.getMarketSessionStatus()
+                val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.US)
+                val lastUpdatedFormatted = "Updated ${dateFormat.format(Date())}"
 
                 val scopedPulse = filterInstrumentsByScope(marketPulse, currentScope)
                 val scopedKey = filterInstrumentsByScope(keyMarkets, currentScope)
@@ -174,9 +237,19 @@ class MarketViewModel : ViewModel() {
                     economicEvents = events,
                     activeAlertsCount = activeAlertsCount,
                     bannerMessage = bannerMessage,
+                    marketConditionSummary = marketConditionSummary,
+                    sessionStatus = sessionStatus,
+                    lastUpdatedFormatted = lastUpdatedFormatted,
                     activeScope = currentScope,
+                    selectedHeroCategory = heroCategory,
                     selectedHeroBenchmarkId = heroBenchmarkId,
-                    selectedHeroTimeRange = heroTimeRange
+                    selectedHeroTimeRange = heroTimeRange,
+                    heroStartDateMs = heroStartDateMs,
+                    heroEndDateMs = heroEndDateMs,
+                    isMaEnabled = isMaEnabled,
+                    isEmaEnabled = isEmaEnabled,
+                    isRsiEnabled = isRsiEnabled,
+                    isMacdEnabled = isMacdEnabled
                 )
             }.onFailure { e ->
                 _uiState.value = MarketUiState.Error(e.localizedMessage ?: "Failed to load market dashboard data")

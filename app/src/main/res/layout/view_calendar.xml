@@ -2,6 +2,7 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
@@ -9,8 +10,8 @@
     <View
         android:id="@+id/sectionLineCalendar"
         android:layout_width="3dp"
-        android:layout_height="14dp"
-        android:background="@color/accent_primary"
+        android:layout_height="16dp"
+        android:background="@color/accent_cyan"
         app:layout_constraintTop_toTopOf="@id/layoutHeaderTitle"
         app:layout_constraintBottom_toBottomOf="@id/layoutHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
@@ -32,7 +33,7 @@
             android:layout_height="16dp"
             android:contentDescription="@null"
             android:src="@drawable/ic_calendar"
-            app:tint="@color/accent_primary" />
+            app:tint="@color/accent_cyan" />
 
         <TextView
             android:id="@+id/tvCalendarTitle"
@@ -43,20 +44,54 @@
             android:letterSpacing="0.12"
             android:text="@string/calendar_title"
             android:textColor="@color/text_primary"
-            android:textSize="12sp"
+            android:textSize="12.5sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tvCalendarSubtitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:fontFamily="@font/times_new_roman_bold"
-            android:text="@string/calendar_subtitle"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:text="GREGORIAN · HIJRI INDONESIA"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10.5sp" />
+
+        <FrameLayout
+            android:id="@+id/btnCalendarRefresh"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_gravity="center"
+                android:contentDescription="Refresh Calendar"
+                android:src="@drawable/ic_refresh"
+                app:tint="@color/accent_cyan" />
+        </FrameLayout>
 
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvCalendarSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="11dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="Dual-calendar tracking national holidays, Islamic observances, and Javanese cycles."
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        app:layout_constraintTop_toBottomOf="@id/layoutHeaderTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- GLASS CARD -->
     <eightbitlab.com.blurview.BlurView
@@ -67,7 +102,7 @@
         android:layout_marginStart="3dp"
         android:layout_marginEnd="3dp"
         android:background="@drawable/bg_calendar_card_clip"
-        app:layout_constraintTop_toBottomOf="@id/layoutHeaderTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvCalendarSummary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
