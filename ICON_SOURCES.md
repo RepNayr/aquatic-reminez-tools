@@ -125,7 +125,22 @@ Dokumen ini memuat lisensi, sumber, dan pemetaan aset ikon 3D terpusat untuk sel
 
 ---
 
+## Professional Equity Terminal 2.1 — Brand Logos (8 Items)
+
+| No | Asset Name | Symbol | Category | Description / Origin | License |
+|---|---|---|---|---|---|
+| 1 | `ic_asset_stock_bbca.xml` | `BBCA` | STOCKS | Bank Central Asia (BCA) Official Vector Brand Logo | Free Commercial & Distribution / Brand Public Domain |
+| 2 | `ic_asset_stock_bbri.xml` | `BBRI` | STOCKS | Bank Rakyat Indonesia (BRI) Official Vector Brand Logo | Free Commercial & Distribution / Brand Public Domain |
+| 3 | `ic_asset_stock_bmri.xml` | `BMRI` | STOCKS | Bank Mandiri Official Vector Brand Logo | Free Commercial & Distribution / Brand Public Domain |
+| 4 | `ic_asset_stock_aapl.xml` | `AAPL` | STOCKS | Apple Inc. Official Vector Brand Emblem Logo | Free Commercial & Distribution / Brand Public Domain |
+| 5 | `ic_asset_stock_nvda.xml` | `NVDA` | STOCKS | NVIDIA Corporation Official Vector Eye Emblem Logo | Free Commercial & Distribution / Brand Public Domain |
+| 6 | `ic_asset_stock_tsla.xml` | `TSLA` | STOCKS | Tesla Inc. Official Vector Brand Emblem Logo | Free Commercial & Distribution / Brand Public Domain |
+| 7 | `ic_asset_etf_spy.xml` | `SPY` | ETFS | SPDR S&P 500 ETF Trust Fund Vector Identity Logo | Free Commercial & Distribution / Brand Public Domain |
+| 8 | `ic_asset_etf_qqq.xml` | `QQQ` | ETFS | Invesco QQQ Trust Fund Vector Identity Logo | Free Commercial & Distribution / Brand Public Domain |
+
+---
+
 ## Verifikasi & Catatan Compliance
-1. **Aturan 1 Ikon 1 Tool**: Seluruh 108 item telah terpetakan secara konsisten melalui `ToolIconRegistry`.
+1. **Aturan 1 Ikon 1 Tool**: Seluruh 108 tool items dan 8 instrument equity terminal logos telah terpetakan secara konsisten melalui `ToolIconRegistry` dan `MarketAssetIconHelper`.
 2. **Ketersediaan Offline**: Seluruh aset disimpan secara lokal di `res/drawable/`, tanpa *network request* saat aplikasi berjalan.
 3. **Optimasi Resolusi**: Format Vector Drawable Android (`.xml`) memastikan tampilan tajam pada seluruh kerapatan layar (*hdpi* hingga *xxxhdpi*).

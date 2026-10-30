@@ -1,83 +1,363 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/bg_glass_card_clip"
-    android:gravity="center_vertical"
-    android:orientation="horizontal"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="11dp">
+    android:layout_marginBottom="6dp"
+    android:background="@drawable/bg_terminal_row"
+    android:orientation="vertical"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
 
-    <TextView
-        android:id="@+id/tvStockTickerBadge"
-        android:layout_width="48dp"
-        android:layout_height="32dp"
-        android:background="@drawable/bg_info_chip"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:gravity="center"
-        android:textColor="@color/accent_teal"
-        android:textSize="12.5sp"
-        android:textStyle="bold"
-        tools:text="BBCA" />
-
+    <!-- COLLAPSED ROW CONTENT -->
     <LinearLayout
-        android:layout_width="0dp"
+        android:id="@+id/layoutCollapsedRow"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/tvStockName"
+        <!-- AUTHENTIC COMPANY / ETF LOGO -->
+        <ImageView
+            android:id="@+id/ivStockLogo"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:contentDescription="Company Logo"
+            android:scaleType="fitCenter"
+            tools:src="@drawable/ic_asset_stock_bbca" />
+
+        <!-- INSTRUMENT IDENTITY -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvStockTicker"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="BBCA" />
+
+                <!-- STATUS BADGE -->
+                <TextView
+                    android:id="@+id/tvStockStatusBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_terminal_badge_simulated"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp"
+                    android:textColor="@color/accent_gold"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    tools:text="SIMULATED" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvStockName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:maxLines="1"
+                android:textColor="@color/text_secondary"
+                android:textSize="11.5sp"
+                tools:text="Bank Central Asia Tbk" />
+
+            <TextView
+                android:id="@+id/tvStockExchange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                tools:text="IDX · IDR" />
+        </LinearLayout>
+
+        <!-- LAST PRICE & CHANGE -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="13.5sp"
-            android:textStyle="bold"
-            tools:text="Bank Central Asia Tbk" />
+            android:gravity="end"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvStockExchange"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="@font/times_new_roman_regular"
-            android:textColor="@color/text_muted"
-            android:textSize="11sp"
-            tools:text="IDX · Indonesia" />
+            <TextView
+                android:id="@+id/tvStockPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/text_primary"
+                android:textSize="13.5sp"
+                android:textStyle="bold"
+                tools:text="Rp 10,250" />
+
+            <TextView
+                android:id="@+id/tvStockChange"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/accent_teal"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="+1.20%" />
+        </LinearLayout>
+
+        <!-- CHEVRON EXPAND INDICATOR -->
+        <ImageView
+            android:id="@+id/ivExpandChevron"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="Expand Row"
+            android:src="@drawable/ic_dropdown_chevron"
+            app:tint="@color/text_secondary" />
     </LinearLayout>
 
+    <!-- EXPANDED ADVANCED INFORMATION PANEL -->
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:id="@+id/layoutExpandedPanel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="end"
-        android:orientation="vertical">
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_terminal_expanded"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone"
+        tools:visibility="visible">
 
+        <!-- PANEL HEADER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/viewExpandedAccent"
+                android:layout_width="3dp"
+                android:layout_height="12dp"
+                android:background="@color/accent_teal" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:layout_weight="1"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:letterSpacing="0.06"
+                android:text="TERMINAL SPECIFICATION"
+                android:textColor="@color/text_primary"
+                android:textSize="10.5sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvExpandedCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_muted"
+                android:textSize="9.5sp"
+                tools:text="EQUITY STOCK" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#25323E" />
+
+        <!-- 2-COLUMN DATA METRICS GRID -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <!-- LEFT METRICS COLUMN -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="INSTRUMENT"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailFullName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11.5sp"
+                    tools:text="Bank Central Asia Tbk" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="EXCHANGE / CURRENCY"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailExchangeCurrency"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11.5sp"
+                    tools:text="IDX · IDR" />
+            </LinearLayout>
+
+            <!-- RIGHT METRICS COLUMN -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="LAST PRICE"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailLastPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="11.5sp"
+                    tools:text="Rp 10,250" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="24H MOVEMENT"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailMovement"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/accent_teal"
+                    android:textSize="11.5sp"
+                    tools:text="+1.20%" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="#25323E" />
+
+        <!-- HISTORICAL DATA TRANSPARENCY SECTION -->
         <TextView
-            android:id="@+id/tvStockPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.04"
+            android:text="HISTORICAL PERFORMANCE"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_terminal_glass_box"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/tvHistoryStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:textColor="@color/accent_gold"
+                android:textSize="10sp"
+                tools:text="HISTORICAL DATA UNAVAILABLE" />
+
+            <TextView
+                android:id="@+id/tvHistoryStatusSubtext"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_muted"
+                android:textSize="9.5sp"
+                tools:text="Simulated reference feed does not include exchange tick history." />
+        </LinearLayout>
+
+        <!-- DATA INTELLIGENCE FOOTER -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvFeedSource"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:textColor="@color/text_muted"
+                android:textSize="9.5sp"
+                tools:text="Provider: IDX Reference Engine · SIMULATED" />
+        </LinearLayout>
+
+        <!-- FULL DETAILS ACTION BUTTON -->
+        <TextView
+            android:id="@+id/btnViewFullDetails"
+            android:layout_width="match_parent"
+            android:layout_height="32dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_terminal_btn_action"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:gravity="center"
+            android:letterSpacing="0.05"
+            android:text="VIEW FULL TERMINAL DETAILS →"
             android:textColor="@color/text_primary"
-            android:textSize="13.5sp"
-            android:textStyle="bold"
-            tools:text="Rp 10,250" />
+            android:textSize="10.5sp"
+            android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/tvStockChange"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:textColor="@color/accent_teal"
-            android:textSize="11.5sp"
-            android:textStyle="bold"
-            tools:text="+1.20%" />
     </LinearLayout>
 
 </LinearLayout>

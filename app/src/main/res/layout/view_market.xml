@@ -636,29 +636,67 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_market_instrument" />
 
-            <!-- SECTION 6: STOCKS & ETFS -->
+            <!-- SECTION 6: STOCKS & ETFS TERMINAL -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <View
-                    android:layout_width="3dp"
-                    android:layout_height="12dp"
-                    android:background="@color/accent_violet" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="@color/accent_violet" />
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginStart="6dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_activity"
+                        app:tint="@color/accent_violet" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:letterSpacing="0.06"
+                        android:text="6. STOCKS &amp; ETFS"
+                        android:textColor="@color/accent_violet"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvStocksDataStatusHeader"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_terminal_badge_simulated"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:paddingHorizontal="7dp"
+                        android:paddingVertical="3dp"
+                        android:text="SIMULATED DATA"
+                        android:textColor="@color/accent_gold"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:fontFamily="@font/times_new_roman_bold"
-                    android:letterSpacing="0.06"
-                    android:text="6. STOCKS &amp; ETFS (IDX / US)"
-                    android:textColor="@color/accent_violet"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
+                    android:layout_marginStart="9dp"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="GLOBAL EQUITIES · IDX · US · EXCHANGE TRADED FUNDS"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -667,7 +705,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_market_instrument" />
+                tools:listitem="@layout/item_stock_row" />
 
             <!-- SECTION 7: FOREX MATRIX -->
             <LinearLayout
