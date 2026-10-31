@@ -27,6 +27,7 @@ import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
 import com.repp.aquaticremineztools.core.util.ActivityTransition
 import com.repp.aquaticremineztools.core.util.DrawerMenuHelper
 import com.repp.aquaticremineztools.data.ToolData
+import com.repp.aquaticremineztools.data.ToolImplementationHelper
 import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.home.HomeActivity
 import com.repp.aquaticremineztools.presentation.history.HistoryActivity
@@ -219,7 +220,7 @@ class SearchActivity : AppCompatActivity() {
     }
 
     private fun updateResults() {
-        var results = ToolData.searchTools(currentQuery)
+        var results = ToolData.searchTools(currentQuery).filter { ToolImplementationHelper.isToolImplemented(it.id) }
         val categories = selectedCategories
         if (!categories.isNullOrEmpty()) {
             results = results.filter { it.category in categories }

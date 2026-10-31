@@ -4,6 +4,7 @@ import android.content.Context
 import com.repp.aquaticremineztools.data.local.history.HistoryDatabase
 import com.repp.aquaticremineztools.data.local.history.HistoryEntity
 import com.repp.aquaticremineztools.data.local.history.HistoryRepository
+import com.repp.aquaticremineztools.data.ToolImplementationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 object HistoryLogger {
 
     fun logOpened(context: Context, toolId: String, toolName: String, category: String) {
+        if (!ToolImplementationHelper.isToolImplemented(toolId)) return
         CoroutineScope(Dispatchers.IO).launch {
             val repository = HistoryRepository.getInstance(context)
             val entry = HistoryEntity(
@@ -34,6 +36,7 @@ object HistoryLogger {
         category: String,
         initialSummary: String = "Execution started..."
     ): Long {
+        if (!ToolImplementationHelper.isToolImplemented(toolId)) return -1L
         var id = -1L
         val repository = HistoryRepository.getInstance(context)
         val entry = HistoryEntity(

@@ -1,6 +1,7 @@
 package com.repp.aquaticremineztools.data.local.history
 
 import android.content.Context
+import com.repp.aquaticremineztools.data.ToolImplementationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -29,7 +30,16 @@ class HistoryRepository private constructor(context: Context) {
     init {
         CoroutineScope(Dispatchers.IO).launch {
             recoverStaleRunningExecutions()
+            cleanupNonImplementedRecords()
             cleanupOldRecords()
+        }
+    }
+
+    private suspend fun cleanupNonImplementedRecords() = withContext(Dispatchers.IO) {
+        val allItems = dao.getAllHistoryList()
+        val nonImplementedIds = allItems.filter { !ToolImplementationHelper.isToolImplemented(it.toolId) }.map { it.id }
+        if (nonImplementedIds.isNotEmpty()) {
+            dao.deleteByIds(nonImplementedIds)
         }
     }
 
