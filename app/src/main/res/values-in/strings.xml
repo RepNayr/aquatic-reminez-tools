@@ -73,6 +73,7 @@
     <string name="news_offline_notice">Data Offline · Menampilkan berita tersimpan</string>
     <string name="news_language">Bahasa Berita</string>
     <string name="news_theme">Tema Berita</string>
+    <string name="news_reading_time">%1$d BACAAN MIN</string>
 
     <string name="home_info">INFO</string>
     <string name="home_tools_count">%1$d tools</string>

@@ -73,6 +73,7 @@
     <string name="news_offline_notice">Offline Data · Showing cached news</string>
     <string name="news_language">News Language</string>
     <string name="news_theme">News Theme</string>
+    <string name="news_reading_time">%1$d MIN READ</string>
 
     <string name="home_info">INFO</string>
     <string name="home_tools_count">%1$d tools</string>
