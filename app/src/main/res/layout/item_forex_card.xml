@@ -1,13 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="148dp"
-    android:layout_height="90dp"
-    android:layout_marginEnd="10dp"
-    android:background="@drawable/bg_glass_card_clip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    android:background="@drawable/bg_terminal_glass_box"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="10dp">
 
+    <!-- HEADER ROW: ICON, PAIR SYMBOL, STATUS BADGE -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/ivForexIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_asset_forex_usdidr" />
+
+        <TextView
+            android:id="@+id/tvForexPair"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/accent_cyan"
+            android:textSize="13.5sp"
+            android:textStyle="bold"
+            tools:text="USD/IDR" />
+
+        <TextView
+            android:id="@+id/tvForexStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_terminal_badge_live"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textColor="@color/status_online"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            tools:text="LIVE" />
+    </LinearLayout>
+
+    <!-- QUOTE CONVENTION SUBTITLE -->
+    <TextView
+        android:id="@+id/tvForexQuoteConvention"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        tools:text="IDR per USD" />
+
+    <!-- PRIMARY RATE -->
+    <TextView
+        android:id="@+id/tvForexRate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="15,680.00" />
+
+    <!-- MOVEMENT & DELTA -->
+    <TextView
+        android:id="@+id/tvForexChange"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:textColor="@color/text_muted"
+        android:textSize="10.5sp"
+        tools:text="Rate Only (Delta N/A)" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.8dp"
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp"
+        android:background="@color/divider" />
+
+    <!-- ADVANCED INFO ROW -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -15,45 +97,23 @@
         android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/tvForexPair"
+            android:id="@+id/tvForexProviderInfo"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:textColor="@color/accent_cyan"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            tools:text="USD/IDR" />
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="9.5sp"
+            tools:text="Spot · ExchangeRate-API" />
 
         <TextView
+            android:id="@+id/tvForexBidAsk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/times_new_roman_regular"
             android:textColor="@color/text_muted"
-            android:textSize="10.5sp"
-            android:text="FX" />
+            android:textSize="9.5sp"
+            tools:text="Bid/Ask: N/A" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvForexRate"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:textColor="@color/text_primary"
-        android:textSize="13.5sp"
-        android:textStyle="bold"
-        tools:text="15,680.00" />
-
-    <TextView
-        android:id="@+id/tvForexChange"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:textColor="@color/accent_teal"
-        android:textSize="11sp"
-        android:textStyle="bold"
-        tools:text="+0.22%" />
 
 </LinearLayout>

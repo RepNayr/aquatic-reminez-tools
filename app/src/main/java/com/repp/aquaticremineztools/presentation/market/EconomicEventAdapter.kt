@@ -43,7 +43,12 @@ class EconomicEventAdapter(
             tvEventActual.text = event.actualValue ?: "--"
             tvEventForecast.text = if (!event.forecastValue.isNullOrEmpty()) "Exp: ${event.forecastValue}" else ""
 
-            itemView.setOnClickListener { onClick?.invoke(event) }
+            if (onClick != null) {
+                itemView.setOnClickListener { onClick(event) }
+            } else {
+                itemView.setOnClickListener(null)
+                itemView.isClickable = false
+            }
         }
     }
 }

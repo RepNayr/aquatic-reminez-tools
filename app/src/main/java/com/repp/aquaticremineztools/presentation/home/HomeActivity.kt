@@ -220,10 +220,14 @@ class HomeActivity : AppCompatActivity() {
     // Section 7: Forex Matrix
     private lateinit var rvForexMatrix: RecyclerView
     private lateinit var forexAdapter: ForexMatrixAdapter
+    private lateinit var tvForexHeaderStatus: TextView
+    private lateinit var tvForexSubtitle: TextView
 
     // Section 8: Economic Indicators
     private lateinit var rvEconomicIndicators: RecyclerView
     private lateinit var economicIndicatorAdapter: EconomicIndicatorAdapter
+    private lateinit var tvMacroHeaderStatus: TextView
+    private lateinit var tvMacroSubtitle: TextView
 
     // Section 9: Economic Events
     private lateinit var rvEconomicEvents: RecyclerView
@@ -459,7 +463,13 @@ class HomeActivity : AppCompatActivity() {
         rvCryptoMarket = findViewById(R.id.rvCryptoMarket)
         rvStocksAndEtfs = findViewById(R.id.rvStocksAndEtfs)
         rvForexMatrix = findViewById(R.id.rvForexMatrix)
+        tvForexHeaderStatus = findViewById(R.id.tvForexHeaderStatus)
+        tvForexSubtitle = findViewById(R.id.tvForexSubtitle)
+
         rvEconomicIndicators = findViewById(R.id.rvEconomicIndicators)
+        tvMacroHeaderStatus = findViewById(R.id.tvMacroHeaderStatus)
+        tvMacroSubtitle = findViewById(R.id.tvMacroSubtitle)
+
         rvEconomicEvents = findViewById(R.id.rvEconomicEvents)
 
         // News Widget
@@ -780,7 +790,9 @@ class HomeActivity : AppCompatActivity() {
         cryptoDashboardAdapter = CryptoDashboardAdapter(emptyList(), ::onInstrumentClicked)
         stockAdapter = StockWatchlistAdapter(emptyList(), ::onInstrumentClicked)
         forexAdapter = ForexMatrixAdapter(emptyList(), ::onInstrumentClicked)
-        economicIndicatorAdapter = EconomicIndicatorAdapter(emptyList(), ::onInstrumentClicked)
+        economicIndicatorAdapter = EconomicIndicatorAdapter(emptyList()) { _ ->
+            // Section 8 macro indicators use inline expansion only; popup bottom sheet is disabled as requested.
+        }
         economicEventAdapter = EconomicEventAdapter(emptyList())
 
         rvMarketPulse.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
@@ -811,7 +823,13 @@ class HomeActivity : AppCompatActivity() {
         rvForexMatrix.adapter = forexAdapter
         rvForexMatrix.isNestedScrollingEnabled = false
 
-        rvEconomicIndicators.layoutManager = GridLayoutManager(this, 2)
+        val econLayoutManager = GridLayoutManager(this, 2)
+        econLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
+            override fun getSpanSize(position: Int): Int {
+                return economicIndicatorAdapter.getItemSpanSize(position)
+            }
+        }
+        rvEconomicIndicators.layoutManager = econLayoutManager
         rvEconomicIndicators.adapter = economicIndicatorAdapter
         rvEconomicIndicators.isNestedScrollingEnabled = false
 
@@ -878,6 +896,78 @@ class HomeActivity : AppCompatActivity() {
                     forexAdapter.updateData(state.forexInstruments)
                     economicIndicatorAdapter.updateData(state.economicIndicators)
                     economicEventAdapter.updateData(state.economicEvents)
+
+                    // Update Forex Section 7 Header
+                    val forexList = state.forexInstruments
+                    val forexCount = forexList.size
+                    val forexStatuses = forexList.map { it.dataStatus }.distinct()
+                    val aggregatedForexStatus = when {
+                        forexStatuses.size == 1 && forexStatuses.first() == MarketDataStatus.LIVE -> "LIVE FEED"
+                        forexStatuses.size == 1 && forexStatuses.first() == MarketDataStatus.CACHED -> "CACHED FEED"
+                        forexStatuses.size == 1 && forexStatuses.first() == MarketDataStatus.SIMULATED -> "SIMULATED DATA"
+                        forexStatuses.contains(MarketDataStatus.LIVE) -> "MIXED DATA"
+                        forexStatuses.contains(MarketDataStatus.CACHED) -> "CACHED / MIXED"
+                        else -> "UNAVAILABLE"
+                    }
+
+                    if (::tvForexHeaderStatus.isInitialized) {
+                        tvForexHeaderStatus.text = aggregatedForexStatus
+                        when (aggregatedForexStatus) {
+                            "LIVE FEED" -> {
+                                tvForexHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_live)
+                                tvForexHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.status_online))
+                            }
+                            "CACHED FEED", "CACHED / MIXED" -> {
+                                tvForexHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_cached)
+                                tvForexHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_blue))
+                            }
+                            "SIMULATED DATA" -> {
+                                tvForexHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_simulated)
+                                tvForexHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_gold))
+                            }
+                            else -> {
+                                tvForexHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_unavailable)
+                                tvForexHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.text_muted))
+                            }
+                        }
+                    }
+
+                    if (::tvForexSubtitle.isInitialized) {
+                        tvForexSubtitle.text = "GLOBAL CURRENCY INTELLIGENCE · $forexCount PAIRS · EXCHANGERATE-API"
+                    }
+
+                    // Update Macroeconomic Section 8 Header
+                    val macroList = state.economicIndicators
+                    val macroCount = macroList.size
+                    val macroStatuses = macroList.map { it.dataStatus }.distinct()
+                    val aggregatedMacroStatus = when {
+                        macroStatuses.size == 1 && macroStatuses.first() == MarketDataStatus.LIVE -> "LIVE DATA"
+                        macroStatuses.size == 1 && macroStatuses.first() == MarketDataStatus.CACHED -> "CACHED DATA"
+                        macroStatuses.size == 1 && macroStatuses.first() == MarketDataStatus.SIMULATED -> "SIMULATED DATA"
+                        else -> "SIMULATED DATA"
+                    }
+
+                    if (::tvMacroHeaderStatus.isInitialized) {
+                        tvMacroHeaderStatus.text = aggregatedMacroStatus
+                        when (aggregatedMacroStatus) {
+                            "LIVE DATA" -> {
+                                tvMacroHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_live)
+                                tvMacroHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.status_online))
+                            }
+                            "CACHED DATA" -> {
+                                tvMacroHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_cached)
+                                tvMacroHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_blue))
+                            }
+                            else -> {
+                                tvMacroHeaderStatus.setBackgroundResource(R.drawable.bg_terminal_badge_simulated)
+                                tvMacroHeaderStatus.setTextColor(ContextCompat.getColor(this, R.color.accent_gold))
+                            }
+                        }
+                    }
+
+                    if (::tvMacroSubtitle.isInitialized) {
+                        tvMacroSubtitle.text = "GLOBAL ECONOMY · POLICY · GROWTH · 2 COUNTRIES ($macroCount INDICATORS)"
+                    }
 
                     updateCategoryChipsStyle(state.selectedHeroCategory)
 

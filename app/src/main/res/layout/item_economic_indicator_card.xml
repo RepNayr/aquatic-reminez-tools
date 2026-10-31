@@ -1,27 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="164dp"
-    android:layout_height="124dp"
-    android:layout_marginEnd="10dp"
-    android:background="@drawable/bg_glass_card_clip"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="3dp"
+    android:background="@drawable/bg_terminal_glass_box"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="10dp">
 
+    <!-- COLLAPSED HEADER ROW: ICON, SYMBOL, COUNTRY, STATUS BADGE, CHEVRON -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
+        <ImageView
+            android:id="@+id/ivEconIcon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_asset_eco_rate" />
+
         <TextView
             android:id="@+id/tvEconSymbol"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
             android:fontFamily="@font/times_new_roman_bold"
             android:textColor="@color/accent_violet"
-            android:textSize="14sp"
+            android:textSize="13.5sp"
             android:textStyle="bold"
             tools:text="BI7DRR" />
 
@@ -29,12 +39,36 @@
             android:id="@+id/tvEconCountry"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginEnd="6dp"
             android:fontFamily="@font/times_new_roman_regular"
             android:textColor="@color/text_muted"
-            android:textSize="11.5sp"
+            android:textSize="10.5sp"
             tools:text="ID" />
+
+        <TextView
+            android:id="@+id/tvEconStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_terminal_badge_simulated"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:textColor="@color/accent_gold"
+            android:textSize="9sp"
+            android:textStyle="bold"
+            tools:text="SIMULATED" />
+
+        <ImageView
+            android:id="@+id/ivExpandChevron"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="6dp"
+            android:contentDescription="@null"
+            android:src="@drawable/ic_dropdown_chevron"
+            app:tint="@color/white" />
     </LinearLayout>
 
+    <!-- INDICATOR NAME -->
     <TextView
         android:id="@+id/tvEconName"
         android:layout_width="match_parent"
@@ -44,28 +78,267 @@
         android:fontFamily="@font/times_new_roman_regular"
         android:maxLines="1"
         android:textColor="@color/text_secondary"
-        android:textSize="11.5sp"
-        tools:text="BI Policy Rate" />
+        android:textSize="11sp"
+        tools:text="Bank Indonesia Policy Rate" />
 
-    <TextView
-        android:id="@+id/tvEconRate"
+    <!-- METRIC VALUE & PERIOD -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvEconRate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="6.00%" />
+
+        <TextView
+            android:id="@+id/tvEconPeriod"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="10.5sp"
+            tools:text="Target Rate" />
+    </LinearLayout>
+
+    <!-- INLINE EXPANDED DETAIL PANEL -->
+    <LinearLayout
+        android:id="@+id/layoutExpandedPanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:textColor="@color/text_primary"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        tools:text="6.00%" />
+        android:background="@drawable/bg_terminal_expanded"
+        android:orientation="vertical"
+        android:padding="10dp"
+        android:visibility="gone"
+        tools:visibility="visible">
 
-    <TextView
-        android:id="@+id/tvEconPeriod"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:fontFamily="@font/times_new_roman_regular"
-        android:textColor="@color/text_muted"
-        android:textSize="11.5sp"
-        tools:text="Target Rate" />
+        <!-- SECTION A: OVERVIEW -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.06"
+            android:text="INDICATOR OVERVIEW"
+            android:textColor="@color/accent_cyan"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Category"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="10.5sp"
+                    tools:text="Central Bank Rate" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Authority"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailAuthority"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="10.5sp"
+                    tools:text="Bank Indonesia" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@color/divider" />
+
+        <!-- SECTION B: ECONOMIC STATISTICS -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.06"
+            android:text="ECONOMIC STATISTICS"
+            android:textColor="@color/accent_violet"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Previous Rate"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailPrevRate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/text_primary"
+                    android:textSize="10.5sp"
+                    tools:text="6.25%" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="Action / Delta"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9.5sp" />
+
+                <TextView
+                    android:id="@+id/tvDetailDelta"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:textColor="@color/accent_teal"
+                    android:textSize="10.5sp"
+                    tools:text="-0.25% (Rate Cut)" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@color/divider" />
+
+        <!-- SECTION C: HISTORICAL PERFORMANCE EMPTY STATE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.06"
+            android:text="HISTORICAL PERFORMANCE"
+            android:textColor="@color/accent_gold"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_terminal_glass_box"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:letterSpacing="0.04"
+                android:text="HISTORICAL DATA UNAVAILABLE"
+                android:textColor="@color/text_muted"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:text="Historical observations require verified provider API data series integration."
+                android:textColor="@color/text_muted"
+                android:textSize="9sp" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0.8dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@color/divider" />
+
+        <!-- SECTION D: DATA INTELLIGENCE -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:letterSpacing="0.06"
+            android:text="DATA INTELLIGENCE"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetailIntelligence"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:textColor="@color/text_muted"
+            android:textSize="9.5sp"
+            tools:text="Provider: Bank Indonesia · Target Policy Rate · Reference feed" />
+
+    </LinearLayout>
 
 </LinearLayout>

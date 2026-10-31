@@ -167,7 +167,7 @@
                 <View
                     android:layout_width="3dp"
                     android:layout_height="12dp"
-                    android:background="@color/accent_teal" />
+                    android:background="@color/accent_cyan" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -176,7 +176,7 @@
                     android:fontFamily="@font/times_new_roman_bold"
                     android:letterSpacing="0.06"
                     android:text="2. INTERACTIVE HERO CHART"
-                    android:textColor="@color/accent_teal"
+                    android:textColor="@color/accent_cyan"
                     android:textSize="11.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -614,7 +614,7 @@
                 <View
                     android:layout_width="3dp"
                     android:layout_height="12dp"
-                    android:background="@color/accent_gold" />
+                    android:background="@color/accent_cyan" />
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -623,7 +623,7 @@
                     android:fontFamily="@font/times_new_roman_bold"
                     android:letterSpacing="0.06"
                     android:text="5. CRYPTO TERMINAL (COINGECKO)"
-                    android:textColor="@color/accent_gold"
+                    android:textColor="@color/accent_cyan"
                     android:textSize="11.5sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -652,7 +652,7 @@
                     <View
                         android:layout_width="3dp"
                         android:layout_height="14dp"
-                        android:background="@color/accent_violet" />
+                        android:background="@color/accent_cyan" />
 
                     <ImageView
                         android:layout_width="16dp"
@@ -660,7 +660,7 @@
                         android:layout_marginStart="6dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_activity"
-                        app:tint="@color/accent_violet" />
+                        app:tint="@color/accent_cyan" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -670,7 +670,7 @@
                         android:fontFamily="@font/times_new_roman_bold"
                         android:letterSpacing="0.06"
                         android:text="6. STOCKS &amp; ETFS"
-                        android:textColor="@color/accent_violet"
+                        android:textColor="@color/accent_cyan"
                         android:textSize="12sp"
                         android:textStyle="bold" />
 
@@ -707,29 +707,67 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_stock_row" />
 
-            <!-- SECTION 7: FOREX MATRIX -->
+            <!-- SECTION 7: FOREX MATRIX (CURRENCY INTELLIGENCE TERMINAL) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                android:orientation="vertical">
 
-                <View
-                    android:layout_width="3dp"
-                    android:layout_height="12dp"
-                    android:background="@color/cat_utility" />
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:fontFamily="@font/times_new_roman_bold"
-                    android:letterSpacing="0.06"
-                    android:text="7. FOREX MATRIX (EXCHANGERATE-API)"
-                    android:textColor="@color/cat_utility"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="@color/accent_cyan" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:letterSpacing="0.06"
+                        android:text="7. FOREX MATRIX"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvForexHeaderStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_terminal_badge_live"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:paddingHorizontal="7dp"
+                        android:paddingVertical="3dp"
+                        android:textColor="@color/status_online"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        tools:text="LIVE FEED" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvForexSubtitle"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="GLOBAL CURRENCY INTELLIGENCE · 6 PAIRS · EXCHANGERATE-API"
+                        android:textColor="@color/text_muted"
+                        android:textSize="10sp" />
+                </LinearLayout>
             </LinearLayout>
 
             <androidx.recyclerview.widget.RecyclerView
@@ -738,9 +776,83 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_key_market_card" />
+                tools:listitem="@layout/item_forex_card" />
 
-            <!-- SECTION 8: ECONOMIC INDICATORS -->
+            <!-- FOREX MATRIX FOOTER DISCLAIMER -->
+            <TextView
+                android:id="@+id/tvForexDisclaimer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:text="Exchange rates are provided for informational purposes. Availability and freshness depend on the data source."
+                android:textColor="@color/text_muted"
+                android:textSize="9.5sp" />
+
+            <!-- SECTION 8: MACROECONOMIC INDICATORS (MACROECONOMIC INTELLIGENCE DASHBOARD) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="14dp"
+                        android:background="@color/accent_cyan" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:letterSpacing="0.06"
+                        android:text="8. MACROECONOMIC INDICATORS"
+                        android:textColor="@color/accent_cyan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvMacroHeaderStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_terminal_badge_simulated"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:paddingHorizontal="7dp"
+                        android:paddingVertical="3dp"
+                        android:textColor="@color/accent_gold"
+                        android:textSize="9.5sp"
+                        android:textStyle="bold"
+                        tools:text="SIMULATED DATA" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvMacroSubtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:text="GLOBAL ECONOMY · POLICY · GROWTH · 2 COUNTRIES"
+                    android:textColor="@color/text_muted"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEconomicIndicators"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_economic_indicator_card" />
+
+            <!-- SECTION 9: ECONOMIC EVENTS -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -759,41 +871,8 @@
                     android:layout_marginStart="6dp"
                     android:fontFamily="@font/times_new_roman_bold"
                     android:letterSpacing="0.06"
-                    android:text="8. MACROECONOMIC INDICATORS"
-                    android:textColor="@color/accent_cyan"
-                    android:textSize="11.5sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvEconomicIndicators"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_key_market_card" />
-
-            <!-- SECTION 9: ECONOMIC EVENTS -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <View
-                    android:layout_width="3dp"
-                    android:layout_height="12dp"
-                    android:background="@color/accent_teal" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:fontFamily="@font/times_new_roman_bold"
-                    android:letterSpacing="0.06"
                     android:text="9. ECONOMIC CALENDAR &amp; EVENTS"
-                    android:textColor="@color/accent_teal"
+                    android:textColor="@color/accent_cyan"
                     android:textSize="11.5sp"
                     android:textStyle="bold" />
             </LinearLayout>

@@ -3,24 +3,24 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginBottom="8dp"
-    android:background="@drawable/bg_glass_card_clip"
+    android:layout_margin="3dp"
+    android:background="@drawable/bg_terminal_glass_box"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:paddingHorizontal="14dp"
-    android:paddingVertical="11dp">
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
 
     <TextView
         android:id="@+id/tvEventFlag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
+        android:textSize="18sp"
         tools:text="🇮🇩" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
+        android:layout_marginStart="10dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -32,7 +32,7 @@
             android:fontFamily="@font/times_new_roman_bold"
             android:maxLines="1"
             android:textColor="@color/text_primary"
-            android:textSize="13sp"
+            android:textSize="12.5sp"
             android:textStyle="bold"
             tools:text="Bank Indonesia Rate Decision" />
 
@@ -43,7 +43,7 @@
             android:layout_marginTop="2dp"
             android:fontFamily="@font/times_new_roman_regular"
             android:textColor="@color/text_muted"
-            android:textSize="11sp"
+            android:textSize="10.5sp"
             tools:text="Monthly Release · Indonesia" />
     </LinearLayout>
 
@@ -59,7 +59,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/times_new_roman_bold"
             android:textColor="@color/accent_violet"
-            android:textSize="13sp"
+            android:textSize="12.5sp"
             android:textStyle="bold"
             tools:text="6.00%" />
 
@@ -70,7 +70,7 @@
             android:layout_marginTop="2dp"
             android:fontFamily="@font/times_new_roman_regular"
             android:textColor="@color/text_muted"
-            android:textSize="10.5sp"
+            android:textSize="10sp"
             tools:text="Exp: 6.00%" />
     </LinearLayout>
 

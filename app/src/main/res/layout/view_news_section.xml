@@ -33,28 +33,16 @@
 
         <TextView
             android:id="@+id/tvNewsTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
-            android:fontFamily="@font/times_new_roman_bold"
-            android:letterSpacing="0.12"
-            android:text="@string/news_title"
-            android:textColor="@color/text_primary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvNewsSubtitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
             android:fontFamily="@font/times_new_roman_bold"
-            android:text="@string/news_desc"
-            android:textColor="@color/text_secondary"
-            android:textSize="10sp" />
+            android:letterSpacing="0.08"
+            android:text="LATEST UPDATE TECH &amp; FEEDS"
+            android:textColor="@color/accent_cyan"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/btnNewsRefresh"
@@ -84,6 +72,20 @@
         app:layout_constraintBottom_toBottomOf="@id/layoutNewsHeaderTitle"
         app:layout_constraintStart_toStartOf="parent" />
 
+    <TextView
+        android:id="@+id/tvNewsConditionSummary"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="11dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="Global Technology Dispatches · AI, Cyber Security &amp; Financial Markets"
+        android:textColor="@color/text_secondary"
+        android:textSize="11sp"
+        app:layout_constraintTop_toBottomOf="@id/layoutNewsHeaderTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- SINGLE UNIFIED GLASS CARD -->
     <eightbitlab.com.blurview.BlurView
         android:id="@+id/cardNews"
@@ -93,7 +95,7 @@
         android:layout_marginStart="3dp"
         android:layout_marginEnd="3dp"
         android:background="@drawable/bg_glass_card_clip"
-        app:layout_constraintTop_toBottomOf="@id/layoutNewsHeaderTitle"
+        app:layout_constraintTop_toBottomOf="@id/tvNewsConditionSummary"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
@@ -133,10 +135,10 @@
 
             <!-- COMPACT ARTICLES CONTAINER -->
             <LinearLayout
-                android:id="@+id/layoutCompactArticles"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                android:orientation="vertical"
+                android:id="@+id/layoutCompactArticles" />
 
             <!-- STATUS FOOTER -->
             <LinearLayout
