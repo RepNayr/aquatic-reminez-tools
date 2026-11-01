@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.View
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
@@ -26,7 +27,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -45,7 +45,10 @@ import com.repp.aquaticremineztools.data.compressor.ItemStatus
 import com.repp.aquaticremineztools.data.compressor.OutputFormat
 import com.repp.aquaticremineztools.data.compressor.ResizeMode
 import com.repp.aquaticremineztools.domain.compressor.ImageImportManager
+import com.repp.aquaticremineztools.presentation.home.GlassBlurHelper
 import com.repp.aquaticremineztools.presentation.security.PinVerifyActivity
+import eightbitlab.com.blurview.BlurTarget
+import eightbitlab.com.blurview.BlurView
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
@@ -53,6 +56,13 @@ import java.io.File
 class ImageCompressorActivity : AppCompatActivity() {
 
     private val viewModel: ImageCompressorViewModel by viewModels()
+
+    // Glass Blur Views
+    private lateinit var homeBlurTarget: BlurTarget
+    private lateinit var blurInputImages: BlurView
+    private lateinit var blurSettings: BlurView
+    private lateinit var blurQueue: BlurView
+    private lateinit var blurResults: BlurView
 
     // Views
     private lateinit var btnBack: FrameLayout
@@ -99,7 +109,6 @@ class ImageCompressorActivity : AppCompatActivity() {
 
     private lateinit var btnStartCompression: Button
 
-    private lateinit var cardResultsSection: MaterialCardView
     private lateinit var tvBatchSummaryText: TextView
     private lateinit var rvResults: RecyclerView
     private lateinit var btnSaveAll: Button
@@ -165,6 +174,7 @@ class ImageCompressorActivity : AppCompatActivity() {
 
         checkNotificationPermission()
         bindViews()
+        setupGlassCards()
         setupAdapters()
         setupListeners()
         setupSpinners()
@@ -182,6 +192,12 @@ class ImageCompressorActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
+        homeBlurTarget = findViewById(R.id.homeBlurTarget)
+        blurInputImages = findViewById(R.id.blurInputImages)
+        blurSettings = findViewById(R.id.blurSettings)
+        blurQueue = findViewById(R.id.blurQueue)
+        blurResults = findViewById(R.id.blurResults)
+
         btnBack = findViewById(R.id.btnBack)
         tvSessionStatus = findViewById(R.id.tvSessionStatus)
         tvBatchCountSize = findViewById(R.id.tvBatchCountSize)
@@ -226,12 +242,20 @@ class ImageCompressorActivity : AppCompatActivity() {
 
         btnStartCompression = findViewById(R.id.btnStartCompression)
 
-        cardResultsSection = findViewById(R.id.cardResultsSection)
+        blurResults = findViewById(R.id.blurResults)
         tvBatchSummaryText = findViewById(R.id.tvBatchSummaryText)
         rvResults = findViewById(R.id.rvResults)
         btnSaveAll = findViewById(R.id.btnSaveAll)
         btnShareAll = findViewById(R.id.btnShareAll)
         btnClearResults = findViewById(R.id.btnClearResults)
+    }
+
+    private fun setupGlassCards() {
+        val frameClearDrawable = window.decorView.background
+        GlassBlurHelper.setupBlur(blurInputImages, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurSettings, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurQueue, homeBlurTarget, frameClearDrawable)
+        GlassBlurHelper.setupBlur(blurResults, homeBlurTarget, frameClearDrawable)
     }
 
     private fun setupAdapters() {
@@ -513,9 +537,9 @@ class ImageCompressorActivity : AppCompatActivity() {
                 // Section 5: Results
                 resultAdapter.updateData(resultItems)
                 if (resultItems.isEmpty()) {
-                    cardResultsSection.visibility = View.GONE
+                    blurResults.visibility = View.GONE
                 } else {
-                    cardResultsSection.visibility = View.VISIBLE
+                    blurResults.visibility = View.VISIBLE
                 }
             }
         }
@@ -587,10 +611,22 @@ class ImageCompressorActivity : AppCompatActivity() {
             tempCameraFile = file
             val uri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
             tempCameraUri = uri
+
+            val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+                putExtra(MediaStore.EXTRA_OUTPUT, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            }
+
+            val resolveInfoList = packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            for (resolveInfo in resolveInfoList) {
+                val pkgName = resolveInfo.activityInfo.packageName
+                grantUriPermission(pkgName, uri, Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
             takePictureLauncher.launch(uri)
         } catch (e: Exception) {
             e.printStackTrace()
-            Toast.makeText(this, "Failed to launch camera.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Failed to launch camera: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
         }
     }
 

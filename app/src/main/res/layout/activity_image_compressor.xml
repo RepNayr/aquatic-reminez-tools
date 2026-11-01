@@ -5,21 +5,47 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#090B0F"
+    android:fitsSystemWindows="true"
     tools:context=".presentation.compressor.ImageCompressorActivity">
 
     <!-- Main Container -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:background="#090B0F"
+        android:fitsSystemWindows="true">
 
-        <!-- Top Header Bar -->
+        <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
+        <eightbitlab.com.blurview.BlurTarget
+            android:id="@+id/homeBlurTarget"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:alpha="0.38"
+                android:contentDescription="@null"
+                android:scaleType="centerCrop"
+                android:src="@drawable/home_background_image" />
+
+        </eightbitlab.com.blurview.BlurTarget>
+
+        <!-- GRADIENT OVERLAY -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_home_overlay" />
+
+        <!-- Top Header Bar (Solid Black) -->
         <RelativeLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="64dp"
             android:layout_alignParentTop="true"
-            android:background="#151A21"
+            android:background="#000000"
+            android:fitsSystemWindows="true"
+            android:paddingTop="8dp"
             android:paddingStart="12dp"
             android:paddingEnd="12dp">
 
@@ -99,19 +125,32 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- SECTION 1: INPUT IMAGES -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- SECTION 1: INPUT IMAGES (Glass BlurView Card) -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurInputImages"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#151A21"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="#353941"
-                    app:strokeWidth="1dp">
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@color/transparent"
                         android:orientation="vertical"
                         android:padding="14dp">
 
@@ -212,21 +251,34 @@
                             android:nestedScrollingEnabled="false"
                             android:visibility="gone" />
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                </eightbitlab.com.blurview.BlurView>
 
-                <!-- SECTION 2: COMPRESSION SETTINGS -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- SECTION 2: COMPRESSION SETTINGS (Glass BlurView Card) -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurSettings"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#151A21"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="#353941"
-                    app:strokeWidth="1dp">
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@color/transparent"
                         android:orientation="vertical"
                         android:padding="14dp">
 
@@ -484,21 +536,34 @@
                                 android:textSize="12sp" />
                         </LinearLayout>
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                </eightbitlab.com.blurview.BlurView>
 
-                <!-- SECTION 3: QUEUE -->
-                <com.google.android.material.card.MaterialCardView
+                <!-- SECTION 3: QUEUE (Glass BlurView Card) -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurQueue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="#151A21"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="#353941"
-                    app:strokeWidth="1dp">
+                    android:background="@drawable/bg_glass_card_clip">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@color/transparent"
                         android:orientation="vertical"
                         android:padding="14dp">
 
@@ -576,7 +641,7 @@
                             android:nestedScrollingEnabled="false"
                             android:visibility="gone" />
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                </eightbitlab.com.blurview.BlurView>
 
                 <!-- SECTION 4: START COMPRESSION ACTION BUTTON -->
                 <Button
@@ -591,21 +656,33 @@
                     android:textSize="15sp"
                     app:backgroundTint="#38BFA1" />
 
-                <!-- SECTION 5: RESULTS -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardResultsSection"
+                <!-- SECTION 5: RESULTS (Glass BlurView Card) -->
+                <eightbitlab.com.blurview.BlurView
+                    android:id="@+id/blurResults"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    android:visibility="gone"
-                    app:cardBackgroundColor="#151A21"
-                    app:cardCornerRadius="12dp"
-                    app:strokeColor="#38BFA1"
-                    app:strokeWidth="1dp">
+                    android:background="@drawable/bg_glass_card_clip"
+                    android:visibility="gone">
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_overlay"
+                        android:clickable="false"
+                        android:focusable="false" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_glass_card_specular"
+                        android:clickable="false"
+                        android:focusable="false" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:background="@color/transparent"
                         android:orientation="vertical"
                         android:padding="14dp">
 
@@ -691,7 +768,7 @@
                                 app:strokeColor="#D9535D" />
                         </LinearLayout>
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                </eightbitlab.com.blurview.BlurView>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
