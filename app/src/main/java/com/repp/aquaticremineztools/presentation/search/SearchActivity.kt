@@ -178,7 +178,12 @@ class SearchActivity : AppCompatActivity() {
         adapter = SearchResultAdapter(
             results = emptyList()
         ) { tool ->
-            Toast.makeText(this, "Opening ${tool.name}...", Toast.LENGTH_SHORT).show()
+            if (tool.id == "media_image_compressor") {
+                val intent = Intent(this, com.repp.aquaticremineztools.presentation.compressor.ImageCompressorActivity::class.java)
+                ActivityTransition.startActivitySmooth(this, intent)
+            } else {
+                Toast.makeText(this, "Opening ${tool.name}...", Toast.LENGTH_SHORT).show()
+            }
             HistoryLogger.logOpened(this, tool.id, tool.name, tool.category.displayName)
         }
         rvSearchResults.layoutManager = LinearLayoutManager(this)

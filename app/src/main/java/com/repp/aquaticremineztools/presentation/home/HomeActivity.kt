@@ -1431,11 +1431,16 @@ class HomeActivity : AppCompatActivity() {
         val frameClearDrawable = window.decorView.background
 
         val adapter = QuickCategoryAdapter(categories, homeBlurTarget, frameClearDrawable) { category ->
-            Toast.makeText(
-                this,
-                "${getString(category.nameRes)}\nComing soon!",
-                Toast.LENGTH_SHORT,
-            ).show()
+            if (category.id == "media") {
+                val intent = Intent(this, com.repp.aquaticremineztools.presentation.compressor.ImageCompressorActivity::class.java)
+                ActivityTransition.startActivitySmooth(this, intent)
+            } else {
+                Toast.makeText(
+                    this,
+                    "${getString(category.nameRes)}\nComing soon!",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
 
         rvQuickMenu.layoutManager = GridLayoutManager(this, 4)

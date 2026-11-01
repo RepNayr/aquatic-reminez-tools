@@ -422,7 +422,12 @@ class HistoryActivity : AppCompatActivity() {
                             }
                         },
                         onOpenTool = { ent ->
-                            Toast.makeText(this@HistoryActivity, "Opening ${ent.toolName}...", Toast.LENGTH_SHORT).show()
+                            if (ent.toolId == "media_image_compressor") {
+                                val intent = Intent(this@HistoryActivity, com.repp.aquaticremineztools.presentation.compressor.ImageCompressorActivity::class.java)
+                                com.repp.aquaticremineztools.core.util.ActivityTransition.startActivitySmooth(this@HistoryActivity, intent)
+                            } else {
+                                Toast.makeText(this@HistoryActivity, "Opening ${ent.toolName}...", Toast.LENGTH_SHORT).show()
+                            }
                             com.repp.aquaticremineztools.core.history.HistoryLogger.logOpened(
                                 this@HistoryActivity, ent.toolId, ent.toolName, ent.category
                             )

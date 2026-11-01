@@ -6,8 +6,9 @@ package com.repp.aquaticremineztools.data
  */
 object ToolImplementationHelper {
     fun isToolImplemented(toolId: String): Boolean {
-        // As tools transition toward real implementations,
-        // currently no placeholder tools in the catalog are fully implemented.
-        return false
+        return when (toolId) {
+            "media_image_compressor" -> true
+            else -> false
+        }
     }
 }
