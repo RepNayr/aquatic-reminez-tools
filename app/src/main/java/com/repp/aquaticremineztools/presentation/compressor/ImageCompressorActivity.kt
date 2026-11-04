@@ -26,7 +26,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -170,8 +173,12 @@ class ImageCompressorActivity : AppCompatActivity() {
             return
         }
 
+        window.statusBarColor = android.graphics.Color.BLACK
+        window.navigationBarColor = android.graphics.Color.BLACK
+
         setContentView(R.layout.activity_image_compressor)
 
+        setupWindowInsets()
         checkNotificationPermission()
         bindViews()
         setupGlassCards()
@@ -179,6 +186,25 @@ class ImageCompressorActivity : AppCompatActivity() {
         setupListeners()
         setupSpinners()
         observeViewModel()
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.drawerLayout)) { _, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
+
+            val topBar = findViewById<View>(R.id.topBar)
+            topBar.setPadding(0, statusBarHeight, 0, 0)
+
+            val nestedScroll = findViewById<View>(R.id.nestedScrollView)
+            nestedScroll.setPadding(
+                nestedScroll.paddingLeft,
+                nestedScroll.paddingTop,
+                nestedScroll.paddingRight,
+                navBarHeight + 16
+            )
+            insets
+        }
     }
 
     private fun checkNotificationPermission() {
@@ -264,7 +290,7 @@ class ImageCompressorActivity : AppCompatActivity() {
             onRemoveClick = { item -> viewModel.removeItem(item.id) },
             onItemClick = { item -> showFullPreviewDialog(item) }
         )
-        rvSelectedImages.layoutManager = LinearLayoutManager(this)
+        rvSelectedImages.layoutManager = GridLayoutManager(this, 2)
         rvSelectedImages.adapter = selectedAdapter
 
         queueAdapter = QueueAdapter(

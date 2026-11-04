@@ -5,15 +5,13 @@
     android:id="@+id/drawerLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     tools:context=".presentation.compressor.ImageCompressorActivity">
 
     <!-- Main Container -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#090B0F"
-        android:fitsSystemWindows="true">
+        android:background="#090B0F">
 
         <!-- BACKGROUND IMAGE LAYER WITH BLUR TARGET -->
         <eightbitlab.com.blurview.BlurTarget
@@ -38,86 +36,92 @@
             android:background="@drawable/bg_home_overlay" />
 
         <!-- Top Header Bar (Solid Black) -->
-        <RelativeLayout
+        <LinearLayout
             android:id="@+id/topBar"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentTop="true"
             android:background="#000000"
-            android:fitsSystemWindows="true"
-            android:paddingTop="8dp"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
+            android:orientation="vertical">
 
-            <FrameLayout
-                android:id="@+id/btnBack"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_centerVertical="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp">
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_gravity="center"
-                    android:src="@drawable/ic_arrow_back"
-                    app:tint="#E8EAED" />
-            </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/btnBack"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:layout_centerVertical="true"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true">
 
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
-                android:layout_marginStart="8dp"
-                android:layout_toEndOf="@id/btnBack"
-                android:orientation="vertical">
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="#E8EAED" />
+                </FrameLayout>
 
-                <TextView
-                    android:id="@+id/tvTitle"
+                <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/btnBack"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/tvTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="Image Compressor"
+                        android:textColor="#E8EAED"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSubtitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Cyber-grade multi-image optimizer"
+                        android:textColor="#9AA0A6"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvSessionStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_info_chip"
                     android:fontFamily="@font/times_new_roman_bold"
-                    android:text="Image Compressor"
-                    android:textColor="#E8EAED"
-                    android:textSize="18sp"
+                    android:paddingStart="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingEnd="10dp"
+                    android:paddingBottom="4dp"
+                    android:text="IDLE"
+                    android:textColor="#43D9E6"
+                    android:textSize="11sp"
                     android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/tvSubtitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/times_new_roman_regular"
-                    android:text="Cyber-grade multi-image optimizer"
-                    android:textColor="#9AA0A6"
-                    android:textSize="11sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvSessionStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:background="@drawable/bg_info_chip"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:paddingStart="10dp"
-                android:paddingTop="4dp"
-                android:paddingEnd="10dp"
-                android:paddingBottom="4dp"
-                android:text="IDLE"
-                android:textColor="#43D9E6"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
+            </RelativeLayout>
+        </LinearLayout>
 
         <!-- Main Workspace ScrollView -->
         <androidx.core.widget.NestedScrollView
+            android:id="@+id/nestedScrollView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_below="@id/topBar"
-            android:fillViewport="true">
+            android:clipToPadding="false"
+            android:fillViewport="false">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -233,13 +237,14 @@
                         <TextView
                             android:id="@+id/tvEmptySelected"
                             android:layout_width="match_parent"
-                            android:layout_height="80dp"
+                            android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
-                            android:background="#090B0F"
+                            android:background="@drawable/bg_input_field"
                             android:fontFamily="@font/times_new_roman_regular"
                             android:gravity="center"
+                            android:padding="14dp"
                             android:text="No images selected.\nTap Gallery, Files, or Camera to add images (Max 10 images, 50MB per file)."
-                            android:textColor="#5F6368"
+                            android:textColor="#9AA0A6"
                             android:textSize="12sp" />
 
                         <!-- Selected Images Grid -->

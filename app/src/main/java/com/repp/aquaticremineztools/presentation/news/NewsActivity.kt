@@ -76,6 +76,10 @@ class NewsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        window.statusBarColor = android.graphics.Color.BLACK
+        window.navigationBarColor = android.graphics.Color.BLACK
+
         setContentView(R.layout.activity_news)
 
         newsViewModel = ViewModelProvider(this)[NewsViewModel::class.java]

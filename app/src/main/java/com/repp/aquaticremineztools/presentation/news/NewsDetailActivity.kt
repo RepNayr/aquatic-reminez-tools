@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Html
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -64,14 +63,15 @@ class NewsDetailActivity : AppCompatActivity() {
     }
 
     private fun setupWindowInsets() {
+        window.statusBarColor = android.graphics.Color.BLACK
+        window.navigationBarColor = android.graphics.Color.BLACK
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootNewsDetail)) { _, insets ->
             val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
             val navBarHeight = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom
 
             val appBar = findViewById<AppBarLayout>(R.id.appBarReader)
-            val params = appBar.layoutParams as ViewGroup.MarginLayoutParams
-            params.topMargin = statusBarHeight
-            appBar.layoutParams = params
+            appBar.setPadding(0, statusBarHeight, 0, 0)
 
             val scroll = findViewById<NestedScrollView>(R.id.scrollReaderContent)
             scroll.setPadding(scroll.paddingLeft, scroll.paddingTop, scroll.paddingRight, navBarHeight + 64)

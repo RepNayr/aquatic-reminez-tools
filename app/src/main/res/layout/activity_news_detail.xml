@@ -36,7 +36,7 @@
         android:id="@+id/appBarReader"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#D9090B0F"
+        android:background="#000000"
         app:elevation="4dp">
 
         <androidx.constraintlayout.widget.ConstraintLayout
