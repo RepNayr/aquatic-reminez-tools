@@ -4,11 +4,14 @@ enum class ItemStatus {
     CHECKING,
     READY,
     QUEUED,
+    PREPARING,
     UPLOADING,
     PROCESSING,
     DOWNLOADING,
     VALIDATING,
+    SAVING_TO_GALLERY,
     COMPLETED,
+    SAVE_FAILED,
     FAILED,
     CANCELLED,
     SAVED
@@ -21,18 +24,45 @@ enum class CompressionMode {
     PRESET
 }
 
-enum class CompressionPreset(val initialQuality: Int, val displayName: String) {
-    LOW(90, "Low (90%)"),
-    MEDIUM(75, "Medium (75%)"),
-    HIGH(55, "High (55%)"),
-    MAXIMUM(35, "Maximum (35%)")
+enum class TargetSizePriority(val displayName: String) {
+    QUALITY_FIRST("Quality First"),
+    SIZE_FIRST("Size First"),
+    BALANCED("Balanced")
+}
+
+enum class ResolutionPreset(val targetLongSide: Int, val displayName: String) {
+    ORIGINAL(0, "Original Size"),
+    RES_4K(3840, "4K (3840px)"),
+    RES_2K(2560, "2K (2560px)"),
+    RES_1080P(1920, "1080p (1920px)"),
+    RES_720P(1280, "720p (1280px)"),
+    RES_480P(854, "480p (854px)"),
+    CUSTOM(-1, "Custom Size")
+}
+
+enum class CompressionPreset(val initialQuality: Int, val displayName: String, val description: String) {
+    SMART_AUTO(78, "Smart Auto", "Adaptive AI analysis"),
+    LIGHT(88, "Light", "Preserve high quality"),
+    BALANCED(75, "Balanced", "Optimal size & quality"),
+    STRONG(55, "Strong", "Aggressive compression"),
+    EXTREME(35, "Extreme", "Maximum size reduction"),
+    CUSTOM(75, "Custom", "User configured"),
+
+    // Aliases for compatibility
+    LOW(90, "Low (90%)", "Light optimization"),
+    MEDIUM(75, "Medium (75%)", "Balanced optimization"),
+    HIGH(55, "High (55%)", "Strong optimization"),
+    MAXIMUM(35, "Maximum (35%)", "Maximum optimization")
 }
 
 enum class OutputFormat(val extension: String, val mimeType: String, val displayName: String) {
+    SMART("smart", "image/*", "Smart Format"),
     ORIGINAL("orig", "image/*", "Preserve Original"),
     JPEG("jpg", "image/jpeg", "JPEG (.jpg)"),
     PNG("png", "image/png", "PNG (.png)"),
-    WEBP("webp", "image/webp", "WebP (.webp)")
+    WEBP("webp", "image/webp", "WebP (.webp)"),
+    AVIF("avif", "image/avif", "AVIF (.avif)"),
+    AUTO_BEST("auto_best", "image/*", "Auto Best Format")
 }
 
 enum class ResizeMode {
@@ -82,6 +112,9 @@ data class CompressorItem(
     val psnrDb: Double? = null,
     val ssimScore: Double? = null,
     val isNotBeneficial: Boolean = false,
+    val detectedCategory: String? = null,
+    val targetSizeAchieved: Boolean? = null,
+    val processingTimeMs: Long = 0L,
     val savedToGalleryPath: String? = null,
     val localTempPath: String? = null,
     val addedTimestamp: Long = System.currentTimeMillis()
@@ -90,15 +123,22 @@ data class CompressorItem(
 data class CompressionConfig(
     val mode: CompressionMode = CompressionMode.AUTO,
     val quality: Int = 75,
+    val minQuality: Int = 30,
+    val maxQualityLoss: Int = 50,
     val targetSizeBytes: Long = 500 * 1024L,
-    val preset: CompressionPreset = CompressionPreset.MEDIUM,
+    val targetSizePriority: TargetSizePriority = TargetSizePriority.BALANCED,
+    val preset: CompressionPreset = CompressionPreset.BALANCED,
     val outputFormat: OutputFormat = OutputFormat.ORIGINAL,
+    val resolutionPreset: ResolutionPreset = ResolutionPreset.ORIGINAL,
     val enableResize: Boolean = false,
     val resizeMode: ResizeMode = ResizeMode.NONE,
     val resizePercent: Int = 80,
     val customWidth: Int = 1080,
     val customHeight: Int = 1080,
     val lockAspectRatio: Boolean = true,
+    val enableSharpen: Boolean = false,
+    val enableDenoise: Boolean = false,
+    val enablePreserveDetails: Boolean = false,
     val stripGps: Boolean = true,
     val preserveIcc: Boolean = true
 )

@@ -6,12 +6,19 @@ import com.repp.aquaticremineztools.data.compressor.CompressionConfig
 import com.repp.aquaticremineztools.data.compressor.CompressionMode
 import com.repp.aquaticremineztools.data.compressor.CompressionPreset
 import com.repp.aquaticremineztools.data.compressor.OutputFormat
+import com.repp.aquaticremineztools.data.compressor.ResolutionPreset
+import com.repp.aquaticremineztools.data.compressor.TargetSizePriority
+import com.repp.aquaticremineztools.domain.compressor.ImageCategory
+import com.repp.aquaticremineztools.domain.compressor.ImageContentDetector
+import com.repp.aquaticremineztools.domain.compressor.ImageEnhancer
 import com.repp.aquaticremineztools.domain.compressor.ImageHashManager
 import com.repp.aquaticremineztools.domain.compressor.ImageImportManager
+import com.repp.aquaticremineztools.domain.compressor.ImageQualityValidator
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
@@ -37,8 +44,8 @@ class ImageCompressorUnitTest {
     @Test
     fun testImportLimits() {
         assertEquals(10, ImageImportManager.MAX_FILES_PER_BATCH)
-        assertEquals(50 * 1024 * 1024L, ImageImportManager.MAX_FILE_SIZE_BYTES)
-        assertEquals(200 * 1024 * 1024L, ImageImportManager.MAX_BATCH_SIZE_BYTES)
+        assertEquals(100 * 1024 * 1024L, ImageImportManager.MAX_FILE_SIZE_BYTES)
+        assertEquals(500 * 1024 * 1024L, ImageImportManager.MAX_BATCH_SIZE_BYTES)
     }
 
     @Test
@@ -70,12 +77,55 @@ class ImageCompressorUnitTest {
         val configDefault = CompressionConfig()
         assertEquals(CompressionMode.AUTO, configDefault.mode)
         assertEquals(75, configDefault.quality)
+        assertEquals(30, configDefault.minQuality)
         assertEquals(OutputFormat.ORIGINAL, configDefault.outputFormat)
 
-        assertEquals(90, CompressionPreset.LOW.initialQuality)
-        assertEquals(75, CompressionPreset.MEDIUM.initialQuality)
-        assertEquals(55, CompressionPreset.HIGH.initialQuality)
-        assertEquals(35, CompressionPreset.MAXIMUM.initialQuality)
+        assertEquals(88, CompressionPreset.LIGHT.initialQuality)
+        assertEquals(75, CompressionPreset.BALANCED.initialQuality)
+        assertEquals(55, CompressionPreset.STRONG.initialQuality)
+        assertEquals(35, CompressionPreset.EXTREME.initialQuality)
+        assertEquals(78, CompressionPreset.SMART_AUTO.initialQuality)
+
+        assertNotNull(OutputFormat.valueOf("SMART"))
+        assertNotNull(OutputFormat.valueOf("AUTO_BEST"))
+        assertNotNull(OutputFormat.valueOf("AVIF"))
+    }
+
+    @Test
+    fun testTargetSizePriorityAndResolutionPresets() {
+        assertEquals("Quality First", TargetSizePriority.QUALITY_FIRST.displayName)
+        assertEquals("Size First", TargetSizePriority.SIZE_FIRST.displayName)
+        assertEquals("Balanced", TargetSizePriority.BALANCED.displayName)
+
+        assertEquals(0, ResolutionPreset.ORIGINAL.targetLongSide)
+        assertEquals(3840, ResolutionPreset.RES_4K.targetLongSide)
+        assertEquals(1920, ResolutionPreset.RES_1080P.targetLongSide)
+        assertEquals(1280, ResolutionPreset.RES_720P.targetLongSide)
+        assertEquals(854, ResolutionPreset.RES_480P.targetLongSide)
+    }
+
+    @Test
+    fun testQualityValidatorNoFakeMetricsForInvalidFiles() {
+        val dummyOriginal = File.createTempFile("dummy_orig_", ".jpg")
+        val dummyCompressed = File.createTempFile("dummy_comp_", ".jpg")
+        dummyOriginal.writeText("Corrupted or invalid image data")
+        dummyCompressed.writeText("Corrupted or invalid image data")
+
+        val metrics = ImageQualityValidator.evaluateQuality(dummyOriginal, dummyCompressed)
+
+        assertNull("PSNR must be null when image decoding fails, no fake defaults allowed", metrics.psnrDb)
+        assertNull("SSIM must be null when image decoding fails, no fake defaults allowed", metrics.ssim)
+        assertFalse("Unreadable images must not be marked acceptable", metrics.isAcceptable)
+
+        dummyOriginal.delete()
+        dummyCompressed.delete()
+    }
+
+    @Test
+    fun testImageContentDetectorNonExistentFile() {
+        val dummyFile = File("non_existent_image_file.png")
+        val category = ImageContentDetector.detectCategory(dummyFile)
+        assertEquals("Non-existent file defaults safely to Photo category", ImageCategory.PHOTO, category)
     }
 
     @Test

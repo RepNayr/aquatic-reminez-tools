@@ -45,6 +45,7 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import java.util.Stack
+import java.io.File
 
 class HistoryActivity : AppCompatActivity() {
 
@@ -219,6 +220,9 @@ class HistoryActivity : AppCompatActivity() {
         btnMoreOptions.setOnClickListener { view ->
             val popup = PopupMenu(this, view)
             popup.menu.add(0, 1, 0, "Delete All History")
+            popup.menu.add(0, 4, 0, "Compression Statistics")
+            popup.menu.add(0, 5, 0, "Export History (CSV)")
+            popup.menu.add(0, 6, 0, "Export History (JSON)")
             if (!undoStack.isEmpty()) {
                 popup.menu.add(0, 2, 0, "Undo Delete")
             }
@@ -230,6 +234,9 @@ class HistoryActivity : AppCompatActivity() {
                     1 -> confirmDeleteAll()
                     2 -> performUndo()
                     3 -> performRedo()
+                    4 -> showCompressionStatistics()
+                    5 -> exportHistoryCsv()
+                    6 -> exportHistoryJson()
                 }
                 true
             }
@@ -698,6 +705,88 @@ class HistoryActivity : AppCompatActivity() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    private fun showCompressionStatistics() {
+        val compressorRecords = allHistory.filter { it.toolId == "media_image_compressor" }
+        val totalProcessed = compressorRecords.size
+        val successCount = compressorRecords.count { it.status == "SUCCESS" }
+        val failedCount = compressorRecords.count { it.status == "FAILED" || it.status == "INTERRUPTED" }
+        val avgDuration = if (compressorRecords.isNotEmpty()) {
+            compressorRecords.mapNotNull { it.durationMs }.average()
+        } else 0.0
+
+        val message = """
+            Total Compression Tasks: $totalProcessed
+            Successful: $successCount
+            Failed / Interrupted: $failedCount
+            Avg Duration: ${String.format(Locale.US, "%.1f", avgDuration)} ms
+        """.trimIndent()
+
+        AlertDialog.Builder(this, R.style.Theme_AquaticReminezTools_Dialog)
+            .setTitle("Image Compressor Statistics")
+            .setMessage(message)
+            .setPositiveButton("Close", null)
+            .show()
+    }
+
+    private fun exportHistoryCsv() {
+        try {
+            val csvBuilder = StringBuilder()
+            csvBuilder.append("ID,ToolId,ToolName,Category,ActivityType,Status,Timestamp,DurationMs,Summary\n")
+            for (h in allHistory) {
+                csvBuilder.append("${h.id},\"${h.toolId}\",\"${h.toolName}\",\"${h.category}\",\"${h.activityType}\",\"${h.status ?: ""}\",${h.timestamp},${h.durationMs ?: 0},\"${h.resultSummary?.replace("\"", "\"\"") ?: ""}\"\n")
+            }
+
+            val file = File(cacheDir, "aquatic_history_export.csv")
+            file.writeText(csvBuilder.toString(), Charsets.UTF_8)
+
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/csv"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Export History CSV"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Failed to export CSV: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun exportHistoryJson() {
+        try {
+            val jsonBuilder = StringBuilder()
+            jsonBuilder.append("{\n  \"schemaVersion\": 1,\n  \"exportedAt\": \"${SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).format(Date())}\",\n  \"activities\": [\n")
+            
+            allHistory.forEachIndexed { index, h ->
+                jsonBuilder.append("    {\n")
+                jsonBuilder.append("      \"id\": ${h.id},\n")
+                jsonBuilder.append("      \"toolId\": \"${h.toolId}\",\n")
+                jsonBuilder.append("      \"toolName\": \"${h.toolName}\",\n")
+                jsonBuilder.append("      \"activityType\": \"${h.activityType}\",\n")
+                jsonBuilder.append("      \"status\": ${if (h.status != null) "\"${h.status}\"" else "null"},\n")
+                jsonBuilder.append("      \"timestamp\": ${h.timestamp},\n")
+                jsonBuilder.append("      \"durationMs\": ${h.durationMs ?: "null"},\n")
+                jsonBuilder.append("      \"summary\": ${if (h.resultSummary != null) "\"${h.resultSummary.replace("\"", "\\\"")}\"" else "null"}\n")
+                jsonBuilder.append("    }${if (index < allHistory.size - 1) "," else ""}\n")
+            }
+            jsonBuilder.append("  ]\n}")
+
+            val file = File(cacheDir, "aquatic_history_export.json")
+            file.writeText(jsonBuilder.toString(), Charsets.UTF_8)
+
+            val uri = androidx.core.content.FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "application/json"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Export History JSON"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Toast.makeText(this, "Failed to export JSON: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onNewIntent(intent: Intent) {

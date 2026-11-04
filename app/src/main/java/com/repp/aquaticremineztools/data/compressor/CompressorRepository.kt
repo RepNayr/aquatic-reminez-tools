@@ -54,6 +54,20 @@ class CompressorRepository private constructor(private val context: Context) {
 
     init {
         scope.launch {
+            // Reconcile interrupted items on startup (manual recovery check)
+            val interrupted = dao.getPendingOrInterruptedItems()
+            for (entity in interrupted) {
+                if (entity.status in listOf(
+                        ItemStatus.PROCESSING.name,
+                        ItemStatus.PREPARING.name,
+                        ItemStatus.VALIDATING.name,
+                        ItemStatus.SAVING_TO_GALLERY.name
+                    )
+                ) {
+                    dao.update(entity.copy(status = ItemStatus.READY.name, progress = 0))
+                }
+            }
+
             dao.getAllItemsFlow().collect { entities ->
                 _itemsFlow.value = entities.map { mapEntityToItem(it) }
             }
@@ -300,6 +314,9 @@ class CompressorRepository private constructor(private val context: Context) {
             psnrDb = e.psnrDb,
             ssimScore = e.ssimScore,
             isNotBeneficial = e.isNotBeneficial,
+            detectedCategory = e.detectedCategory,
+            targetSizeAchieved = e.targetSizeAchieved,
+            processingTimeMs = e.processingTimeMs,
             savedToGalleryPath = e.savedToGalleryPath,
             localTempPath = e.localTempPath,
             addedTimestamp = e.addedTimestamp
@@ -329,6 +346,11 @@ class CompressorRepository private constructor(private val context: Context) {
             psnrDb = i.psnrDb,
             ssimScore = i.ssimScore,
             isNotBeneficial = i.isNotBeneficial,
+            detectedCategory = i.detectedCategory,
+            targetSizeAchieved = i.targetSizeAchieved,
+            processingTimeMs = i.processingTimeMs,
+            retryCount = 0,
+            errorCategory = null,
             savedToGalleryPath = i.savedToGalleryPath,
             localTempPath = i.localTempPath,
             addedTimestamp = i.addedTimestamp

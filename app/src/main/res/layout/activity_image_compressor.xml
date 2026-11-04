@@ -194,13 +194,13 @@
                                 style="@style/ButtonOutline"
                                 android:layout_width="0dp"
                                 android:layout_height="40dp"
-                                android:layout_marginEnd="4dp"
+                                android:layout_marginEnd="2dp"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
                                 android:padding="0dp"
                                 android:text="Gallery"
                                 android:textColor="#43D9E6"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 app:strokeColor="#43D9E6" />
 
                             <Button
@@ -208,28 +208,43 @@
                                 style="@style/ButtonOutline"
                                 android:layout_width="0dp"
                                 android:layout_height="40dp"
-                                android:layout_marginStart="4dp"
-                                android:layout_marginEnd="4dp"
+                                android:layout_marginStart="2dp"
+                                android:layout_marginEnd="2dp"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
                                 android:padding="0dp"
                                 android:text="Files"
                                 android:textColor="#A78BFA"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 app:strokeColor="#A78BFA" />
+
+                            <Button
+                                android:id="@+id/btnImportFolder"
+                                style="@style/ButtonOutline"
+                                android:layout_width="0dp"
+                                android:layout_height="40dp"
+                                android:layout_marginStart="2dp"
+                                android:layout_marginEnd="2dp"
+                                android:layout_weight="1"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:padding="0dp"
+                                android:text="Folder"
+                                android:textColor="#D6B46A"
+                                android:textSize="11sp"
+                                app:strokeColor="#D6B46A" />
 
                             <Button
                                 android:id="@+id/btnImportCamera"
                                 style="@style/ButtonOutline"
                                 android:layout_width="0dp"
                                 android:layout_height="40dp"
-                                android:layout_marginStart="4dp"
+                                android:layout_marginStart="2dp"
                                 android:layout_weight="1"
                                 android:fontFamily="@font/times_new_roman_bold"
                                 android:padding="0dp"
                                 android:text="Camera"
                                 android:textColor="#38BFA1"
-                                android:textSize="12sp"
+                                android:textSize="11sp"
                                 app:strokeColor="#38BFA1" />
                         </LinearLayout>
 
@@ -442,6 +457,32 @@
                                 android:background="@drawable/bg_input_field" />
                         </LinearLayout>
 
+                        <!-- Target Size Priority Container (Visible in Target Size mode) -->
+                        <LinearLayout
+                            android:id="@+id/layoutTargetPriority"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:orientation="horizontal"
+                            android:visibility="gone">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:fontFamily="@font/times_new_roman_regular"
+                                android:text="Priority:"
+                                android:textColor="#9AA0A6"
+                                android:textSize="12sp" />
+
+                            <Spinner
+                                android:id="@+id/spinnerTargetPriority"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_input_field" />
+                        </LinearLayout>
+
                         <!-- Output Format Spinner -->
                         <LinearLayout
                             android:layout_width="match_parent"
@@ -466,6 +507,30 @@
                                 android:background="@drawable/bg_input_field" />
                         </LinearLayout>
 
+                        <!-- Resolution Preset Spinner -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center_vertical"
+                                android:fontFamily="@font/times_new_roman_regular"
+                                android:text="Resolution:"
+                                android:textColor="#9AA0A6"
+                                android:textSize="12sp" />
+
+                            <Spinner
+                                android:id="@+id/spinnerResolution"
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginStart="8dp"
+                                android:background="@drawable/bg_input_field" />
+                        </LinearLayout>
+
                         <!-- Collapsible Advanced Settings Button -->
                         <TextView
                             android:id="@+id/btnToggleAdvanced"
@@ -473,7 +538,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="12dp"
                             android:fontFamily="@font/times_new_roman_bold"
-                            android:text="▶ Advanced Settings (Resize &amp; Metadata)"
+                            android:text="▶ Advanced Settings (Quality Floor, Resize &amp; Enhancements)"
                             android:textColor="#43D9E6"
                             android:textSize="12sp" />
 
@@ -486,12 +551,36 @@
                             android:orientation="vertical"
                             android:visibility="gone">
 
+                            <!-- Min Quality Floor -->
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvMinQualityLabel"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:fontFamily="@font/times_new_roman_regular"
+                                    android:text="Min Quality Floor: 30%"
+                                    android:textColor="#9AA0A6"
+                                    android:textSize="11sp" />
+
+                                <SeekBar
+                                    android:id="@+id/seekBarMinQuality"
+                                    android:layout_width="160dp"
+                                    android:layout_height="wrap_content"
+                                    android:max="80"
+                                    android:progress="20" />
+                            </LinearLayout>
+
                             <CheckBox
                                 android:id="@+id/cbEnableResize"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/times_new_roman_regular"
-                                android:text="Enable Image Resizing"
+                                android:text="Enable Custom Percent Resizing"
                                 android:textColor="#E8EAED"
                                 android:textSize="12sp" />
 
@@ -520,13 +609,50 @@
                                     android:textSize="11sp" />
                             </LinearLayout>
 
+                            <!-- Enhancements Section -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:fontFamily="@font/times_new_roman_bold"
+                                android:text="Enhancements:"
+                                android:textColor="#9AA0A6"
+                                android:textSize="11sp" />
+
+                            <CheckBox
+                                android:id="@+id/cbSharpen"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/times_new_roman_regular"
+                                android:text="Sharpen Edges (Subtle)"
+                                android:textColor="#E8EAED"
+                                android:textSize="12sp" />
+
+                            <CheckBox
+                                android:id="@+id/cbDenoise"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/times_new_roman_regular"
+                                android:text="Denoise (Median Filter)"
+                                android:textColor="#E8EAED"
+                                android:textSize="12sp" />
+
+                            <CheckBox
+                                android:id="@+id/cbPreserveDetails"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/times_new_roman_regular"
+                                android:text="Preserve Fine Line Details"
+                                android:textColor="#E8EAED"
+                                android:textSize="12sp" />
+
                             <CheckBox
                                 android:id="@+id/cbStripGps"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:checked="true"
                                 android:fontFamily="@font/times_new_roman_regular"
-                                android:text="Strip GPS Location Metadata"
+                                android:text="Strip EXIF Metadata &amp; GPS Location"
                                 android:textColor="#E8EAED"
                                 android:textSize="12sp" />
 

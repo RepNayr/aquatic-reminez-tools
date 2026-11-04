@@ -38,6 +38,9 @@ interface CompressorDao {
     @Query("SELECT * FROM compressor_items WHERE id = :id LIMIT 1")
     suspend fun getItemById(id: String): CompressorItemEntity?
 
-    @Query("SELECT * FROM compressor_items WHERE status IN ('QUEUED', 'UPLOADING', 'PROCESSING', 'DOWNLOADING', 'VALIDATING') ORDER BY queuePosition ASC LIMIT 1")
+    @Query("SELECT * FROM compressor_items WHERE status IN ('QUEUED', 'UPLOADING', 'PROCESSING', 'DOWNLOADING', 'VALIDATING', 'PREPARING', 'SAVING_TO_GALLERY') ORDER BY queuePosition ASC LIMIT 1")
     suspend fun getNextEligibleItem(): CompressorItemEntity?
+
+    @Query("SELECT * FROM compressor_items WHERE status IN ('QUEUED', 'UPLOADING', 'PROCESSING', 'DOWNLOADING', 'VALIDATING', 'PREPARING', 'SAVING_TO_GALLERY') ORDER BY queuePosition ASC")
+    suspend fun getPendingOrInterruptedItems(): List<CompressorItemEntity>
 }

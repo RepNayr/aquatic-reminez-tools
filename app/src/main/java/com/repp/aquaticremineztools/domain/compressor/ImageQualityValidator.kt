@@ -8,9 +8,9 @@ import kotlin.math.pow
 import kotlin.math.sqrt
 
 data class QualityMetrics(
-    val mse: Double,
-    val psnrDb: Double,
-    val ssim: Double,
+    val mse: Double?,
+    val psnrDb: Double?,
+    val ssim: Double?,
     val isAcceptable: Boolean
 )
 
@@ -20,43 +20,52 @@ object ImageQualityValidator {
     private const val MIN_ACCEPTABLE_SSIM = 0.70
 
     fun evaluateQuality(originalFile: File, compressedFile: File): QualityMetrics {
-        val origBitmap = decodeSampledBitmap(originalFile, 512, 512)
-        val compBitmap = decodeSampledBitmap(compressedFile, 512, 512)
+        var origBitmap: Bitmap? = null
+        var compBitmap: Bitmap? = null
+        var b1: Bitmap? = null
+        var b2: Bitmap? = null
 
-        if (origBitmap == null || compBitmap == null) {
-            return QualityMetrics(0.0, 35.0, 0.85, true)
+        try {
+            origBitmap = decodeSampledBitmap(originalFile, 512, 512)
+            compBitmap = decodeSampledBitmap(compressedFile, 512, 512)
+
+            if (origBitmap == null || compBitmap == null) {
+                return QualityMetrics(null, null, null, false)
+            }
+
+            // Scale to same comparison dimensions if different
+            val evalWidth = 256
+            val evalHeight = 256
+            b1 = Bitmap.createScaledBitmap(origBitmap, evalWidth, evalHeight, true)
+            b2 = Bitmap.createScaledBitmap(compBitmap, evalWidth, evalHeight, true)
+
+            val pixels1 = IntArray(evalWidth * evalHeight)
+            val pixels2 = IntArray(evalWidth * evalHeight)
+
+            b1.getPixels(pixels1, 0, evalWidth, 0, 0, evalWidth, evalHeight)
+            b2.getPixels(pixels2, 0, evalWidth, 0, 0, evalWidth, evalHeight)
+
+            val mse = calculateMse(pixels1, pixels2)
+            val psnr = calculatePsnr(mse)
+            val ssim = calculateSsim(pixels1, pixels2, evalWidth, evalHeight)
+
+            val isAcceptable = psnr >= MIN_ACCEPTABLE_PSNR_DB && ssim >= MIN_ACCEPTABLE_SSIM
+
+            return QualityMetrics(
+                mse = mse,
+                psnrDb = psnr,
+                ssim = ssim,
+                isAcceptable = isAcceptable
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return QualityMetrics(null, null, null, false)
+        } finally {
+            b1?.takeIf { it != origBitmap }?.recycle()
+            b2?.takeIf { it != compBitmap }?.recycle()
+            origBitmap?.recycle()
+            compBitmap?.recycle()
         }
-
-        // Scale to same comparison dimensions if different
-        val evalWidth = 256
-        val evalHeight = 256
-        val b1 = Bitmap.createScaledBitmap(origBitmap, evalWidth, evalHeight, true)
-        val b2 = Bitmap.createScaledBitmap(compBitmap, evalWidth, evalHeight, true)
-
-        if (b1 != origBitmap) origBitmap.recycle()
-        if (b2 != compBitmap) compBitmap.recycle()
-
-        val pixels1 = IntArray(evalWidth * evalHeight)
-        val pixels2 = IntArray(evalWidth * evalHeight)
-
-        b1.getPixels(pixels1, 0, evalWidth, 0, 0, evalWidth, evalHeight)
-        b2.getPixels(pixels2, 0, evalWidth, 0, 0, evalWidth, evalHeight)
-
-        b1.recycle()
-        b2.recycle()
-
-        val mse = calculateMse(pixels1, pixels2)
-        val psnr = calculatePsnr(mse)
-        val ssim = calculateSsim(pixels1, pixels2, evalWidth, evalHeight)
-
-        val isAcceptable = psnr >= MIN_ACCEPTABLE_PSNR_DB && ssim >= MIN_ACCEPTABLE_SSIM
-
-        return QualityMetrics(
-            mse = mse,
-            psnrDb = psnr,
-            ssim = ssim,
-            isAcceptable = isAcceptable
-        )
     }
 
     private fun decodeSampledBitmap(file: File, reqWidth: Int, reqHeight: Int): Bitmap? {

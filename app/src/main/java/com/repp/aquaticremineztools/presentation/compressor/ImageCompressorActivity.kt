@@ -73,6 +73,7 @@ class ImageCompressorActivity : AppCompatActivity() {
     private lateinit var tvBatchCountSize: TextView
     private lateinit var btnImportGallery: Button
     private lateinit var btnImportFiles: Button
+    private lateinit var btnImportFolder: Button
     private lateinit var btnImportCamera: Button
     private lateinit var tvEmptySelected: TextView
     private lateinit var rvSelectedImages: RecyclerView
@@ -89,18 +90,26 @@ class ImageCompressorActivity : AppCompatActivity() {
 
     private lateinit var layoutTargetSize: LinearLayout
     private lateinit var spinnerTargetSize: Spinner
+    private lateinit var layoutTargetPriority: LinearLayout
+    private lateinit var spinnerTargetPriority: Spinner
 
     private lateinit var layoutPresets: LinearLayout
     private lateinit var spinnerPreset: Spinner
 
     private lateinit var spinnerOutputFormat: Spinner
+    private lateinit var spinnerResolution: Spinner
 
     private lateinit var btnToggleAdvanced: TextView
     private lateinit var layoutAdvancedSettings: LinearLayout
+    private lateinit var tvMinQualityLabel: TextView
+    private lateinit var seekBarMinQuality: SeekBar
     private lateinit var cbEnableResize: CheckBox
     private lateinit var layoutResizeOptions: LinearLayout
     private lateinit var seekBarResizePercent: SeekBar
     private lateinit var tvResizePercentValue: TextView
+    private lateinit var cbSharpen: CheckBox
+    private lateinit var cbDenoise: CheckBox
+    private lateinit var cbPreserveDetails: CheckBox
     private lateinit var cbStripGps: CheckBox
     private lateinit var cbPreserveIcc: CheckBox
 
@@ -142,6 +151,24 @@ class ImageCompressorActivity : AppCompatActivity() {
     ) { uris ->
         if (!uris.isNullOrEmpty()) {
             viewModel.importUris(uris)
+        }
+    }
+
+    // Storage Access Framework Folder Picker
+    private val openDocumentTreeLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            val folderUris = com.repp.aquaticremineztools.domain.compressor.FolderImportHelper.scanFolderForImages(this, uri)
+            if (folderUris.isNotEmpty()) {
+                val batchUris = folderUris.take(ImageImportManager.MAX_FILES_PER_BATCH)
+                viewModel.importUris(batchUris)
+                if (folderUris.size > ImageImportManager.MAX_FILES_PER_BATCH) {
+                    Toast.makeText(this, "Folder contained ${folderUris.size} images. Loaded batch of 10 images.", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(this, "No supported images found in selected folder.", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -229,6 +256,7 @@ class ImageCompressorActivity : AppCompatActivity() {
         tvBatchCountSize = findViewById(R.id.tvBatchCountSize)
         btnImportGallery = findViewById(R.id.btnImportGallery)
         btnImportFiles = findViewById(R.id.btnImportFiles)
+        btnImportFolder = findViewById(R.id.btnImportFolder)
         btnImportCamera = findViewById(R.id.btnImportCamera)
         tvEmptySelected = findViewById(R.id.tvEmptySelected)
         rvSelectedImages = findViewById(R.id.rvSelectedImages)
@@ -245,18 +273,26 @@ class ImageCompressorActivity : AppCompatActivity() {
 
         layoutTargetSize = findViewById(R.id.layoutTargetSize)
         spinnerTargetSize = findViewById(R.id.spinnerTargetSize)
+        layoutTargetPriority = findViewById(R.id.layoutTargetPriority)
+        spinnerTargetPriority = findViewById(R.id.spinnerTargetPriority)
 
         layoutPresets = findViewById(R.id.layoutPresets)
         spinnerPreset = findViewById(R.id.spinnerPreset)
 
         spinnerOutputFormat = findViewById(R.id.spinnerOutputFormat)
+        spinnerResolution = findViewById(R.id.spinnerResolution)
 
         btnToggleAdvanced = findViewById(R.id.btnToggleAdvanced)
         layoutAdvancedSettings = findViewById(R.id.layoutAdvancedSettings)
+        tvMinQualityLabel = findViewById(R.id.tvMinQualityLabel)
+        seekBarMinQuality = findViewById(R.id.seekBarMinQuality)
         cbEnableResize = findViewById(R.id.cbEnableResize)
         layoutResizeOptions = findViewById(R.id.layoutResizeOptions)
         seekBarResizePercent = findViewById(R.id.seekBarResizePercent)
         tvResizePercentValue = findViewById(R.id.tvResizePercentValue)
+        cbSharpen = findViewById(R.id.cbSharpen)
+        cbDenoise = findViewById(R.id.cbDenoise)
+        cbPreserveDetails = findViewById(R.id.cbPreserveDetails)
         cbStripGps = findViewById(R.id.cbStripGps)
         cbPreserveIcc = findViewById(R.id.cbPreserveIcc)
 
@@ -321,6 +357,10 @@ class ImageCompressorActivity : AppCompatActivity() {
             openMultipleDocuments.launch(arrayOf("image/*"))
         }
 
+        btnImportFolder.setOnClickListener {
+            openDocumentTreeLauncher.launch(null)
+        }
+
         btnImportCamera.setOnClickListener {
             launchCamera()
         }
@@ -330,24 +370,28 @@ class ImageCompressorActivity : AppCompatActivity() {
                 R.id.chipModeAuto -> {
                     layoutQualitySlider.visibility = View.GONE
                     layoutTargetSize.visibility = View.GONE
+                    layoutTargetPriority.visibility = View.GONE
                     layoutPresets.visibility = View.GONE
                     updateConfigFromUi(mode = CompressionMode.AUTO)
                 }
                 R.id.chipModeQuality -> {
                     layoutQualitySlider.visibility = View.VISIBLE
                     layoutTargetSize.visibility = View.GONE
+                    layoutTargetPriority.visibility = View.GONE
                     layoutPresets.visibility = View.GONE
                     updateConfigFromUi(mode = CompressionMode.QUALITY)
                 }
                 R.id.chipModeTarget -> {
                     layoutQualitySlider.visibility = View.GONE
                     layoutTargetSize.visibility = View.VISIBLE
+                    layoutTargetPriority.visibility = View.VISIBLE
                     layoutPresets.visibility = View.GONE
                     updateConfigFromUi(mode = CompressionMode.TARGET_SIZE)
                 }
                 R.id.chipModePreset -> {
                     layoutQualitySlider.visibility = View.GONE
                     layoutTargetSize.visibility = View.GONE
+                    layoutTargetPriority.visibility = View.GONE
                     layoutPresets.visibility = View.VISIBLE
                     updateConfigFromUi(mode = CompressionMode.PRESET)
                 }
@@ -366,13 +410,25 @@ class ImageCompressorActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
 
+        seekBarMinQuality.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val valPct = progress + 10
+                tvMinQualityLabel.text = "Min Quality Floor: $valPct%"
+                if (fromUser) {
+                    updateConfigFromUi()
+                }
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
         btnToggleAdvanced.setOnClickListener {
             if (layoutAdvancedSettings.visibility == View.VISIBLE) {
                 layoutAdvancedSettings.visibility = View.GONE
-                btnToggleAdvanced.text = "▶ Advanced Settings (Resize & Metadata)"
+                btnToggleAdvanced.text = "▶ Advanced Settings (Quality Floor, Resize & Enhancements)"
             } else {
                 layoutAdvancedSettings.visibility = View.VISIBLE
-                btnToggleAdvanced.text = "▼ Advanced Settings (Resize & Metadata)"
+                btnToggleAdvanced.text = "▼ Advanced Settings (Quality Floor, Resize & Enhancements)"
             }
         }
 
@@ -392,6 +448,10 @@ class ImageCompressorActivity : AppCompatActivity() {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {}
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
+
+        cbSharpen.setOnCheckedChangeListener { _, _ -> updateConfigFromUi() }
+        cbDenoise.setOnCheckedChangeListener { _, _ -> updateConfigFromUi() }
+        cbPreserveDetails.setOnCheckedChangeListener { _, _ -> updateConfigFromUi() }
 
         cbStripGps.setOnCheckedChangeListener { _, isChecked ->
             CompressorPreferences.setStripGps(this, isChecked)
@@ -436,12 +496,23 @@ class ImageCompressorActivity : AppCompatActivity() {
         }
     }
 
+    private val activePresets = listOf(
+        CompressionPreset.SMART_AUTO,
+        CompressionPreset.BALANCED,
+        CompressionPreset.STRONG,
+        CompressionPreset.EXTREME
+    )
+
     private fun setupSpinners() {
         val targetOptions = arrayOf("100 KB", "250 KB", "500 KB", "1 MB", "2 MB", "5 MB", "10 MB")
         val targetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, targetOptions)
         spinnerTargetSize.adapter = targetAdapter
 
-        val presetOptions = CompressionPreset.values().map { it.displayName }
+        val priorityOptions = com.repp.aquaticremineztools.data.compressor.TargetSizePriority.values().map { it.displayName }
+        val priorityAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, priorityOptions)
+        spinnerTargetPriority.adapter = priorityAdapter
+
+        val presetOptions = activePresets.map { it.displayName }
         val presetAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, presetOptions)
         spinnerPreset.adapter = presetAdapter
 
@@ -449,26 +520,22 @@ class ImageCompressorActivity : AppCompatActivity() {
         val formatAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, formatOptions)
         spinnerOutputFormat.adapter = formatAdapter
 
-        spinnerTargetSize.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+        val resolutionOptions = com.repp.aquaticremineztools.data.compressor.ResolutionPreset.values().map { it.displayName }
+        val resolutionAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, resolutionOptions)
+        spinnerResolution.adapter = resolutionAdapter
+
+        val itemListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 updateConfigFromUi()
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 
-        spinnerPreset.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateConfigFromUi()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
-        spinnerOutputFormat.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                updateConfigFromUi()
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
+        spinnerTargetSize.onItemSelectedListener = itemListener
+        spinnerTargetPriority.onItemSelectedListener = itemListener
+        spinnerPreset.onItemSelectedListener = itemListener
+        spinnerOutputFormat.onItemSelectedListener = itemListener
+        spinnerResolution.onItemSelectedListener = itemListener
     }
 
     private fun updateConfigFromUi(mode: CompressionMode? = null) {
@@ -480,6 +547,7 @@ class ImageCompressorActivity : AppCompatActivity() {
         }
 
         val qualityVal = seekBarQuality.progress + 10
+        val minQualityVal = seekBarMinQuality.progress + 10
 
         val targetSizeBytes = when (spinnerTargetSize.selectedItemPosition) {
             0 -> 100 * 1024L
@@ -492,8 +560,13 @@ class ImageCompressorActivity : AppCompatActivity() {
             else -> 500 * 1024L
         }
 
-        val presetEnum = CompressionPreset.values().getOrElse(spinnerPreset.selectedItemPosition) { CompressionPreset.MEDIUM }
+        val targetPriorityEnum = com.repp.aquaticremineztools.data.compressor.TargetSizePriority.values()
+            .getOrElse(spinnerTargetPriority.selectedItemPosition) { com.repp.aquaticremineztools.data.compressor.TargetSizePriority.BALANCED }
+
+        val presetEnum = activePresets.getOrElse(spinnerPreset.selectedItemPosition) { CompressionPreset.BALANCED }
         val formatEnum = OutputFormat.values().getOrElse(spinnerOutputFormat.selectedItemPosition) { OutputFormat.ORIGINAL }
+        val resolutionEnum = com.repp.aquaticremineztools.data.compressor.ResolutionPreset.values()
+            .getOrElse(spinnerResolution.selectedItemPosition) { com.repp.aquaticremineztools.data.compressor.ResolutionPreset.ORIGINAL }
 
         val isResize = cbEnableResize.isChecked
         val resizePct = seekBarResizePercent.progress + 10
@@ -501,12 +574,18 @@ class ImageCompressorActivity : AppCompatActivity() {
         val config = CompressionConfig(
             mode = currentMode,
             quality = qualityVal,
+            minQuality = minQualityVal,
             targetSizeBytes = targetSizeBytes,
+            targetSizePriority = targetPriorityEnum,
             preset = presetEnum,
             outputFormat = formatEnum,
+            resolutionPreset = resolutionEnum,
             enableResize = isResize,
             resizeMode = if (isResize) ResizeMode.PERCENTAGE else ResizeMode.NONE,
             resizePercent = resizePct,
+            enableSharpen = cbSharpen.isChecked,
+            enableDenoise = cbDenoise.isChecked,
+            enablePreserveDetails = cbPreserveDetails.isChecked,
             stripGps = cbStripGps.isChecked,
             preserveIcc = cbPreserveIcc.isChecked
         )
@@ -703,17 +782,16 @@ class ImageCompressorActivity : AppCompatActivity() {
 
     private fun shareSingleImage(item: CompressorItem) {
         val path = item.compressedUri ?: item.uri
-        val file = File(path)
-        if (!file.exists()) {
+        val shareUri = getShareUriForPath(path)
+        if (shareUri == null) {
             Toast.makeText(this, "File missing for sharing.", Toast.LENGTH_SHORT).show()
             return
         }
 
         try {
-            val contentUri = FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
             val intent = Intent(Intent.ACTION_SEND).apply {
                 type = item.mimeType
-                putExtra(Intent.EXTRA_STREAM, contentUri)
+                putExtra(Intent.EXTRA_STREAM, shareUri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             startActivity(Intent.createChooser(intent, "Share Compressed Image"))
@@ -731,10 +809,14 @@ class ImageCompressorActivity : AppCompatActivity() {
             val uris = ArrayList<Uri>()
             for (item in items) {
                 val path = item.compressedUri ?: item.uri
-                val file = File(path)
-                if (file.exists()) {
-                    uris.add(FileProvider.getUriForFile(this, "$packageName.fileprovider", file))
+                val shareUri = getShareUriForPath(path)
+                if (shareUri != null) {
+                    uris.add(shareUri)
                 }
+            }
+            if (uris.isEmpty()) {
+                Toast.makeText(this, "No valid files found for sharing.", Toast.LENGTH_SHORT).show()
+                return
             }
             val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
                 type = "image/*"
@@ -745,6 +827,24 @@ class ImageCompressorActivity : AppCompatActivity() {
         } catch (e: Exception) {
             e.printStackTrace()
             Toast.makeText(this, "Sharing multiple images failed.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun getShareUriForPath(path: String): Uri? {
+        return try {
+            if (path.startsWith("content://")) {
+                Uri.parse(path)
+            } else {
+                val file = File(path)
+                if (file.exists()) {
+                    FileProvider.getUriForFile(this, "$packageName.fileprovider", file)
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 

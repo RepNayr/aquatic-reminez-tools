@@ -27,6 +27,11 @@ data class CompressorItemEntity(
     val psnrDb: Double?,
     val ssimScore: Double?,
     val isNotBeneficial: Boolean,
+    val detectedCategory: String? = null,
+    val targetSizeAchieved: Boolean? = null,
+    val processingTimeMs: Long = 0L,
+    val retryCount: Int = 0,
+    val errorCategory: String? = null,
     val savedToGalleryPath: String?,
     val localTempPath: String?,
     val addedTimestamp: Long

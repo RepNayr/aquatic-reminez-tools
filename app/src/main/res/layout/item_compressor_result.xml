@@ -28,16 +28,39 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <TextView
-                android:id="@+id/tvResultFileName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ellipsize="middle"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:singleLine="true"
-                android:textColor="#E8EAED"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/tvResultFileName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_toStartOf="@id/tvCategoryBadge"
+                    android:ellipsize="middle"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:singleLine="true"
+                    android:textColor="#E8EAED"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvCategoryBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:background="@drawable/bg_info_chip"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:text="Photo"
+                    android:textColor="#43D9E6"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -70,11 +93,23 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
+            <!-- Detailed Metrics & Specs -->
+            <TextView
+                android:id="@+id/tvMetricsDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:background="#0C0F14"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:padding="8dp"
+                android:textColor="#9AA0A6"
+                android:textSize="11sp" />
+
             <TextView
                 android:id="@+id/tvNote"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/times_new_roman_regular"
                 android:textColor="#D6B46A"
                 android:textSize="11sp"

@@ -47,10 +47,17 @@ object ImageMetadataManager {
         }
     }
 
-    fun stripGpsMetadata(outputFile: File) {
+    /**
+     * Strips all metadata (GPS, device info, software, timestamps, identity, EXIF tags)
+     * from the output file. Resets orientation tag to NORMAL (1) since orientation
+     * has already been rendered into the pixel buffer.
+     */
+    fun stripAllMetadata(outputFile: File) {
         try {
+            if (!outputFile.exists()) return
             val exif = ExifInterface(outputFile.absolutePath)
-            val gpsTags = arrayOf(
+            val tagsToClear = arrayOf(
+                // GPS Tags
                 ExifInterface.TAG_GPS_LATITUDE,
                 ExifInterface.TAG_GPS_LONGITUDE,
                 ExifInterface.TAG_GPS_LATITUDE_REF,
@@ -68,14 +75,36 @@ object ImageMetadataManager {
                 ExifInterface.TAG_GPS_IMG_DIRECTION_REF,
                 ExifInterface.TAG_GPS_MAP_DATUM,
                 ExifInterface.TAG_GPS_DEST_LATITUDE,
-                ExifInterface.TAG_GPS_DEST_LONGITUDE
+                ExifInterface.TAG_GPS_DEST_LONGITUDE,
+                // Device & Identity Metadata
+                ExifInterface.TAG_MAKE,
+                ExifInterface.TAG_MODEL,
+                ExifInterface.TAG_SOFTWARE,
+                ExifInterface.TAG_ARTIST,
+                ExifInterface.TAG_COPYRIGHT,
+                ExifInterface.TAG_USER_COMMENT,
+                ExifInterface.TAG_DATETIME,
+                ExifInterface.TAG_DATETIME_ORIGINAL,
+                ExifInterface.TAG_DATETIME_DIGITIZED,
+                ExifInterface.TAG_SUBSEC_TIME,
+                ExifInterface.TAG_SUBSEC_TIME_ORIGINAL,
+                ExifInterface.TAG_SUBSEC_TIME_DIGITIZED,
+                ExifInterface.TAG_IMAGE_DESCRIPTION,
+                ExifInterface.TAG_DEVICE_SETTING_DESCRIPTION
             )
-            for (tag in gpsTags) {
+            for (tag in tagsToClear) {
                 exif.setAttribute(tag, null)
             }
+            // Reset orientation attribute to NORMAL (1) since pixels were pre-rotated
+            exif.setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL.toString())
             exif.saveAttributes()
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    @Deprecated("Use stripAllMetadata instead for complete privacy protection.", ReplaceWith("stripAllMetadata(outputFile)"))
+    fun stripGpsMetadata(outputFile: File) {
+        stripAllMetadata(outputFile)
     }
 }

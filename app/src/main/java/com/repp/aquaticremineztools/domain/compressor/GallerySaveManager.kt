@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import kotlinx.coroutines.delay
 import java.io.File
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
@@ -18,18 +19,53 @@ object GallerySaveManager {
         val isSuccess: Boolean,
         val savedUri: Uri? = null,
         val displayPath: String? = null,
+        val errorCategory: String? = null,
         val errorMessage: String? = null
     )
 
+    suspend fun saveToGalleryWithRetry(
+        context: Context,
+        sourceFile: File,
+        originalFileName: String,
+        mimeType: String,
+        alreadySavedPath: String? = null,
+        maxRetries: Int = 3
+    ): SaveResult {
+        // Idempotency check: if already saved and confirmed, don't duplicate MediaStore entry
+        if (!alreadySavedPath.isNullOrEmpty()) {
+            return SaveResult(
+                isSuccess = true,
+                displayPath = alreadySavedPath
+            )
+        }
+
+        var attempt = 0
+        var lastResult: SaveResult? = null
+
+        while (attempt < maxRetries) {
+            attempt++
+            lastResult = saveToGallery(context, sourceFile, originalFileName, mimeType)
+            if (lastResult.isSuccess) {
+                return lastResult
+            }
+            if (attempt < maxRetries) {
+                val backoffMs = (500L * (1 shl (attempt - 1)))
+                delay(backoffMs)
+            }
+        }
+
+        return lastResult ?: SaveResult(false, errorCategory = "SAVE_FAILED", errorMessage = "Gallery save failed after $maxRetries attempts.")
+    }
+
     fun saveToGallery(context: Context, sourceFile: File, originalFileName: String, mimeType: String): SaveResult {
         if (!sourceFile.exists() || sourceFile.length() <= 0L) {
-            return SaveResult(false, errorMessage = "Source file does not exist or is empty.")
+            return SaveResult(false, errorCategory = "SOURCE_MISSING", errorMessage = "Source file does not exist or is empty.")
         }
 
         val baseName = getBaseFileName(originalFileName)
         val ext = getExtension(originalFileName, mimeType)
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val formattedFileName = "${baseName}_$timestamp.$ext"
+        val formattedFileName = "${baseName}_compressed_$timestamp.$ext"
 
         val albumName = "Pictures/Aquatic Reminez/Compressed"
         val contentResolver = context.contentResolver
@@ -53,14 +89,14 @@ object GallerySaveManager {
 
             uri = contentResolver.insert(collection, contentValues)
             if (uri == null) {
-                return SaveResult(false, errorMessage = "Failed to create MediaStore entry.")
+                return SaveResult(false, errorCategory = "MEDIASTORE_ERROR", errorMessage = "Failed to create MediaStore entry.")
             }
 
             contentResolver.openOutputStream(uri)?.use { output ->
                 FileInputStream(sourceFile).use { input ->
                     input.copyTo(output)
                 }
-            } ?: return SaveResult(false, errorMessage = "Failed to open output stream.")
+            } ?: return SaveResult(false, errorCategory = "STORAGE_ERROR", errorMessage = "Failed to open output stream.")
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 contentValues.clear()
@@ -70,9 +106,9 @@ object GallerySaveManager {
 
             val savedPath = "$albumName/$formattedFileName"
 
-            // Delete temporary app-side result copy after confirmed commit
+            // Non-destructive cleanup of temporary working file (original file is untouched)
             try {
-                if (sourceFile.exists()) {
+                if (sourceFile.exists() && sourceFile.absolutePath.contains("compressed_temp")) {
                     sourceFile.delete()
                 }
             } catch (e: Exception) {
@@ -93,7 +129,9 @@ object GallerySaveManager {
                     delEx.printStackTrace()
                 }
             }
-            SaveResult(false, errorMessage = e.localizedMessage ?: "Storage write failure.")
+            val isFull = e.message?.contains("ENOSPC") == true
+            val errCat = if (isFull) "STORAGE_FULL" else "WRITE_FAILED"
+            SaveResult(false, errorCategory = errCat, errorMessage = e.localizedMessage ?: "Storage write failure.")
         }
     }
 

@@ -168,6 +168,10 @@
                 android:resource="@xml/file_paths" />
         </provider>
 
+        <receiver
+            android:name=".domain.compressor.worker.CancelWorkerReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>

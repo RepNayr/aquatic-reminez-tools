@@ -10,6 +10,10 @@ data class CompressionProviderResult(
     val outputWidth: Int,
     val outputHeight: Int,
     val outputFormat: String,
+    val isNotBeneficial: Boolean = false,
+    val detectedCategory: String? = null,
+    val targetSizeAchieved: Boolean? = null,
+    val processingTimeMs: Long = 0L,
     val errorMessage: String? = null
 )
 

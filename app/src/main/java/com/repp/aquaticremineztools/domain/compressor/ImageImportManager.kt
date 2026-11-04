@@ -14,8 +14,8 @@ import java.util.UUID
 object ImageImportManager {
 
     const val MAX_FILES_PER_BATCH = 10
-    const val MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024L // 50 MB
-    const val MAX_BATCH_SIZE_BYTES = 200 * 1024 * 1024L // 200 MB
+    const val MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024L // 100 MB
+    const val MAX_BATCH_SIZE_BYTES = 500 * 1024 * 1024L // 500 MB
 
     sealed class ImportResult {
         data class Success(val item: CompressorItem, val tempFile: File) : ImportResult()
@@ -51,7 +51,7 @@ object ImageImportManager {
             return ImportResult.Error(fileName, "File is empty or inaccessible.")
         }
         if (fileSize > MAX_FILE_SIZE_BYTES) {
-            return ImportResult.Error(fileName, "File exceeds maximum size limit of 50 MB.")
+            return ImportResult.Error(fileName, "File exceeds maximum size limit of 100 MB.")
         }
 
         val tempDir = getTempDir(context)
@@ -78,7 +78,7 @@ object ImageImportManager {
         BitmapFactory.decodeFile(tempFile.absolutePath, options)
         if (options.outWidth <= 0 || options.outHeight <= 0) {
             // Some HEIC / TIFF files might not be decoded by standard BitmapFactory without ImageDecoder
-            if (magicFormat != "HEIC" && magicFormat != "TIFF") {
+            if (magicFormat != "HEIC" && magicFormat != "TIFF" && magicFormat != "AVIF") {
                 tempFile.delete()
                 return ImportResult.Error(fileName, "Decoder failed to parse image dimensions. File may be corrupted.")
             }
@@ -137,13 +137,16 @@ object ImageImportManager {
                 if ((bytes[0] == 0x49.toByte() && bytes[1] == 0x49.toByte()) || (bytes[0] == 0x4D.toByte() && bytes[1] == 0x4D.toByte())) {
                     return "TIFF"
                 }
-                // HEIC/HEIF: ftypheic, ftypheim, ftypheis, ftypmif1
+                // HEIC/HEIF or AVIF: ftyp box
                 if (read >= 12) {
                     val boxType = String(bytes, 4, 4, Charsets.US_ASCII)
                     if (boxType == "ftyp") {
                         val brand = String(bytes, 8, 4, Charsets.US_ASCII)
                         if (brand.startsWith("hei") || brand.startsWith("mif") || brand.startsWith("heic")) {
                             return "HEIC"
+                        }
+                        if (brand.startsWith("avi") || brand.startsWith("avif")) {
+                            return "AVIF"
                         }
                     }
                 }
@@ -163,6 +166,7 @@ object ImageImportManager {
             "BMP" -> "image/bmp"
             "TIFF" -> "image/tiff"
             "HEIC" -> "image/heic"
+            "AVIF" -> "image/avif"
             else -> "image/jpeg"
         }
     }
