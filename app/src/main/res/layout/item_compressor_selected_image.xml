@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardSelectedImage"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardBackgroundColor="#151A21"
-    app:cardCornerRadius="10dp"
-    app:cardElevation="2dp"
-    app:strokeColor="#353941"
+    android:layout_margin="6dp"
+    app:cardBackgroundColor="#1AFFFFFF"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="0dp"
+    app:strokeColor="#1FFFFFFF"
     app:strokeWidth="1dp">
 
     <LinearLayout
@@ -15,54 +16,121 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <FrameLayout
+        <!-- Square 1:1 Thumbnail Frame -->
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="110dp">
+            android:layout_height="0dp"
+            app:layout_constraintDimensionRatio="1:1"
+            android:background="#090B0F">
 
             <ImageView
                 android:id="@+id/ivThumbnail"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="#090B0F"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
-            <ImageView
-                android:id="@+id/btnRemove"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_gravity="top|end"
+            <!-- Error State Container (Hidden by default) -->
+            <LinearLayout
+                android:id="@+id/layoutErrorThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#DD090B0F"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/ivErrorIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:src="@drawable/ic_broken_image"
+                    app:tint="#9AA0A6" />
+
+                <ProgressBar
+                    android:id="@+id/pbRetrySpinner"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:indeterminateTint="#43D9E6"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvErrorMsg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:gravity="center"
+                    android:text="Unable to load image"
+                    android:textColor="#9AA0A6"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:id="@+id/btnRetryThumbnail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_glass_button"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="3dp"
+                    android:text="Retry"
+                    android:textColor="#43D9E6"
+                    android:textSize="10sp" />
+            </LinearLayout>
+
+            <!-- Top Right X Remove Button -->
+            <FrameLayout
+                android:id="@+id/btnRemoveFrame"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
                 android:layout_margin="6dp"
-                android:background="@drawable/bg_icon_circle"
-                android:contentDescription="Remove image"
-                android:padding="5dp"
-                android:src="@drawable/ic_close"
-                app:tint="#D9535D" />
+                android:clickable="true"
+                android:focusable="true"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
 
-            <TextView
-                android:id="@+id/tvStatus"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="bottom|start"
-                android:layout_margin="6dp"
-                android:background="#CC090B0F"
-                android:fontFamily="@font/times_new_roman_bold"
-                android:paddingHorizontal="6dp"
-                android:paddingVertical="2dp"
-                android:textColor="#43D9E6"
-                android:textSize="9sp" />
-        </FrameLayout>
+                <View
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_icon_circle"
+                    android:backgroundTint="#B0000000" />
 
+                <ImageView
+                    android:id="@+id/btnRemove"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="Remove image"
+                    android:src="@drawable/ic_close"
+                    app:tint="#FFFFFF" />
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Information Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="8dp">
+            android:padding="10dp">
 
             <TextView
                 android:id="@+id/tvFileName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="middle"
+                android:ellipsize="end"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:singleLine="true"
                 android:textColor="#E8EAED"
@@ -70,7 +138,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvDetails"
+                android:id="@+id/tvFileSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
@@ -78,7 +146,18 @@
                 android:fontFamily="@font/times_new_roman_regular"
                 android:singleLine="true"
                 android:textColor="#9AA0A6"
-                android:textSize="10sp" />
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvResFormat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:singleLine="true"
+                android:textColor="#9AA0A6"
+                android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -78,29 +78,29 @@ class CompressorRepository private constructor(private val context: Context) {
         _configFlow.value = config
     }
 
-    suspend fun addImportedItem(item: CompressorItem, tempFile: File): String? = withContext(Dispatchers.IO) {
+    suspend fun addImportedItem(item: CompressorItem, tempFile: File): AddResult = withContext(Dispatchers.IO) {
         val current = _itemsFlow.value
         if (current.size >= ImageImportManager.MAX_FILES_PER_BATCH) {
-            return@withContext "Maximum limit of 10 images per batch reached."
+            return@withContext AddResult.MaxCountReached
         }
 
         val currentTotalSize = current.sumOf { it.fileSize }
         if (currentTotalSize + item.fileSize > ImageImportManager.MAX_BATCH_SIZE_BYTES) {
-            return@withContext "Adding this image exceeds the 200 MB combined batch size limit."
+            return@withContext AddResult.MaxSizeReached
         }
 
         // Compute SHA-256 hash asynchronously
         val sha256 = ImageHashManager.computeSha256(tempFile)
         if (sha256 == null) {
             tempFile.delete()
-            return@withContext "Failed to calculate SHA-256 hash verification."
+            return@withContext AddResult.Error("Failed to calculate SHA-256 hash verification.")
         }
 
         // Check duplicate within active session
-        val isDuplicate = ImageHashManager.registerHashAndCheckDuplicate(item.id, sha256)
-        if (isDuplicate) {
+        val existingDuplicateId = ImageHashManager.registerHashAndCheckDuplicate(item.id, sha256)
+        if (existingDuplicateId != null) {
             tempFile.delete()
-            return@withContext "Duplicate image detected. Byte-identical file already exists in session."
+            return@withContext AddResult.Duplicate(existingDuplicateId)
         }
 
         val updatedItem = item.copy(
@@ -110,7 +110,7 @@ class CompressorRepository private constructor(private val context: Context) {
         )
 
         dao.insert(mapItemToEntity(updatedItem))
-        return@withContext null
+        return@withContext AddResult.Success
     }
 
     suspend fun removeItem(itemId: String) = withContext(Dispatchers.IO) {

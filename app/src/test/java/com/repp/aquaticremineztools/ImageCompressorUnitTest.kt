@@ -45,7 +45,7 @@ class ImageCompressorUnitTest {
     fun testImportLimits() {
         assertEquals(10, ImageImportManager.MAX_FILES_PER_BATCH)
         assertEquals(100 * 1024 * 1024L, ImageImportManager.MAX_FILE_SIZE_BYTES)
-        assertEquals(500 * 1024 * 1024L, ImageImportManager.MAX_BATCH_SIZE_BYTES)
+        assertEquals(200 * 1024 * 1024L, ImageImportManager.MAX_BATCH_SIZE_BYTES)
     }
 
     @Test
@@ -57,15 +57,15 @@ class ImageCompressorUnitTest {
             val hash1 = ImageHashManager.computeSha256(tempFile)
             assertNotNull(hash1)
 
-            val isDupFirst = ImageHashManager.registerHashAndCheckDuplicate("item1", hash1!!)
-            assertFalse("First registration should not be duplicate", isDupFirst)
+            val dupFirst = ImageHashManager.registerHashAndCheckDuplicate("item1", hash1!!)
+            assertNull("First registration should not be duplicate", dupFirst)
 
-            val isDupSecond = ImageHashManager.registerHashAndCheckDuplicate("item2", hash1)
-            assertTrue("Second registration with same hash must be flagged as duplicate", isDupSecond)
+            val dupSecond = ImageHashManager.registerHashAndCheckDuplicate("item2", hash1)
+            assertEquals("item1", dupSecond)
 
             ImageHashManager.unregisterHash("item1")
-            val isDupAfterRemove = ImageHashManager.registerHashAndCheckDuplicate("item3", hash1)
-            assertFalse("After removal, re-registering should be permitted", isDupAfterRemove)
+            val dupAfterRemove = ImageHashManager.registerHashAndCheckDuplicate("item3", hash1)
+            assertNull("After removal, re-registering should be permitted", dupAfterRemove)
 
             ImageHashManager.clearSessionHashes()
             tempFile.delete()

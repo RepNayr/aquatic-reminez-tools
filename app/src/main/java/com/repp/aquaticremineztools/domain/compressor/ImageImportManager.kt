@@ -15,7 +15,7 @@ object ImageImportManager {
 
     const val MAX_FILES_PER_BATCH = 10
     const val MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024L // 100 MB
-    const val MAX_BATCH_SIZE_BYTES = 500 * 1024 * 1024L // 500 MB
+    const val MAX_BATCH_SIZE_BYTES = 200 * 1024 * 1024L // 200 MB
 
     sealed class ImportResult {
         data class Success(val item: CompressorItem, val tempFile: File) : ImportResult()

@@ -43,12 +43,13 @@ object ImageHashManager {
         }
     }
 
-    suspend fun registerHashAndCheckDuplicate(itemId: String, sha256: String): Boolean = mutex.withLock {
-        val isDuplicate = activeSessionHashes.values.contains(sha256)
-        if (!isDuplicate) {
-            activeSessionHashes[itemId] = sha256
+    suspend fun registerHashAndCheckDuplicate(itemId: String, sha256: String): String? = mutex.withLock {
+        val existingEntry = activeSessionHashes.entries.firstOrNull { it.value == sha256 }
+        if (existingEntry != null) {
+            return@withLock existingEntry.key
         }
-        return@withLock isDuplicate
+        activeSessionHashes[itemId] = sha256
+        return@withLock null
     }
 
     suspend fun unregisterHash(itemId: String) = mutex.withLock {

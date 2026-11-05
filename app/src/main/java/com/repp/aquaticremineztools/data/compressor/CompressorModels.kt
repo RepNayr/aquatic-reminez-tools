@@ -153,3 +153,12 @@ data class BatchSummary(
     val totalSavedBytes: Long = 0L,
     val savingPercentage: Double = 0.0
 )
+
+sealed class AddResult {
+    object Success : AddResult()
+    data class Duplicate(val existingItemId: String) : AddResult()
+    object MaxCountReached : AddResult()
+    object MaxSizeReached : AddResult()
+    data class Error(val message: String) : AddResult()
+}
+

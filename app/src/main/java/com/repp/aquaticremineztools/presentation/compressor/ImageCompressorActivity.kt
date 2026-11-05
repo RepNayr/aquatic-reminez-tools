@@ -70,12 +70,14 @@ class ImageCompressorActivity : AppCompatActivity() {
     // Views
     private lateinit var btnBack: FrameLayout
     private lateinit var tvSessionStatus: TextView
-    private lateinit var tvBatchCountSize: TextView
-    private lateinit var btnImportGallery: Button
-    private lateinit var btnImportFiles: Button
-    private lateinit var btnImportFolder: Button
-    private lateinit var btnImportCamera: Button
-    private lateinit var tvEmptySelected: TextView
+    private lateinit var tvCountBadge: TextView
+    private lateinit var tvSizeBadge: TextView
+    private lateinit var btnImportGallery: View
+    private lateinit var btnImportFiles: View
+    private lateinit var btnImportFolder: View
+    private lateinit var btnImportCamera: View
+    private lateinit var layoutEmptySelected: View
+    private lateinit var tvMaxLimitReached: TextView
     private lateinit var rvSelectedImages: RecyclerView
 
     private lateinit var chipGroupMode: ChipGroup
@@ -253,13 +255,15 @@ class ImageCompressorActivity : AppCompatActivity() {
 
         btnBack = findViewById(R.id.btnBack)
         tvSessionStatus = findViewById(R.id.tvSessionStatus)
-        tvBatchCountSize = findViewById(R.id.tvBatchCountSize)
+        tvCountBadge = findViewById(R.id.tvCountBadge)
+        tvSizeBadge = findViewById(R.id.tvSizeBadge)
         btnImportGallery = findViewById(R.id.btnImportGallery)
         btnImportFiles = findViewById(R.id.btnImportFiles)
         btnImportFolder = findViewById(R.id.btnImportFolder)
         btnImportCamera = findViewById(R.id.btnImportCamera)
-        tvEmptySelected = findViewById(R.id.tvEmptySelected)
+        layoutEmptySelected = findViewById(R.id.layoutEmptySelected)
         rvSelectedImages = findViewById(R.id.rvSelectedImages)
+        tvMaxLimitReached = findViewById(R.id.tvMaxLimitReached)
 
         chipGroupMode = findViewById(R.id.chipGroupMode)
         chipModeAuto = findViewById(R.id.chipModeAuto)
@@ -324,7 +328,14 @@ class ImageCompressorActivity : AppCompatActivity() {
         selectedAdapter = SelectedImageAdapter(
             items = emptyList(),
             onRemoveClick = { item -> viewModel.removeItem(item.id) },
-            onItemClick = { item -> showFullPreviewDialog(item) }
+            onItemClick = { item ->
+                val readyItems = viewModel.itemsFlow.value.filter { it.status == ItemStatus.READY || it.status == ItemStatus.CHECKING }
+                val index = readyItems.indexOfFirst { it.id == item.id }
+                showFullPreviewDialog(readyItems, index.coerceAtLeast(0))
+            },
+            onAddClick = {
+                pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            }
         )
         rvSelectedImages.layoutManager = GridLayoutManager(this, 2)
         rvSelectedImages.adapter = selectedAdapter
@@ -601,6 +612,12 @@ class ImageCompressorActivity : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
+            viewModel.duplicatePulseEvent.collect { itemId ->
+                selectedAdapter.pulseHighlightDuplicate(itemId)
+            }
+        }
+
+        lifecycleScope.launch {
             viewModel.itemsFlow.collectLatest { items ->
                 val readyItems = items.filter { it.status == ItemStatus.READY || it.status == ItemStatus.CHECKING }
                 val queuedItems = items.filter {
@@ -619,15 +636,18 @@ class ImageCompressorActivity : AppCompatActivity() {
                 // Section 1: Selected Images
                 selectedAdapter.updateData(readyItems)
                 if (readyItems.isEmpty()) {
-                    tvEmptySelected.visibility = View.VISIBLE
+                    layoutEmptySelected.visibility = View.VISIBLE
                     rvSelectedImages.visibility = View.GONE
+                    tvMaxLimitReached.visibility = View.GONE
                 } else {
-                    tvEmptySelected.visibility = View.GONE
+                    layoutEmptySelected.visibility = View.GONE
                     rvSelectedImages.visibility = View.VISIBLE
+                    tvMaxLimitReached.visibility = if (readyItems.size >= 10) View.VISIBLE else View.GONE
                 }
 
+                tvCountBadge.text = "[ ${readyItems.size}/10 Images ]"
                 val totalSizeMb = readyItems.sumOf { it.fileSize } / (1024.0 * 1024.0)
-                tvBatchCountSize.text = "${readyItems.size} / 10 images (${String.format("%.1f", totalSizeMb)} MB / 200 MB)"
+                tvSizeBadge.text = String.format(java.util.Locale.US, "[ %.1f MB / 200 MB ]", totalSizeMb)
 
                 // Section 3: Queue
                 queueAdapter.updateData(queuedItems)
@@ -762,21 +782,9 @@ class ImageCompressorActivity : AppCompatActivity() {
         dialog.show()
     }
 
-    private fun showFullPreviewDialog(item: CompressorItem) {
-        val dialogView = layoutInflater.inflate(R.layout.dialog_full_preview, null)
-        val ivFull = dialogView.findViewById<ImageView>(R.id.ivFullImage)
-        val tvDetails = dialogView.findViewById<TextView>(R.id.tvFullDetails)
-        val btnClose = dialogView.findViewById<Button>(R.id.btnCloseFull)
-
-        ivFull.load(item.uri)
-        val sizeMb = String.format("%.2f MB", item.fileSize / (1024.0 * 1024.0))
-        tvDetails.text = "${item.fileName}\n$sizeMb • ${item.width}x${item.height} • ${item.mimeType}"
-
-        val dialog = AlertDialog.Builder(this, R.style.Theme_AquaticReminezTools_Dialog)
-            .setView(dialogView)
-            .create()
-
-        btnClose.setOnClickListener { dialog.dismiss() }
+    private fun showFullPreviewDialog(items: List<CompressorItem>, initialIndex: Int = 0) {
+        if (items.isEmpty()) return
+        val dialog = FullPreviewDialog(this, items, initialIndex)
         dialog.show()
     }
 

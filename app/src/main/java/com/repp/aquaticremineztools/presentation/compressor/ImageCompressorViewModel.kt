@@ -31,6 +31,9 @@ class ImageCompressorViewModel(application: Application) : AndroidViewModel(appl
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent: SharedFlow<String> = _toastEvent.asSharedFlow()
 
+    private val _duplicatePulseEvent = MutableSharedFlow<String>()
+    val duplicatePulseEvent: SharedFlow<String> = _duplicatePulseEvent.asSharedFlow()
+
     private val _batchSummaryFlow = MutableStateFlow(BatchSummary())
     val batchSummaryFlow: StateFlow<BatchSummary> = _batchSummaryFlow.asStateFlow()
 
@@ -44,17 +47,67 @@ class ImageCompressorViewModel(application: Application) : AndroidViewModel(appl
 
     fun importUris(uris: List<Uri>) {
         viewModelScope.launch {
+            var addedCount = 0
+            var duplicateCount = 0
+            var maxLimitReached = false
+            var maxSizeReached = false
+            val errors = mutableListOf<String>()
+
             for (uri in uris) {
                 when (val result = ImageImportManager.importUri(getApplication(), uri)) {
                     is ImageImportManager.ImportResult.Success -> {
-                        val error = repository.addImportedItem(result.item, result.tempFile)
-                        if (error != null) {
-                            _toastEvent.emit(error)
+                        when (val addRes = repository.addImportedItem(result.item, result.tempFile)) {
+                            is com.repp.aquaticremineztools.data.compressor.AddResult.Success -> {
+                                addedCount++
+                            }
+                            is com.repp.aquaticremineztools.data.compressor.AddResult.Duplicate -> {
+                                duplicateCount++
+                                _duplicatePulseEvent.emit(addRes.existingItemId)
+                            }
+                            is com.repp.aquaticremineztools.data.compressor.AddResult.MaxCountReached -> {
+                                maxLimitReached = true
+                            }
+                            is com.repp.aquaticremineztools.data.compressor.AddResult.MaxSizeReached -> {
+                                maxSizeReached = true
+                            }
+                            is com.repp.aquaticremineztools.data.compressor.AddResult.Error -> {
+                                errors.add("${result.item.fileName}: ${addRes.message}")
+                            }
                         }
                     }
                     is ImageImportManager.ImportResult.Error -> {
-                        _toastEvent.emit("${result.fileName}: ${result.reason}")
+                        errors.add("${result.fileName}: ${result.reason}")
                     }
+                }
+            }
+
+            if (uris.size == 1) {
+                if (duplicateCount == 1) {
+                    _toastEvent.emit("Duplicate image skipped")
+                } else if (maxLimitReached) {
+                    _toastEvent.emit("Maximum 10 images limit reached")
+                } else if (maxSizeReached) {
+                    _toastEvent.emit("Batch size limit (200 MB) reached")
+                } else if (errors.isNotEmpty()) {
+                    _toastEvent.emit(errors.first())
+                }
+            } else {
+                val parts = mutableListOf<String>()
+                if (addedCount > 0) {
+                    parts.add("$addedCount image${if (addedCount > 1) "s" else ""} added")
+                }
+                if (duplicateCount > 0) {
+                    parts.add("$duplicateCount duplicate${if (duplicateCount > 1) "s" else ""} skipped")
+                }
+                if (maxLimitReached) {
+                    parts.add("maximum 10 images reached")
+                } else if (maxSizeReached) {
+                    parts.add("200 MB size limit reached")
+                }
+                if (parts.isNotEmpty()) {
+                    _toastEvent.emit(parts.joinToString(", "))
+                } else if (errors.isNotEmpty()) {
+                    _toastEvent.emit(errors.first())
                 }
             }
         }
