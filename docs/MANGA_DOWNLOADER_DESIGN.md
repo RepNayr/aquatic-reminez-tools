@@ -173,3 +173,15 @@ The latest user-supplied original screenshot is the authoritative reference for 
 - URL analysis remains host-validated against the selected/registered adapter. A CrotPedia URL is accepted only by the CrotPedia adapter.
 - When additional providers are implemented and tested later, register them in the source-adapter registry and let the grid render them from that registry; avoid hardcoding a separate tile for every site in the Activity layout.
 - If only one source is available, keep the grid layout visually balanced without inventing placeholder providers or “coming soon” tiles.
+
+
+## Supported websites grid — visual correction from reference
+
+This section supersedes the earlier oversized/centered single-card mockup:
+
+- Match the supplied reference's compact two-column platform tiles: two columns across the content width, short rectangular tiles, thin outline, modest internal padding, and a small horizontal gap. Do not render large cards, tall tiles, oversized icons, or a full-width provider card.
+- Each tile uses the website's own recognizable icon/logo (prefer the site's official favicon or logo asset), positioned on the left, with the website name beside it in compact uppercase or title styling. Do not substitute a generic book icon when an official site icon can be obtained.
+- Keep icon and label vertically centered and aligned consistently, matching the reference's platform buttons.
+- Use a thin subtle blue-grey outline and the Manga Downloader's dark surface/foreground palette as appropriate to the final isolated theme. Corners should be only slightly rounded, not pill-shaped.
+- Place the **SUPPORTED WEBSITES** heading and compact grid immediately below **DOWNLOAD ALL**. Preserve the reference's restrained scale and spacing.
+- The grid is data-driven from validated registered adapters. Initially it contains only CrotPedia, using the actual CrotPedia site icon/logo. Do not add placeholder sites just to fill the second column; keep the single tile compact and aligned to the grid.
