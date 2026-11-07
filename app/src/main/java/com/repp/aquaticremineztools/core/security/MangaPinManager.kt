@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -50,7 +52,9 @@ object MangaPinManager {
         }
 
         val salt = generateSalt()
-        val hashHex = hashPin(pin, salt)
+        val hashHex = runBlocking(Dispatchers.Default) {
+            hashPin(pin, salt)
+        }
         getPrefs(context).edit()
             .putString(KEY_PIN_HASH, hashHex)
             .putString(KEY_PIN_SALT, bytesToHex(salt))
@@ -80,7 +84,9 @@ object MangaPinManager {
         val storedSaltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
 
         val salt = hexToBytes(storedSaltHex)
-        val computedHashHex = hashPin(pin, salt)
+        val computedHashHex = runBlocking(Dispatchers.Default) {
+            hashPin(pin, salt)
+        }
 
         val storedHashBytes = hexToBytes(storedHashHex)
         val computedHashBytes = hexToBytes(computedHashHex)

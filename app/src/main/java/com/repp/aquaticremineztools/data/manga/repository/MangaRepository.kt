@@ -24,12 +24,41 @@ class MangaRepository(context: Context) {
         val cleanUrl = chapter.chapterUrl.trim()
         val normalizedUrl = if (cleanUrl.endsWith("/")) cleanUrl.dropLast(1) else "$cleanUrl/"
 
-        val existingCount = dao.countExistingChapter(cleanUrl, normalizedUrl)
-        if (existingCount > 0) {
-            return false // Deduplication: already queued, downloading or completed
+        val existing = dao.getByUrl(cleanUrl, normalizedUrl)
+        val sanitizeTitle = sanitizeFileName("${seriesTitle}_${chapter.title}.pdf")
+
+        if (existing != null) {
+            when (existing.status) {
+                MangaDownloadEntity.STATUS_QUEUED,
+                MangaDownloadEntity.STATUS_DOWNLOADING,
+                MangaDownloadEntity.STATUS_COMPLETED,
+                MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING -> {
+                    return false // Already active, queued or completed
+                }
+                MangaDownloadEntity.STATUS_FAILED,
+                MangaDownloadEntity.STATUS_CANCELLED -> {
+                    // Safe retry: update existing record back to QUEUED
+                    val updated = existing.copy(
+                        seriesTitle = seriesTitle,
+                        chapterTitle = chapter.title,
+                        outputFileName = sanitizeTitle,
+                        totalPages = chapter.pageCount,
+                        downloadedPages = 0,
+                        totalBytes = 0L,
+                        downloadedBytes = 0L,
+                        downloadSpeedBps = 0L,
+                        status = MangaDownloadEntity.STATUS_QUEUED,
+                        timestamp = System.currentTimeMillis(),
+                        pdfPath = null,
+                        errorMessage = null
+                    )
+                    dao.update(updated)
+                    MangaDownloadWorker.enqueueWork(appContext)
+                    return true
+                }
+            }
         }
 
-        val sanitizeTitle = sanitizeFileName("${seriesTitle}_${chapter.title}.pdf")
         val entity = MangaDownloadEntity(
             seriesTitle = seriesTitle,
             chapterTitle = chapter.title,

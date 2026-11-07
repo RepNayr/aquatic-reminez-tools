@@ -19,6 +19,9 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE id = :id")
     suspend fun getById(id: Long): MangaDownloadEntity?
 
+    @Query("SELECT * FROM manga_downloads WHERE chapterUrl = :chapterUrl OR chapterUrl = :normalizedUrl LIMIT 1")
+    suspend fun getByUrl(chapterUrl: String, normalizedUrl: String): MangaDownloadEntity?
+
     @Query("SELECT * FROM manga_downloads ORDER BY id DESC")
     fun getAllLiveData(): LiveData<List<MangaDownloadEntity>>
 
