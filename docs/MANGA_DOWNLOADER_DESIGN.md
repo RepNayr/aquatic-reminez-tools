@@ -185,3 +185,24 @@ This section supersedes the earlier oversized/centered single-card mockup:
 - Use a thin subtle blue-grey outline and the Manga Downloader's dark surface/foreground palette as appropriate to the final isolated theme. Corners should be only slightly rounded, not pill-shaped.
 - Place the **SUPPORTED WEBSITES** heading and compact grid immediately below **DOWNLOAD ALL**. Preserve the reference's restrained scale and spacing.
 - The grid is data-driven from validated registered adapters. Initially it contains only CrotPedia, using the actual CrotPedia site icon/logo. Do not add placeholder sites just to fill the second column; keep the single tile compact and aligned to the grid.
+
+
+## Page composition correction — preserve the agreed original design
+
+This is a narrow additive change, not a redesign. The latest generated full-screen mockup changed too much of the agreed Manga Downloader page. Do not use that mockup as the overall page layout reference.
+
+Keep the previously agreed Manga Downloader screen exactly as specified:
+- Dedicated screen with only a Back control and title at the top; no bottom navigation and no hamburger/sidebar.
+- Keep the existing URL input, Analyze button, analyzed manga cover/title, and compact chapter list. Each chapter keeps its own right-aligned **DOWNLOAD** button; page-count/metadata remains on a secondary line below the chapter title.
+- Keep the isolated Manga Downloader visual theme and existing spacing, typography, component sizing, and chapter presentation. Do not add unrelated history panels, feature cards, greeting panels, alternate navigation, or a second download-actions section.
+- Keep the floating download trigger and its anchored Downloads pop-up behavior exactly as previously approved. This floating pop-up remains a separate download-manager overlay; it is not replaced by the inline queue section.
+
+### Required content order at the bottom of the page
+
+After the chapter list, render these elements in this exact order:
+
+1. **DOWNLOAD ALL** — one full-width action below the chapter list. It enqueues all chapters in the displayed order.
+2. **DOWNLOADS QUEUE** — a compact inline queue section immediately below Download All. This is the only newly requested addition to the original page. Show the queued/active chapter entries in small horizontal cards similar to the compact queue rows from the recent concept: optional small cover thumbnail, chapter title, source label (CrotPedia), state (Queued / Downloading / Completed / Failed), and a slim real progress bar plus percentage for the active item. Keep queued items visually compact; do not make large feature cards. The queue must reflect the same FIFO WorkManager queue as the floating Downloads pop-up; it is not a second queue and must not duplicate or simulate jobs. If empty, show a restrained empty-state line such as "No chapters in queue yet".
+3. **SUPPORTED WEBSITES** — immediately below Downloads Queue. Use the previously specified compact two-column grid of short outlined rectangular tiles, with the official website icon/logo at the left and site name at the right. Initially show only CrotPedia. Do not use a large provider card or generic book icon when the actual site favicon/logo is available.
+
+No other page sections should be inserted between Download All, Downloads Queue, and Supported Websites. The section order above supersedes the earlier instruction that placed Supported Websites directly below Download All.
