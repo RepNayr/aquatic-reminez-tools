@@ -40,7 +40,11 @@ class MangaChapterAdapter(
 
         fun bind(chapter: MangaChapter, onDownloadClick: (MangaChapter) -> Unit) {
             tvTitle.text = chapter.title
-            tvPages.text = "${chapter.pageCount} halaman"
+            tvPages.text = if (chapter.pageCount > 0) {
+                "${chapter.pageCount} halaman"
+            } else {
+                "Jumlah halaman belum tersedia"
+            }
 
             btnDownload.setOnClickListener {
                 onDownloadClick(chapter)

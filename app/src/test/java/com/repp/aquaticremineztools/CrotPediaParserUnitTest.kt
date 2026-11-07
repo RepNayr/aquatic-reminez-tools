@@ -2,6 +2,7 @@ package com.repp.aquaticremineztools
 
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
+import com.repp.aquaticremineztools.data.manga.source.MangaParseException
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -20,9 +21,10 @@ class CrotPediaParserUnitTest {
         assertTrue(CrotPediaParser.isAllowedUrl("http://www.crotpedia.net/baca/chapter-1/"))
         assertTrue(CrotPediaParser.isAllowedUrl("https://sub.crotpedia.net/baca/chapter-1/"))
 
-        // Untrusted / spoofed domains
+        // Untrusted / spoofed domains (e.g. evilcrotpedia.net or crotpedia.net.evil.com)
         assertFalse(CrotPediaParser.isAllowedUrl("https://crotpedia.net.evil.com/baca/"))
         assertFalse(CrotPediaParser.isAllowedUrl("https://evil.com/crotpedia.net/"))
+        assertFalse(CrotPediaParser.isAllowedUrl("https://evilcrotpedia.net/baca/"))
         assertFalse(CrotPediaParser.isAllowedUrl("https://crotpedia-net.com/baca/"))
         assertFalse(CrotPediaParser.isAllowedUrl("ftp://crotpedia.net/file"))
         assertFalse(CrotPediaParser.isAllowedUrl("invalid-url"))

@@ -35,7 +35,8 @@ class CrotPediaParser(
                 if (scheme != "http" && scheme != "https") return false
 
                 val host = uri.host?.lowercase() ?: return false
-                host == "crotpedia.net" || host == "www.crotpedia.net" || host.endsWith(".crotpedia.net")
+                val parts = host.split(".")
+                parts.size >= 2 && parts[parts.size - 2] == "crotpedia" && parts[parts.size - 1] == "net"
             } catch (e: Exception) {
                 false
             }
@@ -88,17 +89,17 @@ class CrotPediaParser(
     }
 
     private fun validateNotLoginPage(doc: Document, url: String) {
-        if (url.contains("/login/") || url.contains("action=login")) {
+        if (url.contains("/login/") || url.contains("action=login") || url.contains("/signin")) {
             throw MangaAuthRequiredException("Halaman memerlukan login resmi di CrotPedia.")
         }
 
-        val loginForm = doc.selectFirst("form[action*=/login], form#loginform, input[name=log], input[name=pwd]")
+        val loginForm = doc.selectFirst("form[action*=/login], form[action*=/signin], form#loginform, input[name=log], input[name=pwd]")
         if (loginForm != null) {
             throw MangaAuthRequiredException("Halaman ini memerlukan login resmi di CrotPedia.")
         }
 
         val title = doc.title().lowercase()
-        if (title.contains("login") || title.contains("sign in") || title.contains("just a moment")) {
+        if (title.contains("login") || title.contains("sign in") || title.contains("just a moment") || title.contains("attention required")) {
             throw MangaAuthRequiredException("Akses ditolak atau memerlukan login pada CrotPedia.")
         }
     }
@@ -146,30 +147,31 @@ class CrotPediaParser(
             throw MangaParseException("Tidak ada chapter yang ditemukan pada halaman series ini.")
         }
 
-        val parsedChapters = rawChapters.map { (href, chTitle) ->
+        val parsedChapters = rawChapters.mapIndexed { index, (href, chTitle) ->
             val num = parseChapterNumber(chTitle)
-            Triple(href, chTitle, num)
+            Triple(href, chTitle, Triple(index, num, href))
         }
 
-        // Sort by chapter number numerically ascending if numbers parsed, else keep DOM order
-        val sortedChapters = if (parsedChapters.any { it.third != null }) {
-            parsedChapters.sortedWith(Comparator { a, b ->
-                val numA = a.third
-                val numB = b.third
-                if (numA != null && numB != null) {
-                    numA.compareTo(numB)
-                } else if (numA != null) -1 else 1
-            })
-        } else {
-            // Check if DOM order is descending (Chapter N down to 1), reverse if so
-            parsedChapters.reversed()
-        }
+        // Stable and deterministic sorting comparator
+        val sortedChapters = parsedChapters.sortedWith(Comparator { a, b ->
+            val numA = a.third.second
+            val numB = b.third.second
+            when {
+                numA != null && numB != null -> {
+                    val cmp = numA.compareTo(numB)
+                    if (cmp != 0) cmp else a.third.first.compareTo(b.third.first)
+                }
+                numA != null -> -1
+                numB != null -> 1
+                else -> a.third.first.compareTo(b.third.first)
+            }
+        })
 
         val chapterList = sortedChapters.mapIndexed { index, (href, chTitle, _) ->
             MangaChapter(
                 title = chTitle,
                 chapterUrl = href,
-                pageCount = 0, // Page count loaded on demand
+                pageCount = -1, // Unknown until loaded
                 orderIndex = index + 1
             )
         }
@@ -217,11 +219,11 @@ class CrotPediaParser(
     }
 
     private fun extractPagesFromChapterDoc(doc: Document): List<MangaPage> {
-        val imgElements = doc.select("#readerarea img, .reading-content img, .reader-area img, div#chpparent img, div.ts-main-image img")
+        val imgElements = doc.select("#readerarea img, .reading-content img, .reader-area img, div#chpparent img, div.ts-main-image img, .entry-content img")
         val candidateElements = if (imgElements.isNotEmpty()) {
             imgElements
         } else {
-            doc.select("img[src*=/wp-content/uploads/], img[data-src*=/wp-content/uploads/]")
+            doc.select("img[src*=/wp-content/uploads/], img[data-src*=/wp-content/uploads/], img[data-original*=/wp-content/uploads/]")
         }
 
         val pageList = mutableListOf<MangaPage>()
@@ -241,25 +243,41 @@ class CrotPediaParser(
 
     private fun extractImageUrlFromElement(img: org.jsoup.nodes.Element): String {
         val attrs = listOf(
-            "abs:src", "data-src", "data-lazy-src", "data-original", "data-url", "src"
+            "abs:src", "data-src", "data-lazy-src", "data-original", "data-lazy", "data-url", "src"
         )
         for (attr in attrs) {
             val value = img.attr(attr).trim()
-            if (value.isNotEmpty()) {
+            if (value.isNotEmpty() && !isPlaceholderUrl(value)) {
                 val clean = resolveUrlCandidate(value)
-                if (clean.isNotEmpty()) return clean
+                if (clean.isNotEmpty() && !isPlaceholderUrl(clean)) return clean
             }
         }
 
         val srcset = img.attr("srcset").ifEmpty { img.attr("data-srcset") }.trim()
         if (srcset.isNotEmpty()) {
-            val firstCandidate = srcset.split(",").firstOrNull()?.trim()?.split(" ")?.firstOrNull()
-            if (!firstCandidate.isNullOrEmpty()) {
-                return resolveUrlCandidate(firstCandidate)
+            // srcset format: url1 100w, url2 200w or just url
+            val candidates = srcset.split(",")
+            for (candidate in candidates) {
+                val parts = candidate.trim().split(Regex("\\s+"))
+                val urlPart = parts.firstOrNull()?.trim()
+                if (!urlPart.isNullOrEmpty() && !isPlaceholderUrl(urlPart)) {
+                    val clean = resolveUrlCandidate(urlPart)
+                    if (clean.isNotEmpty() && !isPlaceholderUrl(clean)) return clean
+                }
             }
         }
 
         return ""
+    }
+
+    private fun isPlaceholderUrl(url: String): Boolean {
+        val lower = url.lowercase()
+        return lower.startsWith("data:image/") ||
+                lower.contains("placeholder") ||
+                lower.contains("loading") ||
+                lower.contains("blank") ||
+                lower.contains("spacer") ||
+                lower.isEmpty()
     }
 
     private fun resolveUrlCandidate(url: String): String {
@@ -273,7 +291,8 @@ class CrotPediaParser(
     private fun isMangaPageImage(url: String): Boolean {
         val lower = url.lowercase()
         if (lower.contains("logo") || lower.contains("banner") || lower.contains("icon") ||
-            lower.contains("avatar") || lower.contains("advertisement") || lower.contains("button")
+            lower.contains("avatar") || lower.contains("advertisement") || lower.contains("button") ||
+            lower.contains("spinner") || lower.contains("loader")
         ) {
             return false
         }

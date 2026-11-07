@@ -11,7 +11,7 @@ data class MangaSeries(
 data class MangaChapter(
     val title: String,
     val chapterUrl: String,
-    val pageCount: Int,
+    val pageCount: Int = -1,
     val orderIndex: Int
 )
 

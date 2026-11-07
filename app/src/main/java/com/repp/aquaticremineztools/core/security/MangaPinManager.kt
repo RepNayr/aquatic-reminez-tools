@@ -18,7 +18,7 @@ object MangaPinManager {
     private const val KEY_FAILED_ATTEMPTS = "manga_failed_attempts"
     private const val KEY_LOCKOUT_UNTIL = "manga_lockout_until"
 
-    private const val PBKDF2_ITERATIONS = 10000
+    private const val PBKDF2_ITERATIONS = 600000
     private const val KEY_LENGTH = 256
 
     private fun getPrefs(context: Context): SharedPreferences {
@@ -35,8 +35,8 @@ object MangaPinManager {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            // Fail closed or use secure context preferences
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            // Fail-closed enforcement: throw SecurityException rather than falling back to plaintext SharedPreferences
+            throw SecurityException("Secure storage (EncryptedSharedPreferences) failed or unavailable. Access denied (fail-closed).", e)
         }
     }
 
@@ -99,7 +99,6 @@ object MangaPinManager {
             val editor = prefs.edit().putInt(KEY_FAILED_ATTEMPTS, attempts)
 
             if (attempts >= 5) {
-                // Progressive lockout: 5 fails -> 30s, 6 fails -> 60s, 7 fails -> 120s...
                 val lockoutSeconds = (30 * 2.0.pow((attempts - 5).toDouble())).toLong().coerceAtMost(3600L)
                 val lockoutUntil = System.currentTimeMillis() + (lockoutSeconds * 1000)
                 editor.putLong(KEY_LOCKOUT_UNTIL, lockoutUntil)

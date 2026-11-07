@@ -5,7 +5,6 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.os.Build
-import android.os.Environment
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingWorkPolicy
@@ -66,7 +65,7 @@ class MangaDownloadWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
 
-        // Recovery on worker startup: reset any stuck DOWNLOADING items back to QUEUED
+        // Recovery on startup: reset stuck items
         dao.resetStuckDownloadingItems()
 
         while (true) {
@@ -76,10 +75,9 @@ class MangaDownloadWorker(
 
             val currentItem = dao.getNextQueuedItem() ?: break
 
-            // Atomic claim
             val claimed = dao.claimQueuedItem(currentItem.id)
             if (claimed == 0) {
-                continue // Already claimed or cancelled
+                continue
             }
 
             try {
@@ -113,74 +111,71 @@ class MangaDownloadWorker(
         val updatedTotalPagesItem = item.copy(totalPages = totalPages, status = MangaDownloadEntity.STATUS_DOWNLOADING)
         dao.update(updatedTotalPagesItem)
 
-        val tempDir = File(applicationContext.cacheDir, "manga_temp_${item.id}").apply { mkdirs() }
+        val tempDir = File(applicationContext.cacheDir, "manga_temp_${item.id}_${System.currentTimeMillis()}").apply { mkdirs() }
         val downloadedFiles = mutableListOf<File>()
 
-        var totalBytesDownloaded = 0L
-        val startTime = System.currentTimeMillis()
+        try {
+            var totalBytesDownloaded = 0L
+            val startTime = System.currentTimeMillis()
 
-        for (page in pages) {
-            val checkStatus = dao.getById(item.id)
-            if (isStopped || checkStatus?.status == MangaDownloadEntity.STATUS_CANCELLED) {
-                tempDir.deleteRecursively()
+            for (page in pages) {
+                val checkStatus = dao.getById(item.id)
+                if (isStopped || checkStatus?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                    return
+                }
+
+                val pageFile = File(tempDir, "page_${page.pageIndex}.jpg")
+                val bytes = downloadFile(item.id, page.imageUrl, pageFile)
+                totalBytesDownloaded += bytes
+                downloadedFiles.add(pageFile)
+
+                val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
+                val speedBps = if (elapsedSec > 0) (totalBytesDownloaded / elapsedSec).toLong() else 0L
+
+                val progressItem = updatedTotalPagesItem.copy(
+                    downloadedPages = page.pageIndex,
+                    downloadedBytes = totalBytesDownloaded,
+                    totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else 0L,
+                    downloadSpeedBps = speedBps
+                )
+                dao.update(progressItem)
+
+                showForegroundNotification(
+                    "Downloading ${item.chapterTitle}",
+                    "Page ${page.pageIndex}/$totalPages"
+                )
+            }
+
+            val checkFinal = dao.getById(item.id)
+            if (checkFinal?.status == MangaDownloadEntity.STATUS_CANCELLED) {
                 return
             }
 
-            val pageFile = File(tempDir, "page_${page.pageIndex}.jpg")
-            val bytes = downloadFile(item.id, page.imageUrl, pageFile)
-            totalBytesDownloaded += bytes
-            downloadedFiles.add(pageFile)
+            val pdfResult = PdfBuilder.createPdfFromImages(
+                applicationContext,
+                downloadedFiles,
+                item.outputFileName
+            )
 
-            val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
-            val speedBps = if (elapsedSec > 0) (totalBytesDownloaded / elapsedSec).toLong() else 0L
+            val finalStatus = if (pdfResult.isTargetSizeAchieved) {
+                MangaDownloadEntity.STATUS_COMPLETED
+            } else {
+                MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING
+            }
 
-            val progressItem = updatedTotalPagesItem.copy(
-                downloadedPages = page.pageIndex,
+            val completedItem = updatedTotalPagesItem.copy(
+                status = finalStatus,
+                downloadedPages = totalPages,
                 downloadedBytes = totalBytesDownloaded,
-                totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else 0L,
-                downloadSpeedBps = speedBps
+                totalBytes = totalBytesDownloaded,
+                pdfPath = pdfResult.pdfUriString,
+                errorMessage = pdfResult.warningMessage
             )
-            dao.update(progressItem)
+            dao.update(completedItem)
 
-            showForegroundNotification(
-                "Downloading ${item.chapterTitle}",
-                "Page ${page.pageIndex}/$totalPages"
-            )
+        } finally {
+            tempDir.deleteRecursively()
         }
-
-        // PDF Generation
-        val pdfDir = File(
-            Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-            "AquaticManga"
-        ).apply { mkdirs() }
-
-        val pdfFile = File(pdfDir, item.outputFileName)
-        val pdfResult = PdfBuilder.createPdfFromImages(downloadedFiles, pdfFile)
-
-        // Clean up temp images
-        tempDir.deleteRecursively()
-
-        val checkFinal = dao.getById(item.id)
-        if (checkFinal?.status == MangaDownloadEntity.STATUS_CANCELLED) {
-            pdfFile.delete()
-            return
-        }
-
-        val finalStatus = if (pdfResult.isTargetSizeAchieved) {
-            MangaDownloadEntity.STATUS_COMPLETED
-        } else {
-            MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING
-        }
-
-        val completedItem = updatedTotalPagesItem.copy(
-            status = finalStatus,
-            downloadedPages = totalPages,
-            downloadedBytes = totalBytesDownloaded,
-            totalBytes = totalBytesDownloaded,
-            pdfPath = pdfResult.pdfFile.absolutePath,
-            errorMessage = pdfResult.warningMessage
-        )
-        dao.update(completedItem)
     }
 
     private fun downloadFile(itemId: Long, url: String, destFile: File): Long {

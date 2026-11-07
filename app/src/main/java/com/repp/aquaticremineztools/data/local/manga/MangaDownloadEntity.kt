@@ -6,7 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "manga_downloads",
-    indices = [Index(value = ["chapterUrl"], unique = false)]
+    indices = [Index(value = ["chapterUrl"], unique = true)]
 )
 data class MangaDownloadEntity(
     @PrimaryKey(autoGenerate = true)
