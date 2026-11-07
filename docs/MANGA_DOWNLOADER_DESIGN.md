@@ -39,6 +39,38 @@ Chapter page:
 
 Use these as initial parser fixtures/validation targets. Confirm current page structure and image URLs before finalizing CSS selectors; do not infer selectors from URL slugs.
 
+
+## Revised hidden entry point and Manga Downloader screen UX
+
+### Hidden entry point
+
+- Place the concealed entry only inside **Settings → Security & Data Management**, in a new glassmorphism grid at the very bottom of that page.
+- The grid must visually blend with ordinary settings shortcut tiles. Do not label it "hidden tools", "Manga", "Downloader", or otherwise reveal its purpose in visible text or accessibility announcements.
+- Use a neutral, plausible decoy label/icon consistent with the surrounding settings shortcuts. The actual entry is activated by a deliberate gesture on that tile (for example, long-press); only then show the separate Manga PIN gate.
+- Do not add an entry in the main Settings page, category catalog, global search, home shortcuts, or drawer.
+- PIN gate is still mandatory; obscurity is not treated as security. The dedicated feature Activity must enforce authorization itself.
+
+### Manga Downloader page layout
+
+- No app bottom navigation, no hamburger/sidebar drawer. Use a simple top app bar with only a Back control and a concise page title.
+- Keep the isolated warm paper/off-white visual theme from the supplied reference; the app's global theme remains untouched.
+- URL field and prominent dark **ANALYZE** action appear first.
+- After analysis, show cover preview and manga title.
+- Render each chapter as a compact row. The chapter title is primary; page count / metadata sits on a secondary line directly underneath it.
+- Put a per-chapter **DOWNLOAD** action at the far right of each row. Remove the previous "24 halaman / 32 halaman" right-side metadata treatment.
+- Replace **ADD TO QUEUE** with **DOWNLOAD ALL**. Download All enqueues all available chapters in the displayed order; individual Download enqueues only that chapter. Both use the same sequential FIFO queue.
+- Use restrained corner radii: softly rounded rectangles, neither pill-shaped/overly circular nor sharp corners. Target roughly 8–12dp for cards/fields/buttons and 6–8dp for small controls, adjusted to match the app's density and screenshot.
+
+### Download progress presentation
+
+- Follow the second supplied screenshot's floating download-manager panel: a compact overlay/card above the chapter list, visually distinct with a clear border and modest radius.
+- Header shows a download icon, **Downloads**, active task count, and a close/minimize control.
+- Each active item shows a short source/quality or chapter label, truncated title, cancel control, progress bar, downloaded/total size, transfer speed, and percentage.
+- The panel must support multiple queued items while processing only one chapter at a time. Distinguish the active chapter from waiting chapters; do not imply parallel downloads.
+- The panel can collapse to a small floating download indicator with a badge count, and expand on tap.
+- When a chapter finishes, show completion and its saved PDF action; errors show a readable reason and retry option.
+- Progress must be driven by actual worker updates, not simulated values.
+
 ## Proposed package layout
 
 ```
