@@ -94,7 +94,8 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
             findViewById(R.id.blurStorageCard),
             findViewById(R.id.blurBackupCard),
             findViewById(R.id.blurToolSafetyCard),
-            findViewById(R.id.blurRecoveryCard)
+            findViewById(R.id.blurRecoveryCard),
+            findViewById(R.id.blurHiddenDiagnosticCard)
         )
 
         blurViews.forEach { blurView ->
@@ -242,6 +243,13 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Cancel", null)
                 .show()
+        }
+
+        val blurHiddenDiagnosticCard: BlurView = findViewById(R.id.blurHiddenDiagnosticCard)
+        blurHiddenDiagnosticCard.setOnLongClickListener {
+            val intent = Intent(this, com.repp.aquaticremineztools.presentation.manga.MangaPinActivity::class.java)
+            startActivity(intent)
+            true
         }
     }
 }

@@ -564,6 +564,47 @@
                 </LinearLayout>
             </eightbitlab.com.blurview.BlurView>
 
+            <!-- 7. System Diagnostics & Integrity Audit (Hidden Access) -->
+            <eightbitlab.com.blurview.BlurView
+                android:id="@+id/blurHiddenDiagnosticCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                android:background="@drawable/bg_glass_card_clip"
+                android:clickable="true"
+                android:focusable="true">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_glass_card_overlay" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="SYSTEM INTEGRITY &amp; DIAGNOSTIC LOGS"
+                        android:textColor="@color/accent_teal"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="@font/times_new_roman_regular"
+                        android:text="Automated integrity verification and background resource diagnostic logger."
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </eightbitlab.com.blurview.BlurView>
+
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

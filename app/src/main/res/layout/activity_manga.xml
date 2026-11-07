@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootMangaLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F3EFE6">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <!-- Top Header: Back Arrow + Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/btnBack"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@drawable/bg_manga_button_secondary"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_arrow_back"
+                        app:tint="#292722" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="14dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:text="Manga Downloader"
+                    android:textColor="#292722"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- URL Input Box -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_manga_input"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="14dp">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_link"
+                    app:tint="#746D62" />
+
+                <EditText
+                    android:id="@+id/etUrlInput"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginHorizontal="8dp"
+                    android:layout_weight="1"
+                    android:background="@null"
+                    android:fontFamily="@font/times_new_roman_regular"
+                    android:hint="Tempel URL CrotPedia..."
+                    android:inputType="textUri"
+                    android:textColor="#292722"
+                    android:textColorHint="#746D62"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:id="@+id/btnPasteUrl"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:src="@drawable/ic_paste"
+                    app:tint="#746D62" />
+            </LinearLayout>
+
+            <!-- ANALYZE Button -->
+            <Button
+                android:id="@+id/btnAnalyze"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_manga_button_dark"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:text="ANALYZE"
+                android:textColor="#FFFDF8"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- Loading Indicator -->
+            <ProgressBar
+                android:id="@+id/pbAnalyzeLoading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:indeterminateTint="#292722"
+                android:visibility="gone" />
+
+            <!-- Manga Preview Container -->
+            <LinearLayout
+                android:id="@+id/cardMangaPreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:background="@drawable/bg_manga_card">
+
+                    <ImageView
+                        android:id="@+id/ivCoverPreview"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop" />
+
+                    <TextView
+                        android:id="@+id/tvCoverPlaceholder"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="@font/times_new_roman_bold"
+                        android:text="COVER PREVIEW"
+                        android:textColor="#746D62"
+                        android:textSize="14sp" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvMangaTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:fontFamily="@font/times_new_roman_bold"
+                    android:text="Judul Manga"
+                    android:textColor="#292722"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Chapter List -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvChapterList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:nestedScrollingEnabled="false" />
+
+            <!-- DOWNLOAD ALL Button -->
+            <Button
+                android:id="@+id/btnDownloadAll"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="80dp"
+                android:background="@drawable/bg_manga_button_dark"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:text="DOWNLOAD ALL"
+                android:textColor="#FFFDF8"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Floating Download Button at Bottom Left -->
+    <FrameLayout
+        android:id="@+id/btnFloatingDownload"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_manga_floating_btn"
+        android:clickable="true"
+        android:elevation="8dp"
+        android:focusable="true">
+
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_cloud_download"
+            app:tint="#FFFDF8" />
+
+        <!-- Counter Badge -->
+        <TextView
+            android:id="@+id/tvBadgeCounter"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="top|end"
+            android:background="@drawable/bg_manga_pin_dot_off"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:gravity="center"
+            android:text="0"
+            android:textColor="#292722"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+    </FrameLayout>
+
+</RelativeLayout>

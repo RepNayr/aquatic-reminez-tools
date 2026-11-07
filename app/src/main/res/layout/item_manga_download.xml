@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="6dp"
+    android:background="@drawable/bg_manga_card"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <!-- Row 1: Badge + Title + Cancel X -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_manga_badge"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="MANGA · PDF"
+            android:textColor="#FFFDF8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDownloadItemTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:singleLine="true"
+            android:text="Chapter 1 - Imouto no Tomodachi..."
+            android:textColor="#292722"
+            android:textSize="13sp" />
+
+        <ImageView
+            android:id="@+id/btnCancelItem"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_close"
+            app:tint="#292722" />
+    </LinearLayout>
+
+    <!-- Row 2: Progress Bar -->
+    <ProgressBar
+        android:id="@+id/progressBarItem"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="8dp"
+        android:layout_marginVertical="10dp"
+        android:max="100"
+        android:progress="39"
+        android:progressDrawable="@drawable/bg_manga_progress_bar" />
+
+    <!-- Row 3: Size/Speed Info & Percentage -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvDownloadItemInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:text="12.8 MB / 33.0 MB (7.5 MB/s)"
+            android:textColor="#746D62"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/tvDownloadItemPercent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="39%"
+            android:textColor="#292722"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </RelativeLayout>
+
+</LinearLayout>
