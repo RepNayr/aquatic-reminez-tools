@@ -61,15 +61,21 @@ Use these as initial parser fixtures/validation targets. Confirm current page st
 - Replace **ADD TO QUEUE** with **DOWNLOAD ALL**. Download All enqueues all available chapters in the displayed order; individual Download enqueues only that chapter. Both use the same sequential FIFO queue.
 - Use restrained corner radii: softly rounded rectangles, neither pill-shaped/overly circular nor sharp corners. Target roughly 8–12dp for cards/fields/buttons and 6–8dp for small controls, adjusted to match the app's density and screenshot.
 
-### Download progress presentation
+### Download progress presentation (modal overlay + floating toggle)
 
-- Follow the second supplied screenshot's floating download-manager panel: a compact overlay/card above the chapter list, visually distinct with a clear border and modest radius.
-- Header shows a download icon, **Downloads**, active task count, and a close/minimize control.
-- Each active item shows a short source/quality or chapter label, truncated title, cancel control, progress bar, downloaded/total size, transfer speed, and percentage.
-- The panel must support multiple queued items while processing only one chapter at a time. Distinguish the active chapter from waiting chapters; do not imply parallel downloads.
-- The panel can collapse to a small floating download indicator with a badge count, and expand on tap.
-- When a chapter finishes, show completion and its saved PDF action; errors show a readable reason and retry option.
-- Progress must be driven by actual worker updates, not simulated values.
+The download manager is a dedicated modal pop-up, not an always-visible inline card.
+
+- When expanded, place a large white panel above the page, with a strong soft shadow, a thin/dark outline if needed for contrast, and moderately rounded corners. Dim the entire page behind it with a translucent dark scrim so focus moves to the panel.
+- Panel header: cloud/download icon, **Downloads**, active-download count, and an **X** at the far right. This X closes/collapses the panel only; it does not cancel any jobs.
+- Each download is a compact bordered card. First row: black category/quality chip (for example `MANGA · PDF` or `CHAPTER · PDF`), truncated chapter/file title with ellipsis, and a small **X** that cancels that specific job. Do not use TikTok labels in the Manga Downloader.
+- Under the first row, show a thin horizontal progress bar: downloaded portion black, remaining portion light grey. Width must reflect real progress.
+- Under the bar, left side shows downloaded size / total size and current transfer speed; right side shows percentage.
+- The floating trigger sits near the bottom-left edge of the screen. It is a circular button with a relatively bold outline, cloud-download icon, subtle shadow/elevation, and a small badge at the upper-right showing the number of active downloads. Tapping it toggles the panel open/closed.
+- The trigger remains available while jobs are active. When the panel is open, tapping the trigger or panel-header X closes the panel; neither action cancels downloads.
+- Support multiple queued rows, but clearly mark one active chapter and the rest as queued. Process strictly sequentially; do not imply parallel transfer.
+- When no job is active, hide the active-count badge or show zero consistently, and let the user reopen recent/completed results only if the UI explicitly supports that state.
+- Progress values, byte counts, speed, and active count must come from actual WorkManager/network progress, never simulated values.
+- Each cancel action must cancel only the corresponding queued/active chapter. Completed PDFs remain intact.
 
 ## Proposed package layout
 
