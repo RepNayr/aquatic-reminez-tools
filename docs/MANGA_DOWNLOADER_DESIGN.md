@@ -161,3 +161,15 @@ The latest user-supplied original screenshot is the authoritative reference for 
 - When closed, the trigger remains visible with its active-job badge. When reopened, show current live progress.
 - Match the reference's compact proportions: white/off-white panel, strong dark outline/shadow, thin dividers, compact bordered download rows, black progress fill on light-grey track, and no unnecessary empty spacing between panel and trigger.
 - This final positioning reference supersedes any earlier mockup that places the panel centrally or noticeably far above the trigger.
+
+
+## Supported manga websites directory (below Download All)
+
+- Add a **SUPPORTED WEBSITES** section immediately below the **DOWNLOAD ALL** button at the bottom of the Manga Downloader page.
+- Present registered manga sources as a responsive two-column grid of compact rectangular tiles, inspired by the user's supplied platform-grid screenshot. Use a restrained thin outline, dark-theme-compatible contrast within the Manga Downloader's isolated palette, a small site icon/logo, and the site's display name. Keep corners moderately subtle (not pill-shaped or excessively rounded).
+- The grid is a live directory of source adapters actually registered and enabled in the app. Do not show sites that have no implemented and validated adapter; do not use fake logos or imply unsupported sites work.
+- Initial release: show **CrotPedia** as the sole supported website tile, because it is the only agreed and configured source.
+- Tapping a supported site tile selects that source as the active provider and may show its supported host/domain. It must not silently navigate away from the Manga Downloader screen.
+- URL analysis remains host-validated against the selected/registered adapter. A CrotPedia URL is accepted only by the CrotPedia adapter.
+- When additional providers are implemented and tested later, register them in the source-adapter registry and let the grid render them from that registry; avoid hardcoding a separate tile for every site in the Activity layout.
+- If only one source is available, keep the grid layout visually balanced without inventing placeholder providers or “coming soon” tiles.
