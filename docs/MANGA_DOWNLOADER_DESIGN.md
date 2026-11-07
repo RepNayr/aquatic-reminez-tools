@@ -206,3 +206,33 @@ After the chapter list, render these elements in this exact order:
 3. **SUPPORTED WEBSITES** — immediately below Downloads Queue. Use the previously specified compact two-column grid of short outlined rectangular tiles, with the official website icon/logo at the left and site name at the right. Initially show only CrotPedia. Do not use a large provider card or generic book icon when the actual site favicon/logo is available.
 
 No other page sections should be inserted between Download All, Downloads Queue, and Supported Websites. The section order above supersedes the earlier instruction that placed Supported Websites directly below Download All.
+
+
+## Queue behavior and visual reference refinement (user-approved, 2026-11-07)
+
+Use the user's latest dark-screen reference only for the **queue card composition and supported-site tile treatment**. Do not copy its dark background, bottom navigation, or overall page structure. The Manga Downloader keeps its previously approved warm off-white / paper background and the original light design screenshot.
+
+### Global queue behavior across different manga
+
+- The queue is global to the Manga Downloader, not scoped to the currently analyzed manga/series.
+- If a chapter from Manga A is currently downloading and the user analyzes Manga B and taps Download on one of its chapters, append that chapter to the existing FIFO queue. Do not interrupt, replace, or restart the active Manga A chapter.
+- The currently active chapter continues until its PDF is completely generated, optimized, verified, and saved (or fails/cancels). Only then may the next queued chapter start.
+- Example: Manga A — Chapter 1 is downloading; user requests Manga B — Chapter 3. The queue shows Manga A Chapter 1 as **Downloading** and Manga B Chapter 3 as **Queued**. When A Chapter 1 finishes, B Chapter 3 becomes active automatically.
+- Download All appends all chapters of the currently analyzed manga to the end of the same global queue, preserving the chapter order displayed. Individual Download appends only that chapter.
+- Prevent duplicate active/queued jobs for the same normalized chapter URL unless the previous job has completed/failed/cancelled and the user explicitly retries it.
+- Persist each queue entry's series title, chapter title, source/provider ID, chapter URL, stable queue ID, enqueue order, state, progress, and output URI so queue survives navigation, Activity recreation, and process death.
+- Strictly one active chapter at a time across all manga. No parallel chapter downloads. A failed or cancelled item must not silently block later queue items; show its final state and continue according to retry policy.
+
+### Inline Downloads Queue visual
+
+- Follow the latest user reference for the queue row composition: compact horizontal cards, small square cover thumbnail at left, manga title and chapter/source subtitle in the middle, and state/progress at right or below.
+- For the active row, show a slim progress bar and percentage plus a clear **Downloading** state. A pause/resume control may be shown only if it is actually wired to the worker.
+- For waiting rows, show **Queued** without a fake progress percentage. Completed rows may show **Completed** with a check icon; failed rows show a concise failure state.
+- Keep cards compact and aligned with the original page's margins. Use the original Manga Downloader warm off-white background, dark text, subtle neutral borders, and restrained shadows. The dark background from the latest reference is not part of this design.
+- The inline queue and floating Downloads pop-up are two views of the exact same persisted global queue state. Changes and progress must stay synchronized.
+- When there are no pending/active jobs, show a compact empty state; completed history should not be mixed into the active queue unless a separate history behavior is explicitly designed.
+
+### Supported websites visual
+
+- Use the latest reference's compact tile composition (actual site logo/icon at left, site name at right, thin outlined horizontal rectangle), but keep the original warm off-white page palette.
+- Keep **SUPPORTED WEBSITES** directly below the inline queue, with only validated registered providers. Initial tile: CrotPedia.
