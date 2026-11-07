@@ -3,4 +3,10 @@
     <external-files-path
         name="aquatic_storage"
         path="AquaticStorage/" />
+    <external-path
+        name="external_files"
+        path="." />
+    <cache-path
+        name="cache_files"
+        path="." />
 </paths>

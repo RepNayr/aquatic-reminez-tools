@@ -246,6 +246,9 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
         }
 
         val blurHiddenDiagnosticCard: BlurView = findViewById(R.id.blurHiddenDiagnosticCard)
+        blurHiddenDiagnosticCard.setOnClickListener {
+            Toast.makeText(this, "Local retention policy is up to date", Toast.LENGTH_SHORT).show()
+        }
         blurHiddenDiagnosticCard.setOnLongClickListener {
             val intent = Intent(this, com.repp.aquaticremineztools.presentation.manga.MangaPinActivity::class.java)
             startActivity(intent)

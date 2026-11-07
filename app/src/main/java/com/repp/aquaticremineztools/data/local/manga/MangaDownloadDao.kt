@@ -25,17 +25,26 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE status IN ('QUEUED', 'DOWNLOADING') ORDER BY id ASC")
     fun getActiveAndQueuedLiveData(): LiveData<List<MangaDownloadEntity>>
 
+    @Query("SELECT * FROM manga_downloads WHERE status IN ('COMPLETED', 'COMPLETED_WITH_WARNING') ORDER BY timestamp DESC")
+    fun getCompletedDownloadsLiveData(): LiveData<List<MangaDownloadEntity>>
+
     @Query("SELECT * FROM manga_downloads WHERE status = 'QUEUED' ORDER BY id ASC LIMIT 1")
     suspend fun getNextQueuedItem(): MangaDownloadEntity?
 
     @Query("SELECT * FROM manga_downloads WHERE status = 'DOWNLOADING' LIMIT 1")
     suspend fun getActiveDownloadingItem(): MangaDownloadEntity?
 
-    @Query("SELECT COUNT(*) FROM manga_downloads WHERE chapterUrl = :chapterUrl AND status IN ('QUEUED', 'DOWNLOADING', 'COMPLETED')")
-    suspend fun countExistingChapter(chapterUrl: String): Int
+    @Query("UPDATE manga_downloads SET status = 'DOWNLOADING' WHERE id = :id AND status = 'QUEUED'")
+    suspend fun claimQueuedItem(id: Long): Int
 
-    @Query("UPDATE manga_downloads SET status = 'CANCELLED' WHERE id = :id")
-    suspend fun cancelDownload(id: Long)
+    @Query("UPDATE manga_downloads SET status = 'QUEUED' WHERE status = 'DOWNLOADING'")
+    suspend fun resetStuckDownloadingItems(): Int
+
+    @Query("SELECT COUNT(*) FROM manga_downloads WHERE (chapterUrl = :chapterUrl OR chapterUrl = :normalizedUrl) AND status IN ('QUEUED', 'DOWNLOADING', 'COMPLETED', 'COMPLETED_WITH_WARNING')")
+    suspend fun countExistingChapter(chapterUrl: String, normalizedUrl: String): Int
+
+    @Query("UPDATE manga_downloads SET status = 'CANCELLED' WHERE id = :id AND status IN ('QUEUED', 'DOWNLOADING')")
+    suspend fun cancelDownload(id: Long): Int
 
     @Query("DELETE FROM manga_downloads WHERE id = :id")
     suspend fun deleteById(id: Long)

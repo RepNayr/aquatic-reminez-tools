@@ -1,9 +1,13 @@
 package com.repp.aquaticremineztools.data.local.manga
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 
-@Entity(tableName = "manga_downloads")
+@Entity(
+    tableName = "manga_downloads",
+    indices = [Index(value = ["chapterUrl"], unique = false)]
+)
 data class MangaDownloadEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
@@ -16,7 +20,7 @@ data class MangaDownloadEntity(
     val totalBytes: Long = 0L,
     val downloadedBytes: Long = 0L,
     val downloadSpeedBps: Long = 0L,
-    val status: String = STATUS_QUEUED, // QUEUED, DOWNLOADING, COMPLETED, FAILED, CANCELLED
+    val status: String = STATUS_QUEUED,
     val timestamp: Long = System.currentTimeMillis(),
     val pdfPath: String? = null,
     val errorMessage: String? = null
@@ -25,6 +29,7 @@ data class MangaDownloadEntity(
         const val STATUS_QUEUED = "QUEUED"
         const val STATUS_DOWNLOADING = "DOWNLOADING"
         const val STATUS_COMPLETED = "COMPLETED"
+        const val STATUS_COMPLETED_WITH_WARNING = "COMPLETED_WITH_WARNING"
         const val STATUS_FAILED = "FAILED"
         const val STATUS_CANCELLED = "CANCELLED"
     }

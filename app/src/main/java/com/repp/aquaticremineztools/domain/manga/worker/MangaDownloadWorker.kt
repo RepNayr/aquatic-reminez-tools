@@ -20,10 +20,12 @@ import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.Call
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
 class MangaDownloadWorker(
@@ -44,22 +46,28 @@ class MangaDownloadWorker(
         private const val CHANNEL_ID = "manga_download_channel"
         private const val NOTIFICATION_ID = 9012
 
+        private val activeCalls = ConcurrentHashMap<Long, Call>()
+
         fun enqueueWork(context: Context) {
             val request = OneTimeWorkRequestBuilder<MangaDownloadWorker>().build()
             WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
                 UNIQUE_WORK_NAME,
-                ExistingWorkPolicy.KEEP,
+                ExistingWorkPolicy.APPEND_OR_REPLACE,
                 request
             )
         }
 
         fun cancelWorkIfRunning(context: Context, id: Long) {
-            // Handled via database status change to CANCELLED
+            activeCalls[id]?.cancel()
+            activeCalls.remove(id)
         }
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
+
+        // Recovery on worker startup: reset any stuck DOWNLOADING items back to QUEUED
+        dao.resetStuckDownloadingItems()
 
         while (true) {
             if (isStopped) {
@@ -68,14 +76,26 @@ class MangaDownloadWorker(
 
             val currentItem = dao.getNextQueuedItem() ?: break
 
+            // Atomic claim
+            val claimed = dao.claimQueuedItem(currentItem.id)
+            if (claimed == 0) {
+                continue // Already claimed or cancelled
+            }
+
             try {
                 processItem(currentItem)
             } catch (e: Exception) {
-                val failedItem = currentItem.copy(
-                    status = MangaDownloadEntity.STATUS_FAILED,
-                    errorMessage = e.localizedMessage ?: "Download error"
-                )
-                dao.update(failedItem)
+                activeCalls.remove(currentItem.id)
+                val checkCancelled = dao.getById(currentItem.id)
+                if (checkCancelled?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                    val failedItem = currentItem.copy(
+                        status = MangaDownloadEntity.STATUS_FAILED,
+                        errorMessage = e.localizedMessage ?: "Download error"
+                    )
+                    dao.update(failedItem)
+                }
+            } finally {
+                activeCalls.remove(currentItem.id)
             }
         }
 
@@ -83,34 +103,31 @@ class MangaDownloadWorker(
     }
 
     private suspend fun processItem(item: MangaDownloadEntity) {
-        val activeItem = item.copy(status = MangaDownloadEntity.STATUS_DOWNLOADING)
-        dao.update(activeItem)
-
-        val pages = parser.parsePagesForChapter(activeItem.chapterUrl)
+        val pages = parser.parsePagesForChapter(item.chapterUrl)
         if (pages.isEmpty()) {
-            dao.update(activeItem.copy(status = MangaDownloadEntity.STATUS_FAILED, errorMessage = "No images found for chapter"))
+            dao.update(item.copy(status = MangaDownloadEntity.STATUS_FAILED, errorMessage = "Tidak ada gambar yang ditemukan untuk chapter ini."))
             return
         }
 
         val totalPages = pages.size
-        val updatedTotalPagesItem = activeItem.copy(totalPages = totalPages)
+        val updatedTotalPagesItem = item.copy(totalPages = totalPages, status = MangaDownloadEntity.STATUS_DOWNLOADING)
         dao.update(updatedTotalPagesItem)
 
-        val tempDir = File(applicationContext.cacheDir, "manga_temp_${activeItem.id}").apply { mkdirs() }
+        val tempDir = File(applicationContext.cacheDir, "manga_temp_${item.id}").apply { mkdirs() }
         val downloadedFiles = mutableListOf<File>()
 
         var totalBytesDownloaded = 0L
         val startTime = System.currentTimeMillis()
 
         for (page in pages) {
-            val checkStatus = dao.getById(activeItem.id)
+            val checkStatus = dao.getById(item.id)
             if (isStopped || checkStatus?.status == MangaDownloadEntity.STATUS_CANCELLED) {
                 tempDir.deleteRecursively()
                 return
             }
 
             val pageFile = File(tempDir, "page_${page.pageIndex}.jpg")
-            val bytes = downloadFile(page.imageUrl, pageFile)
+            val bytes = downloadFile(item.id, page.imageUrl, pageFile)
             totalBytesDownloaded += bytes
             downloadedFiles.add(pageFile)
 
@@ -126,7 +143,7 @@ class MangaDownloadWorker(
             dao.update(progressItem)
 
             showForegroundNotification(
-                "Downloading ${activeItem.chapterTitle}",
+                "Downloading ${item.chapterTitle}",
                 "Page ${page.pageIndex}/$totalPages"
             )
         }
@@ -137,21 +154,26 @@ class MangaDownloadWorker(
             "AquaticManga"
         ).apply { mkdirs() }
 
-        val pdfFile = File(pdfDir, activeItem.outputFileName)
+        val pdfFile = File(pdfDir, item.outputFileName)
         val pdfResult = PdfBuilder.createPdfFromImages(downloadedFiles, pdfFile)
 
         // Clean up temp images
         tempDir.deleteRecursively()
 
-        // Check if cancelled
-        val checkFinal = dao.getById(activeItem.id)
+        val checkFinal = dao.getById(item.id)
         if (checkFinal?.status == MangaDownloadEntity.STATUS_CANCELLED) {
             pdfFile.delete()
             return
         }
 
+        val finalStatus = if (pdfResult.isTargetSizeAchieved) {
+            MangaDownloadEntity.STATUS_COMPLETED
+        } else {
+            MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING
+        }
+
         val completedItem = updatedTotalPagesItem.copy(
-            status = MangaDownloadEntity.STATUS_COMPLETED,
+            status = finalStatus,
             downloadedPages = totalPages,
             downloadedBytes = totalBytesDownloaded,
             totalBytes = totalBytesDownloaded,
@@ -161,16 +183,19 @@ class MangaDownloadWorker(
         dao.update(completedItem)
     }
 
-    private fun downloadFile(url: String, destFile: File): Long {
+    private fun downloadFile(itemId: Long, url: String, destFile: File): Long {
         val request = Request.Builder()
             .url(url)
             .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
             .header("Referer", "https://crotpedia.net/")
             .build()
 
-        okHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) throw IllegalStateException("Image HTTP ${response.code}")
-            val body = response.body ?: throw IllegalStateException("Empty image body")
+        val call = okHttpClient.newCall(request)
+        activeCalls[itemId] = call
+
+        call.execute().use { response ->
+            if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} pada gambar")
+            val body = response.body ?: throw IllegalStateException("Respons gambar kosong")
 
             var bytesCopied = 0L
             body.byteStream().use { input ->

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
@@ -34,6 +35,7 @@ object MangaPinManager {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
+            // Fail closed or use secure context preferences
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
     }
@@ -43,10 +45,14 @@ object MangaPinManager {
     }
 
     fun savePin(context: Context, pin: String) {
+        require(pin.length == 6 && pin.all { it.isDigit() }) {
+            "PIN harus persis 6 angka."
+        }
+
         val salt = generateSalt()
-        val hash = hashPin(pin, salt)
+        val hashHex = hashPin(pin, salt)
         getPrefs(context).edit()
-            .putString(KEY_PIN_HASH, hash)
+            .putString(KEY_PIN_HASH, hashHex)
             .putString(KEY_PIN_SALT, bytesToHex(salt))
             .putInt(KEY_FAILED_ATTEMPTS, 0)
             .putLong(KEY_LOCKOUT_UNTIL, 0L)
@@ -70,13 +76,19 @@ object MangaPinManager {
         }
 
         val prefs = getPrefs(context)
-        val storedHash = prefs.getString(KEY_PIN_HASH, null) ?: return false
+        val storedHashHex = prefs.getString(KEY_PIN_HASH, null) ?: return false
         val storedSaltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
 
         val salt = hexToBytes(storedSaltHex)
-        val hash = hashPin(pin, salt)
+        val computedHashHex = hashPin(pin, salt)
 
-        return if (storedHash == hash) {
+        val storedHashBytes = hexToBytes(storedHashHex)
+        val computedHashBytes = hexToBytes(computedHashHex)
+
+        // Constant-time comparison to prevent timing attacks
+        val isMatch = MessageDigest.isEqual(storedHashBytes, computedHashBytes)
+
+        return if (isMatch) {
             prefs.edit()
                 .putInt(KEY_FAILED_ATTEMPTS, 0)
                 .putLong(KEY_LOCKOUT_UNTIL, 0L)
@@ -104,9 +116,13 @@ object MangaPinManager {
 
     internal fun hashPin(pin: String, salt: ByteArray): String {
         val spec = PBEKeySpec(pin.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LENGTH)
-        val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
-        val hash = factory.generateSecret(spec).encoded
-        return bytesToHex(hash)
+        return try {
+            val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256")
+            val hash = factory.generateSecret(spec).encoded
+            bytesToHex(hash)
+        } finally {
+            spec.clearPassword()
+        }
     }
 
     private fun generateSalt(): ByteArray {

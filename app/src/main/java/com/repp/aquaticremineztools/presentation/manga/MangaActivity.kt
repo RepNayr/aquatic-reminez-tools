@@ -2,6 +2,7 @@ package com.repp.aquaticremineztools.presentation.manga
 
 import android.content.ClipboardManager
 import android.content.Context
+import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
@@ -16,6 +17,7 @@ import android.widget.PopupWindow
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -45,6 +47,7 @@ class MangaActivity : AppCompatActivity() {
 
     private lateinit var btnFloatingDownload: FrameLayout
     private lateinit var tvBadgeCounter: TextView
+    private lateinit var vPopupScrim: View
 
     private lateinit var chapterAdapter: MangaChapterAdapter
 
@@ -63,6 +66,7 @@ class MangaActivity : AppCompatActivity() {
         setupRecyclerView()
         setupObservers()
         setupListeners()
+        setupBackPressHandler()
     }
 
     private fun bindViews() {
@@ -82,6 +86,7 @@ class MangaActivity : AppCompatActivity() {
 
         btnFloatingDownload = findViewById(R.id.btnFloatingDownload)
         tvBadgeCounter = findViewById(R.id.tvBadgeCounter)
+        vPopupScrim = findViewById(R.id.vPopupScrim)
     }
 
     private fun setupRecyclerView() {
@@ -151,7 +156,7 @@ class MangaActivity : AppCompatActivity() {
         btnBack.setOnClickListener { finish() }
 
         btnPasteUrl.setOnClickListener {
-            val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
             val clipData = clipboard.primaryClip
             if (clipData != null && clipData.itemCount > 0) {
                 val text = clipData.getItemAt(0).text?.toString() ?: ""
@@ -167,9 +172,9 @@ class MangaActivity : AppCompatActivity() {
         btnDownloadAll.setOnClickListener {
             viewModel.downloadAllChapters { addedCount ->
                 if (addedCount > 0) {
-                    Toast.makeText(this, "Added $addedCount chapters to download queue", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Menambahkan $addedCount chapter ke antrean", Toast.LENGTH_SHORT).show()
                 } else {
-                    Toast.makeText(this, "All chapters are already downloaded or in queue", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Semua chapter sudah berada di antrean atau selesai", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -177,14 +182,31 @@ class MangaActivity : AppCompatActivity() {
         btnFloatingDownload.setOnClickListener {
             toggleDownloadPopup()
         }
+
+        vPopupScrim.setOnClickListener {
+            popupWindow?.dismiss()
+        }
+    }
+
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (popupWindow?.isShowing == true) {
+                    popupWindow?.dismiss()
+                } else {
+                    isEnabled = false
+                    onBackPressedDispatcher.onBackPressed()
+                }
+            }
+        })
     }
 
     private fun onDownloadChapterClicked(chapter: MangaChapter) {
         viewModel.downloadChapter(chapter) { enqueued ->
             if (enqueued) {
-                Toast.makeText(this, "Added ${chapter.title} to download queue", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Menambahkan ${chapter.title} ke antrean download", Toast.LENGTH_SHORT).show()
             } else {
-                Toast.makeText(this, "${chapter.title} is already in queue or completed", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "${chapter.title} sudah berada di antrean atau selesai", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -225,12 +247,16 @@ class MangaActivity : AppCompatActivity() {
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         ).apply {
-            setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             isOutsideTouchable = true
             isFocusable = true
+            setOnDismissListener {
+                vPopupScrim.visibility = View.GONE
+            }
         }
 
-        // Measure view for precise placement above floating download button
+        vPopupScrim.visibility = View.VISIBLE
+
         popupView.measure(
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
             View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
@@ -241,7 +267,7 @@ class MangaActivity : AppCompatActivity() {
         val location = IntArray(2)
         btnFloatingDownload.getLocationOnScreen(location)
         val xPos = location[0]
-        val yPos = location[1] - popupHeight - 16 // Position directly above button
+        val yPos = location[1] - popupHeight - 16
 
         popupWindow?.showAtLocation(btnFloatingDownload, Gravity.NO_GRAVITY, xPos.coerceAtLeast(16), yPos)
     }
@@ -259,13 +285,5 @@ class MangaActivity : AppCompatActivity() {
 
         popupStatusBadgeText?.text = badgeStr
         popupEmptyStateText?.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-    }
-
-    override fun onBackPressed() {
-        if (popupWindow?.isShowing == true) {
-            popupWindow?.dismiss()
-            return
-        }
-        super.onBackPressed()
     }
 }

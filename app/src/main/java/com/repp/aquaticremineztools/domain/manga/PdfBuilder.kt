@@ -11,6 +11,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 
 object PdfBuilder {
 
@@ -19,6 +20,7 @@ object PdfBuilder {
     data class PdfBuildResult(
         val pdfFile: File,
         val sizeBytes: Long,
+        val pageCount: Int,
         val isTargetSizeAchieved: Boolean,
         val warningMessage: String? = null
     )
@@ -28,13 +30,24 @@ object PdfBuilder {
         outputPdfFile: File
     ): PdfBuildResult = withContext(Dispatchers.IO) {
         if (imageFiles.isEmpty()) {
-            throw IllegalArgumentException("No image files provided for PDF creation.")
+            throw IllegalArgumentException("Tidak ada file gambar yang disediakan untuk membuat PDF.")
+        }
+
+        // Validate all image files first - do NOT skip corrupted pages quietly
+        imageFiles.forEachIndexed { index, file ->
+            if (!file.exists() || file.length() == 0L) {
+                throw IllegalStateException("Halaman ${index + 1} tidak ditemukan atau file kosong (${file.name}). PDF dibatalkan.")
+            }
+            val boundsOptions = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+            BitmapFactory.decodeFile(file.absolutePath, boundsOptions)
+            if (boundsOptions.outWidth <= 0 || boundsOptions.outHeight <= 0) {
+                throw IllegalStateException("Halaman ${index + 1} korup atau gagal didecode. PDF dibatalkan.")
+            }
         }
 
         val qualities = listOf(90, 75, 60, 45, 35)
         val maxDimensions = listOf(1800, 1400, 1100, 900, 750)
 
-        var lastResultFile: File = outputPdfFile
         var lastSizeBytes = 0L
         var achieved = false
 
@@ -52,12 +65,17 @@ object PdfBuilder {
         }
 
         val warning = if (!achieved) {
-            "PDF size (${String.format("%.1f", lastSizeBytes / (1024f * 1024f))} MB) exceeded 20 MB limit even after maximum compression."
+            String.format(
+                Locale.US,
+                "Ukuran PDF (%.1f MB) melebihi batas 20 MB meskipun telah dikompresi maksimal.",
+                lastSizeBytes / (1024f * 1024f)
+            )
         } else null
 
         PdfBuildResult(
             pdfFile = outputPdfFile,
             sizeBytes = lastSizeBytes,
+            pageCount = imageFiles.size,
             isTargetSizeAchieved = achieved,
             warningMessage = warning
         )
@@ -73,9 +91,8 @@ object PdfBuilder {
 
         try {
             imageFiles.forEachIndexed { index, file ->
-                if (!file.exists() || file.length() == 0L) return@forEachIndexed
-
-                val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension) ?: return@forEachIndexed
+                val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension)
+                    ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
 
                 val pageInfo = PdfDocument.PageInfo.Builder(
                     compressedBitmap.width,
@@ -107,10 +124,10 @@ object PdfBuilder {
         }
         BitmapFactory.decodeFile(file.absolutePath, options)
 
-        var sampleSize = 1
         val (width, height) = options.outWidth to options.outHeight
         if (width <= 0 || height <= 0) return null
 
+        var sampleSize = 1
         val largestDim = Math.max(width, height)
         if (largestDim > maxDimension) {
             sampleSize = Math.round(largestDim.toFloat() / maxDimension.toFloat())
@@ -118,7 +135,7 @@ object PdfBuilder {
 
         val decodeOptions = BitmapFactory.Options().apply {
             inSampleSize = Math.max(1, sampleSize)
-            inPreferredConfig = Bitmap.Config.RGB_565 // Memory saving
+            inPreferredConfig = Bitmap.Config.RGB_565 // Memory optimization for manga
         }
 
         val originalBitmap = BitmapFactory.decodeFile(file.absolutePath, decodeOptions) ?: return null

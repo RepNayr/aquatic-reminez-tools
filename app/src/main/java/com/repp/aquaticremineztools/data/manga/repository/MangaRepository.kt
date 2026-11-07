@@ -21,16 +21,19 @@ class MangaRepository(context: Context) {
     }
 
     suspend fun enqueueChapter(seriesTitle: String, chapter: MangaChapter): Boolean {
-        val existingCount = dao.countExistingChapter(chapter.chapterUrl)
+        val cleanUrl = chapter.chapterUrl.trim()
+        val normalizedUrl = if (cleanUrl.endsWith("/")) cleanUrl.dropLast(1) else "$cleanUrl/"
+
+        val existingCount = dao.countExistingChapter(cleanUrl, normalizedUrl)
         if (existingCount > 0) {
-            return false // Deduplication: already in queue or completed
+            return false // Deduplication: already queued, downloading or completed
         }
 
         val sanitizeTitle = sanitizeFileName("${seriesTitle}_${chapter.title}.pdf")
         val entity = MangaDownloadEntity(
             seriesTitle = seriesTitle,
             chapterTitle = chapter.title,
-            chapterUrl = chapter.chapterUrl,
+            chapterUrl = cleanUrl,
             outputFileName = sanitizeTitle,
             totalPages = chapter.pageCount,
             status = MangaDownloadEntity.STATUS_QUEUED
@@ -52,12 +55,15 @@ class MangaRepository(context: Context) {
 
     suspend fun cancelDownload(id: Long) {
         dao.cancelDownload(id)
-        // Also cancel WorkManager worker if it's currently running this specific item
         MangaDownloadWorker.cancelWorkIfRunning(appContext, id)
     }
 
     fun getActiveAndQueuedLiveData(): LiveData<List<MangaDownloadEntity>> {
         return dao.getActiveAndQueuedLiveData()
+    }
+
+    fun getCompletedDownloadsLiveData(): LiveData<List<MangaDownloadEntity>> {
+        return dao.getCompletedDownloadsLiveData()
     }
 
     fun getActiveAndQueuedCountLiveData(): LiveData<Int> {

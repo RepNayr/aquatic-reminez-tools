@@ -184,6 +184,17 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Scrim View for Dimming Background when Download Popup is Open -->
+    <View
+        android:id="@+id/vPopupScrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:clickable="true"
+        android:elevation="6dp"
+        android:focusable="true"
+        android:visibility="gone" />
+
     <!-- Floating Download Button at Bottom Left -->
     <FrameLayout
         android:id="@+id/btnFloatingDownload"
