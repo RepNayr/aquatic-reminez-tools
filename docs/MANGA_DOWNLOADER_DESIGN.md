@@ -16,6 +16,29 @@ The downloader is intended for content the user is authorized to access and down
 6. The PDF is optimized until it is <= 20 MiB. If it cannot meet the limit without unacceptable image degradation, the job is marked failed with a clear reason rather than silently dropping pages.
 7. The result is saved through Android's Storage Access Framework (user-selected folder) and can be opened/shared.
 
+
+## Private access and isolated visual theme
+
+Manga Downloader is a private feature, not a normal catalog tool:
+
+- Do not add it to `ToolData.ALL_TOOLS`, category lists, global tool search, or the home quick-menu.
+- Add a discreet hidden entry gesture in Settings (proposed: long-press the existing app-version/about row). Do not add a visible category card or ordinary navigation item.
+- The entry opens a dedicated Manga PIN gate. On first use, the user creates a separate six-digit Manga PIN; subsequent access requires that PIN.
+- Store a salted PIN hash (never the raw PIN) using Android Keystore-backed encrypted preferences. Apply attempt throttling/temporary lockout. Do not reuse the global app-lock PIN unless the user explicitly chooses that later.
+- `MangaActivity` must enforce authorization itself, not merely trust the Settings navigation path. Deep links, explicit intents, Activity recreation, and returning from background must not bypass the gate. Re-prompt after leaving the feature or after a short inactivity timeout.
+- The feature uses its own resource palette/theme and layouts; do not change the app-wide theme or settings.
+- Visual direction from the supplied reference: warm off-white/paper background, dark charcoal Analyze button, simple URL input with clear/paste affordances, large cover preview, title, thin divider rules, clean chapter rows with right-aligned metadata, and compact bottom navigation. Use accessible contrast, touch targets, loading/empty/error states, and responsive scrolling rather than copying the screenshot pixel-for-pixel.
+
+## Supplied parser test URLs
+
+Series page:
+`https://crotpedia.net/baca/series/imouto-no-tomodachi-ga-ichiban-kimochi/`
+
+Chapter page:
+`https://crotpedia.net/baca/musume-no-tomodachi-to-nakadashi-sex-shimakurimashita-chapter-1-bahasa-indonesia/`
+
+Use these as initial parser fixtures/validation targets. Confirm current page structure and image URLs before finalizing CSS selectors; do not infer selectors from URL slugs.
+
 ## Proposed package layout
 
 ```
