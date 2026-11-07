@@ -147,3 +147,17 @@ The parser must not ship with guessed CSS selectors. Before enabling downloads, 
 - Save a readable PDF for each successful chapter.
 - Verify every output is <= 20 MiB, or report that the limit could not be met without dropping pages.
 - Keep existing Image Compressor routing and behavior unchanged.
+
+
+## Final download pop-up positioning reference (2026-11-07)
+
+The latest user-supplied original screenshot is the authoritative reference for the download manager's placement. Refine the earlier “anchored immediately above” requirement as follows:
+
+- The expanded Downloads panel must sit very close to the floating cloud-download trigger at the bottom-left. Avoid the previous mockup's excessive vertical gap.
+- The panel's lower-left corner should visually point toward / connect to the trigger using a small speech-bubble tail or equivalent anchored shape. The trigger may slightly overlap the panel's lower-left shadow/edge, matching the reference.
+- Treat the panel and trigger as one anchored floating component. Position the panel from the trigger's measured screen coordinates (or a shared parent/overlay anchor), not from screen center and not with a large fixed bottom offset.
+- Preserve safe-area and navigation-bar insets; on short screens, constrain panel height and allow its item list to scroll while keeping the trigger reachable.
+- Tapping the trigger toggles the panel. Tapping the header X closes only the panel. Neither action pauses or cancels downloads. The per-item X cancels only that item's job.
+- When closed, the trigger remains visible with its active-job badge. When reopened, show current live progress.
+- Match the reference's compact proportions: white/off-white panel, strong dark outline/shadow, thin dividers, compact bordered download rows, black progress fill on light-grey track, and no unnecessary empty spacing between panel and trigger.
+- This final positioning reference supersedes any earlier mockup that places the panel centrally or noticeably far above the trigger.
