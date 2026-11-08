@@ -17,6 +17,7 @@ import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -65,12 +66,13 @@ class MangaDownloadWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
 
-        // Recovery on startup: reset stuck items
-        dao.resetStuckDownloadingItems()
+        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms)
+        val stuckThreshold = System.currentTimeMillis() - 300000L
+        dao.resetStuckDownloadingItems(stuckThreshold)
 
         while (true) {
             if (isStopped) {
-                return@withContext Result.failure()
+                return@withContext Result.success()
             }
 
             val currentItem = dao.getNextQueuedItem() ?: break
@@ -82,10 +84,17 @@ class MangaDownloadWorker(
 
             try {
                 processItem(currentItem)
-            } catch (e: Exception) {
+            } catch (e: CancellationException) {
                 activeCalls.remove(currentItem.id)
                 val checkCancelled = dao.getById(currentItem.id)
                 if (checkCancelled?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                    dao.cancelDownload(currentItem.id)
+                }
+                throw e
+            } catch (e: Exception) {
+                activeCalls.remove(currentItem.id)
+                val checkItem = dao.getById(currentItem.id)
+                if (checkItem?.status != MangaDownloadEntity.STATUS_CANCELLED) {
                     val failedItem = currentItem.copy(
                         status = MangaDownloadEntity.STATUS_FAILED,
                         errorMessage = e.localizedMessage ?: "Download error"
@@ -101,6 +110,9 @@ class MangaDownloadWorker(
     }
 
     private suspend fun processItem(item: MangaDownloadEntity) {
+        val checkPre = dao.getById(item.id)
+        if (checkPre?.status == MangaDownloadEntity.STATUS_CANCELLED) return
+
         val pages = parser.parsePagesForChapter(item.chapterUrl)
         if (pages.isEmpty()) {
             dao.update(item.copy(status = MangaDownloadEntity.STATUS_FAILED, errorMessage = "Tidak ada gambar yang ditemukan untuk chapter ini."))
@@ -121,6 +133,7 @@ class MangaDownloadWorker(
             for (page in pages) {
                 val checkStatus = dao.getById(item.id)
                 if (isStopped || checkStatus?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                    dao.cancelDownload(item.id)
                     return
                 }
 
@@ -132,13 +145,13 @@ class MangaDownloadWorker(
                 val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
                 val speedBps = if (elapsedSec > 0) (totalBytesDownloaded / elapsedSec).toLong() else 0L
 
-                val progressItem = updatedTotalPagesItem.copy(
-                    downloadedPages = page.pageIndex,
-                    downloadedBytes = totalBytesDownloaded,
+                dao.updateProgressIfDownloading(
+                    id = item.id,
+                    pages = page.pageIndex,
+                    bytes = totalBytesDownloaded,
                     totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else 0L,
-                    downloadSpeedBps = speedBps
+                    speed = speedBps
                 )
-                dao.update(progressItem)
 
                 showForegroundNotification(
                     "Downloading ${item.chapterTitle}",
@@ -157,10 +170,20 @@ class MangaDownloadWorker(
                 item.outputFileName
             )
 
+            // Strict success verification
+            if (pdfResult.pdfUriString.isBlank() || pdfResult.pageCount != totalPages) {
+                throw IllegalStateException("Validasi PDF gagal: URI kosong atau jumlah halaman tidak cocok.")
+            }
+
             val finalStatus = if (pdfResult.isTargetSizeAchieved) {
                 MangaDownloadEntity.STATUS_COMPLETED
             } else {
                 MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING
+            }
+
+            val recheckCancelled = dao.getById(item.id)
+            if (recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                return
             }
 
             val completedItem = updatedTotalPagesItem.copy(

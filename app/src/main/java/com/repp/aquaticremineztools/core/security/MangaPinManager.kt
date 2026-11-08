@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.security.MessageDigest
 import java.security.SecureRandom
 import javax.crypto.SecretKeyFactory
@@ -37,7 +37,6 @@ object MangaPinManager {
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
         } catch (e: Exception) {
-            // Fail-closed enforcement: throw SecurityException rather than falling back to plaintext SharedPreferences
             throw SecurityException("Secure storage (EncryptedSharedPreferences) failed or unavailable. Access denied (fail-closed).", e)
         }
     }
@@ -46,13 +45,13 @@ object MangaPinManager {
         return getPrefs(context).getString(KEY_PIN_HASH, null) != null
     }
 
-    fun savePin(context: Context, pin: String) {
+    suspend fun savePin(context: Context, pin: String) {
         require(pin.length == 6 && pin.all { it.isDigit() }) {
             "PIN harus persis 6 angka."
         }
 
         val salt = generateSalt()
-        val hashHex = runBlocking(Dispatchers.Default) {
+        val hashHex = withContext(Dispatchers.Default) {
             hashPin(pin, salt)
         }
         getPrefs(context).edit()
@@ -74,7 +73,7 @@ object MangaPinManager {
         return if (diff > 0) diff / 1000 else 0L
     }
 
-    fun verifyPin(context: Context, pin: String): Boolean {
+    suspend fun verifyPin(context: Context, pin: String): Boolean {
         if (isLockedOut(context)) {
             return false
         }
@@ -84,14 +83,13 @@ object MangaPinManager {
         val storedSaltHex = prefs.getString(KEY_PIN_SALT, null) ?: return false
 
         val salt = hexToBytes(storedSaltHex)
-        val computedHashHex = runBlocking(Dispatchers.Default) {
+        val computedHashHex = withContext(Dispatchers.Default) {
             hashPin(pin, salt)
         }
 
         val storedHashBytes = hexToBytes(storedHashHex)
         val computedHashBytes = hexToBytes(computedHashHex)
 
-        // Constant-time comparison to prevent timing attacks
         val isMatch = MessageDigest.isEqual(storedHashBytes, computedHashBytes)
 
         return if (isMatch) {

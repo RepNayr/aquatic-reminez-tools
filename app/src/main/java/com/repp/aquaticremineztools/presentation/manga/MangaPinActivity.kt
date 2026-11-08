@@ -8,8 +8,10 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.MangaPinManager
+import kotlinx.coroutines.launch
 
 class MangaPinActivity : AppCompatActivity() {
 
@@ -23,6 +25,7 @@ class MangaPinActivity : AppCompatActivity() {
     private val inputPin = StringBuilder()
     private var tempFirstPin: String? = null
     private var isCreatingPin = false
+    private var isVerifying = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -88,16 +91,22 @@ class MangaPinActivity : AppCompatActivity() {
 
         keyIds.forEach { (id, digit) ->
             findViewById<Button>(id).setOnClickListener {
-                onDigitPressed(digit)
+                if (!isVerifying) {
+                    onDigitPressed(digit)
+                }
             }
         }
 
         findViewById<Button>(R.id.btnKeyDelete).setOnClickListener {
-            onDeletePressed()
+            if (!isVerifying) {
+                onDeletePressed()
+            }
         }
 
         findViewById<Button>(R.id.btnKeyClear).setOnClickListener {
-            onClearPressed()
+            if (!isVerifying) {
+                onClearPressed()
+            }
         }
     }
 
@@ -143,33 +152,41 @@ class MangaPinActivity : AppCompatActivity() {
         inputPin.clear()
         updateDots()
 
-        if (isCreatingPin) {
-            if (tempFirstPin == null) {
-                tempFirstPin = pin
-                tvPinTitle.text = "CONFIRM 6-DIGIT PIN"
-                tvPinSubtitle.text = "Re-enter the 6-digit PIN to confirm"
-            } else {
-                if (pin == tempFirstPin) {
-                    MangaPinManager.savePin(this, pin)
-                    Toast.makeText(this, "PIN successfully created", Toast.LENGTH_SHORT).show()
-                    openMangaDownloader()
+        isVerifying = true
+
+        lifecycleScope.launch {
+            try {
+                if (isCreatingPin) {
+                    if (tempFirstPin == null) {
+                        tempFirstPin = pin
+                        tvPinTitle.text = "CONFIRM 6-DIGIT PIN"
+                        tvPinSubtitle.text = "Re-enter the 6-digit PIN to confirm"
+                    } else {
+                        if (pin == tempFirstPin) {
+                            MangaPinManager.savePin(this@MangaPinActivity, pin)
+                            Toast.makeText(this@MangaPinActivity, "PIN successfully created", Toast.LENGTH_SHORT).show()
+                            openMangaDownloader()
+                        } else {
+                            tempFirstPin = null
+                            tvPinTitle.text = "CREATE 6-DIGIT PIN"
+                            tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
+                            showError("PINs do not match. Try again.")
+                        }
+                    }
                 } else {
-                    tempFirstPin = null
-                    tvPinTitle.text = "CREATE 6-DIGIT PIN"
-                    tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
-                    showError("PINs do not match. Try again.")
+                    val isCorrect = MangaPinManager.verifyPin(this@MangaPinActivity, pin)
+                    if (isCorrect) {
+                        openMangaDownloader()
+                    } else {
+                        if (MangaPinManager.isLockedOut(this@MangaPinActivity)) {
+                            updateLockoutState()
+                        } else {
+                            showError("Incorrect PIN. Please try again.")
+                        }
+                    }
                 }
-            }
-        } else {
-            val isCorrect = MangaPinManager.verifyPin(this, pin)
-            if (isCorrect) {
-                openMangaDownloader()
-            } else {
-                if (MangaPinManager.isLockedOut(this)) {
-                    updateLockoutState()
-                } else {
-                    showError("Incorrect PIN. Please try again.")
-                }
+            } finally {
+                isVerifying = false
             }
         }
     }

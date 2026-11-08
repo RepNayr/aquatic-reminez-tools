@@ -9,6 +9,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import java.math.BigDecimal
 import java.net.URI
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -118,7 +119,7 @@ class CrotPediaParser(
 
         val coverUrl = extractMetaContent(doc, "og:image")
             ?: doc.selectFirst(".series-thumb img, .thumb img, .entry-content img")?.let {
-                extractImageUrlFromElement(it)
+                resolveUrlCandidate(doc.baseUri(), extractImageUrlFromElement(doc, it))
             } ?: ""
 
         val desc = extractMetaContent(doc, "og:description")
@@ -127,7 +128,7 @@ class CrotPediaParser(
         val chapterElements = doc.select(".chapter-list a, .eplister a, ul.cllist a, div#chapterlist a, .bxcl a")
         val rawChapters = if (chapterElements.isNotEmpty()) {
             chapterElements.mapNotNull { element ->
-                val href = element.attr("abs:href").ifEmpty { element.attr("href") }
+                val href = element.attr("abs:href").ifEmpty { resolveUrlCandidate(doc.baseUri(), element.attr("href")) }
                 val chTitle = element.text().trim()
                 if (href.isNotEmpty() && chTitle.isNotEmpty() && !href.contains("/series/")) {
                     href to chTitle
@@ -135,7 +136,7 @@ class CrotPediaParser(
             }
         } else {
             doc.select("a[href*=/baca/]").mapNotNull { element ->
-                val href = element.attr("abs:href")
+                val href = element.attr("abs:href").ifEmpty { resolveUrlCandidate(doc.baseUri(), element.attr("href")) }
                 val chTitle = element.text().trim()
                 if (href.isNotEmpty() && !href.contains("/series/") && chTitle.isNotEmpty()) {
                     href to chTitle
@@ -152,7 +153,7 @@ class CrotPediaParser(
             Triple(href, chTitle, Triple(index, num, href))
         }
 
-        // Stable and deterministic sorting comparator
+        // Stable and deterministic sorting comparator using BigDecimal
         val sortedChapters = parsedChapters.sortedWith(Comparator { a, b ->
             val numA = a.third.second
             val numB = b.third.second
@@ -171,7 +172,7 @@ class CrotPediaParser(
             MangaChapter(
                 title = chTitle,
                 chapterUrl = href,
-                pageCount = -1, // Unknown until loaded
+                pageCount = -1,
                 orderIndex = index + 1
             )
         }
@@ -231,7 +232,7 @@ class CrotPediaParser(
         var pageIndex = 1
 
         candidateElements.forEach { img ->
-            val src = extractImageUrlFromElement(img)
+            val src = extractImageUrlFromElement(doc, img)
 
             if (src.isNotBlank() && isMangaPageImage(src) && seenUrls.add(src)) {
                 pageList.add(MangaPage(pageIndex = pageIndex++, imageUrl = src))
@@ -241,28 +242,27 @@ class CrotPediaParser(
         return pageList
     }
 
-    private fun extractImageUrlFromElement(img: org.jsoup.nodes.Element): String {
+    private fun extractImageUrlFromElement(doc: Document, img: org.jsoup.nodes.Element): String {
         val attrs = listOf(
             "abs:src", "data-src", "data-lazy-src", "data-original", "data-lazy", "data-url", "src"
         )
         for (attr in attrs) {
             val value = img.attr(attr).trim()
             if (value.isNotEmpty() && !isPlaceholderUrl(value)) {
-                val clean = resolveUrlCandidate(value)
-                if (clean.isNotEmpty() && !isPlaceholderUrl(clean)) return clean
+                val clean = resolveUrlCandidate(doc.baseUri(), value)
+                if (clean.isNotEmpty() && isAllowedUrl(clean) && !isPlaceholderUrl(clean)) return clean
             }
         }
 
         val srcset = img.attr("srcset").ifEmpty { img.attr("data-srcset") }.trim()
         if (srcset.isNotEmpty()) {
-            // srcset format: url1 100w, url2 200w or just url
             val candidates = srcset.split(",")
             for (candidate in candidates) {
                 val parts = candidate.trim().split(Regex("\\s+"))
                 val urlPart = parts.firstOrNull()?.trim()
                 if (!urlPart.isNullOrEmpty() && !isPlaceholderUrl(urlPart)) {
-                    val clean = resolveUrlCandidate(urlPart)
-                    if (clean.isNotEmpty() && !isPlaceholderUrl(clean)) return clean
+                    val clean = resolveUrlCandidate(doc.baseUri(), urlPart)
+                    if (clean.isNotEmpty() && isAllowedUrl(clean) && !isPlaceholderUrl(clean)) return clean
                 }
             }
         }
@@ -280,12 +280,19 @@ class CrotPediaParser(
                 lower.isEmpty()
     }
 
-    private fun resolveUrlCandidate(url: String): String {
-        var clean = url.trim()
-        if (clean.startsWith("//")) {
-            clean = "https:$clean"
+    private fun resolveUrlCandidate(baseUri: String, url: String): String {
+        return try {
+            val trimmed = url.trim()
+            if (trimmed.startsWith("//")) {
+                "https:$trimmed"
+            } else if (baseUri.isNotEmpty()) {
+                URI(baseUri).resolve(trimmed).toString()
+            } else {
+                trimmed
+            }
+        } catch (e: Exception) {
+            url.trim()
         }
-        return clean
     }
 
     private fun isMangaPageImage(url: String): Boolean {
@@ -296,18 +303,24 @@ class CrotPediaParser(
         ) {
             return false
         }
-        return lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") ||
-                lower.endsWith(".webp") || lower.contains("/uploads/")
+        return isAllowedUrl(url) && (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") ||
+                lower.endsWith(".webp") || lower.contains("/uploads/") || lower.contains("/images/"))
     }
 
-    internal fun parseChapterNumber(title: String): Float? {
+    internal fun parseChapterNumber(title: String): BigDecimal? {
         val chMatcher = CHAPTER_NUM_PATTERN.matcher(title)
         if (chMatcher.find()) {
-            return chMatcher.group(1)?.toFloatOrNull()
+            val numStr = chMatcher.group(1)
+            if (numStr != null) {
+                return try { BigDecimal(numStr) } catch (_: Exception) { null }
+            }
         }
         val genMatcher = GENERIC_NUM_PATTERN.matcher(title)
         if (genMatcher.find()) {
-            return genMatcher.group(1)?.toFloatOrNull()
+            val numStr = genMatcher.group(1)
+            if (numStr != null) {
+                return try { BigDecimal(numStr) } catch (_: Exception) { null }
+            }
         }
         return null
     }

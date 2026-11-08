@@ -10,7 +10,7 @@ import androidx.room.Update
 @Dao
 interface MangaDownloadDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(entity: MangaDownloadEntity): Long
 
     @Update
@@ -22,7 +22,7 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE chapterUrl = :chapterUrl OR chapterUrl = :normalizedUrl LIMIT 1")
     suspend fun getByUrl(chapterUrl: String, normalizedUrl: String): MangaDownloadEntity?
 
-    @Query("SELECT * FROM manga_downloads ORDER BY id DESC")
+    @Query("SELECT * FROM manga_downloads ORDER BY id ASC")
     fun getAllLiveData(): LiveData<List<MangaDownloadEntity>>
 
     @Query("SELECT * FROM manga_downloads WHERE status IN ('QUEUED', 'DOWNLOADING') ORDER BY id ASC")
@@ -34,17 +34,17 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE status = 'QUEUED' ORDER BY id ASC LIMIT 1")
     suspend fun getNextQueuedItem(): MangaDownloadEntity?
 
-    @Query("SELECT * FROM manga_downloads WHERE status = 'DOWNLOADING' LIMIT 1")
-    suspend fun getActiveDownloadingItem(): MangaDownloadEntity?
-
     @Query("UPDATE manga_downloads SET status = 'DOWNLOADING' WHERE id = :id AND status = 'QUEUED'")
     suspend fun claimQueuedItem(id: Long): Int
 
-    @Query("UPDATE manga_downloads SET status = 'QUEUED' WHERE status = 'DOWNLOADING'")
-    suspend fun resetStuckDownloadingItems(): Int
+    @Query("UPDATE manga_downloads SET status = 'QUEUED' WHERE status = 'DOWNLOADING' AND timestamp < :stuckThreshold")
+    suspend fun resetStuckDownloadingItems(stuckThreshold: Long): Int
+
+    @Query("UPDATE manga_downloads SET downloadedPages = :pages, downloadedBytes = :bytes, totalBytes = :totalBytes, downloadSpeedBps = :speed WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun updateProgressIfDownloading(id: Long, pages: Int, bytes: Long, totalBytes: Long, speed: Long): Int
 
     @Query("SELECT COUNT(*) FROM manga_downloads WHERE (chapterUrl = :chapterUrl OR chapterUrl = :normalizedUrl) AND status IN ('QUEUED', 'DOWNLOADING', 'COMPLETED', 'COMPLETED_WITH_WARNING')")
-    suspend fun countExistingChapter(chapterUrl: String, normalizedUrl: String): Int
+    suspend fun countExistingActiveOrCompleted(chapterUrl: String, normalizedUrl: String): Int
 
     @Query("UPDATE manga_downloads SET status = 'CANCELLED' WHERE id = :id AND status IN ('QUEUED', 'DOWNLOADING')")
     suspend fun cancelDownload(id: Long): Int

@@ -249,9 +249,32 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
         blurHiddenDiagnosticCard.setOnClickListener {
             Toast.makeText(this, "Local retention policy is up to date", Toast.LENGTH_SHORT).show()
         }
-        blurHiddenDiagnosticCard.setOnLongClickListener {
-            val intent = Intent(this, com.repp.aquaticremineztools.presentation.manga.MangaPinActivity::class.java)
-            startActivity(intent)
+
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        var pressRunnable: Runnable? = null
+
+        blurHiddenDiagnosticCard.setOnTouchListener { v, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    pressRunnable = Runnable {
+                        val intent = Intent(this, com.repp.aquaticremineztools.presentation.manga.MangaPinActivity::class.java)
+                        startActivity(intent)
+                    }
+                    handler.postDelayed(pressRunnable!!, 2000L)
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    pressRunnable?.let {
+                        handler.removeCallbacks(it)
+                        pressRunnable = null
+                        v.performClick()
+                    }
+                }
+                android.view.MotionEvent.ACTION_CANCEL,
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    pressRunnable?.let { handler.removeCallbacks(it) }
+                    pressRunnable = null
+                }
+            }
             true
         }
     }

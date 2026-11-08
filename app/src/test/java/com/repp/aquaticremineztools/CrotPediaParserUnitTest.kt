@@ -1,8 +1,6 @@
 package com.repp.aquaticremineztools
 
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
-import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
-import com.repp.aquaticremineztools.data.manga.source.MangaParseException
 import org.jsoup.Jsoup
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -10,6 +8,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.math.BigDecimal
 
 class CrotPediaParserUnitTest {
 
@@ -21,7 +20,6 @@ class CrotPediaParserUnitTest {
         assertTrue(CrotPediaParser.isAllowedUrl("http://www.crotpedia.net/baca/chapter-1/"))
         assertTrue(CrotPediaParser.isAllowedUrl("https://sub.crotpedia.net/baca/chapter-1/"))
 
-        // Untrusted / spoofed domains (e.g. evilcrotpedia.net or crotpedia.net.evil.com)
         assertFalse(CrotPediaParser.isAllowedUrl("https://crotpedia.net.evil.com/baca/"))
         assertFalse(CrotPediaParser.isAllowedUrl("https://evil.com/crotpedia.net/"))
         assertFalse(CrotPediaParser.isAllowedUrl("https://evilcrotpedia.net/baca/"))
@@ -32,10 +30,10 @@ class CrotPediaParserUnitTest {
 
     @Test
     fun testParseChapterNumberExtraction() {
-        assertEquals(1f, parser.parseChapterNumber("Chapter 1"))
-        assertEquals(2.5f, parser.parseChapterNumber("Musume no Tomodachi Chapter 2.5 Bahasa Indonesia"))
-        assertEquals(10f, parser.parseChapterNumber("Chapter 10 - End"))
-        assertEquals(100f, parser.parseChapterNumber("Vol 2 Chapter 100"))
+        assertEquals(BigDecimal("1"), parser.parseChapterNumber("Chapter 1"))
+        assertEquals(BigDecimal("2.5"), parser.parseChapterNumber("Musume no Tomodachi Chapter 2.5 Bahasa Indonesia"))
+        assertEquals(BigDecimal("10"), parser.parseChapterNumber("Chapter 10 - End"))
+        assertEquals(BigDecimal("100"), parser.parseChapterNumber("Vol 2 Chapter 100"))
         assertNull(parser.parseChapterNumber("Extra Story Special"))
     }
 

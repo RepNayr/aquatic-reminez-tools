@@ -8,6 +8,8 @@ import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.domain.manga.worker.MangaDownloadWorker
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MangaRepository(context: Context) {
 
@@ -23,54 +25,54 @@ class MangaRepository(context: Context) {
     suspend fun enqueueChapter(seriesTitle: String, chapter: MangaChapter): Boolean {
         val cleanUrl = chapter.chapterUrl.trim()
         val normalizedUrl = if (cleanUrl.endsWith("/")) cleanUrl.dropLast(1) else "$cleanUrl/"
-
-        val existing = dao.getByUrl(cleanUrl, normalizedUrl)
         val sanitizeTitle = sanitizeFileName("${seriesTitle}_${chapter.title}.pdf")
 
-        if (existing != null) {
-            when (existing.status) {
-                MangaDownloadEntity.STATUS_QUEUED,
-                MangaDownloadEntity.STATUS_DOWNLOADING,
-                MangaDownloadEntity.STATUS_COMPLETED,
-                MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING -> {
-                    return false // Already active, queued or completed
+        return withContext(Dispatchers.IO) {
+            val existing = dao.getByUrl(cleanUrl, normalizedUrl)
+            if (existing != null) {
+                when (existing.status) {
+                    MangaDownloadEntity.STATUS_QUEUED,
+                    MangaDownloadEntity.STATUS_DOWNLOADING,
+                    MangaDownloadEntity.STATUS_COMPLETED,
+                    MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING -> {
+                        false
+                    }
+                    MangaDownloadEntity.STATUS_FAILED,
+                    MangaDownloadEntity.STATUS_CANCELLED -> {
+                        val updated = existing.copy(
+                            seriesTitle = seriesTitle,
+                            chapterTitle = chapter.title,
+                            outputFileName = sanitizeTitle,
+                            totalPages = chapter.pageCount,
+                            downloadedPages = 0,
+                            totalBytes = 0L,
+                            downloadedBytes = 0L,
+                            downloadSpeedBps = 0L,
+                            status = MangaDownloadEntity.STATUS_QUEUED,
+                            timestamp = System.currentTimeMillis(),
+                            pdfPath = null,
+                            errorMessage = null
+                        )
+                        dao.update(updated)
+                        MangaDownloadWorker.enqueueWork(appContext)
+                        true
+                    }
+                    else -> false
                 }
-                MangaDownloadEntity.STATUS_FAILED,
-                MangaDownloadEntity.STATUS_CANCELLED -> {
-                    // Safe retry: update existing record back to QUEUED
-                    val updated = existing.copy(
-                        seriesTitle = seriesTitle,
-                        chapterTitle = chapter.title,
-                        outputFileName = sanitizeTitle,
-                        totalPages = chapter.pageCount,
-                        downloadedPages = 0,
-                        totalBytes = 0L,
-                        downloadedBytes = 0L,
-                        downloadSpeedBps = 0L,
-                        status = MangaDownloadEntity.STATUS_QUEUED,
-                        timestamp = System.currentTimeMillis(),
-                        pdfPath = null,
-                        errorMessage = null
-                    )
-                    dao.update(updated)
-                    MangaDownloadWorker.enqueueWork(appContext)
-                    return true
-                }
+            } else {
+                val entity = MangaDownloadEntity(
+                    seriesTitle = seriesTitle,
+                    chapterTitle = chapter.title,
+                    chapterUrl = cleanUrl,
+                    outputFileName = sanitizeTitle,
+                    totalPages = chapter.pageCount,
+                    status = MangaDownloadEntity.STATUS_QUEUED
+                )
+                dao.insert(entity)
+                MangaDownloadWorker.enqueueWork(appContext)
+                true
             }
         }
-
-        val entity = MangaDownloadEntity(
-            seriesTitle = seriesTitle,
-            chapterTitle = chapter.title,
-            chapterUrl = cleanUrl,
-            outputFileName = sanitizeTitle,
-            totalPages = chapter.pageCount,
-            status = MangaDownloadEntity.STATUS_QUEUED
-        )
-
-        dao.insert(entity)
-        MangaDownloadWorker.enqueueWork(appContext)
-        return true
     }
 
     suspend fun enqueueAllChapters(seriesTitle: String, chapters: List<MangaChapter>): Int {
