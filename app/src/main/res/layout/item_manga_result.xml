@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="6dp"
+    android:background="@drawable/bg_manga_card"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- Row 1: Status Badge + Title + Remove X -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvResultStatusBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_manga_badge"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="2dp"
+            android:text="NOT COMPLETED"
+            android:textColor="#FFFDF8"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvResultTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:singleLine="true"
+            android:text="Manga Title - Chapter 1"
+            android:textColor="#292722"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/btnRemoveResult"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_close"
+            app:tint="#746D62" />
+    </LinearLayout>
+
+    <!-- Row 2: Info (Size & Pages) -->
+    <TextView
+        android:id="@+id/tvResultInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="30 pages · 15.4 MB"
+        android:textColor="#746D62"
+        android:textSize="12sp" />
+
+    <!-- Row 3: Action Buttons (Compress, Save) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/btnResultCompress"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_manga_button_dark"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="COMPRESS"
+            android:textColor="#FFFDF8"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnResultSave"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_manga_button_secondary"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="SAVE / OPEN"
+            android:textColor="#292722"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

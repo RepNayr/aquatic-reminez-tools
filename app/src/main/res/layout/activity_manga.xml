@@ -250,7 +250,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="16dp"
-                android:layout_marginBottom="80dp"
                 android:background="@drawable/bg_manga_button_dark"
                 android:backgroundTint="@null"
                 app:backgroundTint="@null"
@@ -259,6 +258,29 @@
                 android:textColor="#FFFDF8"
                 android:textSize="14sp"
                 android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- Manga Results Section Header -->
+            <TextView
+                android:id="@+id/tvResultsHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:text="Downloaded Results"
+                android:textColor="#292722"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <!-- Manga Results RecyclerView -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvResultsList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="80dp"
+                android:nestedScrollingEnabled="false"
                 android:visibility="gone" />
 
         </LinearLayout>

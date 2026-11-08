@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import org.junit.Assert.assertEquals
@@ -72,6 +73,14 @@ class MangaDownloadPipelineTest {
             assertTrue(stages.contains(MangaDownloadEntity.STAGE_BUILDING_PDF))
             assertTrue(stages.contains(MangaDownloadEntity.STAGE_VALIDATING_PDF))
         }
+    }
+
+    @Test
+    fun testMangaResultEntityStatusConstants() {
+        assertEquals("NOT_COMPLETED", MangaResultEntity.STATUS_NOT_COMPLETED)
+        assertEquals("COMPRESSING", MangaResultEntity.STATUS_COMPRESSING)
+        assertEquals("COMPLETED", MangaResultEntity.STATUS_COMPLETED)
+        assertEquals("FAILED", MangaResultEntity.STATUS_FAILED)
     }
 
     @Test

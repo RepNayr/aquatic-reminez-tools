@@ -7,46 +7,53 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [MangaDownloadEntity::class], version = 5, exportSchema = false)
+@Database(entities = [MangaDownloadEntity::class, MangaResultEntity::class], version = 6, exportSchema = false)
 abstract class MangaDatabase : RoomDatabase() {
 
     abstract fun mangaDownloadDao(): MangaDownloadDao
+    abstract fun mangaResultDao(): MangaResultDao
 
     companion object {
-        val MIGRATION_4_5 = object : Migration(4, 5) {
+        val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stage TEXT NOT NULL DEFAULT 'DOWNLOADING_IMAGES'")
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stageProgress INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS manga_results (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        seriesTitle TEXT NOT NULL,
+                        chapterTitle TEXT NOT NULL,
+                        chapterUrl TEXT NOT NULL,
+                        pdfPath TEXT NOT NULL,
+                        sizeBytes INTEGER NOT NULL,
+                        pageCount INTEGER NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'NOT_COMPLETED',
+                        timestamp INTEGER NOT NULL,
+                        errorMessage TEXT
+                    )
+                """)
             }
         }
 
-        val MIGRATION_3_5 = object : Migration(3, 5) {
+        val MIGRATION_1_6 = object : Migration(1, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
                 db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stage TEXT NOT NULL DEFAULT 'DOWNLOADING_IMAGES'")
                 db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stageProgress INTEGER NOT NULL DEFAULT 0")
-            }
-        }
-
-        val MIGRATION_2_5 = object : Migration(2, 5) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
-                db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stage TEXT NOT NULL DEFAULT 'DOWNLOADING_IMAGES'")
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stageProgress INTEGER NOT NULL DEFAULT 0")
-            }
-        }
-
-        val MIGRATION_1_5 = object : Migration(1, 5) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
-                db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
-                db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stage TEXT NOT NULL DEFAULT 'DOWNLOADING_IMAGES'")
-                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN stageProgress INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS manga_results (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        seriesTitle TEXT NOT NULL,
+                        chapterTitle TEXT NOT NULL,
+                        chapterUrl TEXT NOT NULL,
+                        pdfPath TEXT NOT NULL,
+                        sizeBytes INTEGER NOT NULL,
+                        pageCount INTEGER NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'NOT_COMPLETED',
+                        timestamp INTEGER NOT NULL,
+                        errorMessage TEXT
+                    )
+                """)
             }
         }
 
@@ -60,7 +67,8 @@ abstract class MangaDatabase : RoomDatabase() {
                     MangaDatabase::class.java,
                     "aquatic_manga_db"
                 )
-                .addMigrations(MIGRATION_1_5, MIGRATION_2_5, MIGRATION_3_5, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_6, MIGRATION_5_6)
+                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance

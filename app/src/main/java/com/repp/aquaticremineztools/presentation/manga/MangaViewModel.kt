@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import com.repp.aquaticremineztools.data.manga.model.ChapterAnalysisStatus
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
@@ -62,6 +63,7 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
     val activeDownloads: LiveData<List<MangaDownloadEntity>> = repository.getActiveAndQueuedLiveData()
     val completedDownloads: LiveData<List<MangaDownloadEntity>> = repository.getCompletedDownloadsLiveData()
+    val mangaResults: LiveData<List<MangaResultEntity>> = repository.getResultsLiveData()
     val activeAndQueuedCount: LiveData<Int> = repository.getActiveAndQueuedCountLiveData()
 
     var currentSeries: MangaSeries? = null
@@ -329,6 +331,18 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
     fun retryDownload(entity: MangaDownloadEntity) {
         viewModelScope.launch {
             repository.retryDownload(entity)
+        }
+    }
+
+    fun deleteResult(resultId: Long) {
+        viewModelScope.launch {
+            repository.deleteResult(resultId)
+        }
+    }
+
+    fun compressResult(result: MangaResultEntity) {
+        viewModelScope.launch {
+            repository.compressResult(result)
         }
     }
 

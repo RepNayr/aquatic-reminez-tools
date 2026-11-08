@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
 import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -17,6 +18,7 @@ import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
@@ -40,6 +42,8 @@ class MangaDownloadWorker(
 
     private val db = MangaDatabase.getInstance(context)
     private val dao = db.mangaDownloadDao()
+    private val resultDao = db.mangaResultDao()
+
     private val okHttpClient = OkHttpClient.Builder()
         .cookieJar(CrotPediaCookieJar(context))
         .connectTimeout(15, TimeUnit.SECONDS)
@@ -126,6 +130,11 @@ class MangaDownloadWorker(
             if (isStopped && checkPre?.status != MangaDownloadEntity.STATUS_CANCELLED) {
                 dao.resetItemToQueued(item.id)
             }
+            return
+        }
+
+        if (item.stage == MangaDownloadEntity.STAGE_COMPRESSING_PDF) {
+            processCompressionItem(item)
             return
         }
 
@@ -256,7 +265,7 @@ class MangaDownloadWorker(
                 return
             }
 
-            // Transition to Stage 2: Building & Compressing PDF
+            // Transition to Stage 2: Building & Validating PDF (without automatic compression per Part 2)
             dao.updateStageProgress(item.id, MangaDownloadEntity.STAGE_BUILDING_PDF, 0)
 
             val pdfResult = PdfBuilder.createPdfFromImages(
@@ -276,12 +285,6 @@ class MangaDownloadWorker(
                 throw IllegalStateException("Validasi PDF gagal: URI kosong atau jumlah halaman tidak cocok.")
             }
 
-            val finalStatus = if (pdfResult.isTargetSizeAchieved) {
-                MangaDownloadEntity.STATUS_COMPLETED
-            } else {
-                MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING
-            }
-
             val recheckCancelled = dao.getById(item.id)
             if (isStopped || recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
                 try {
@@ -293,9 +296,23 @@ class MangaDownloadWorker(
                 return
             }
 
+            // Insert into Result table with status NOT_COMPLETED
+            val resultEntity = MangaResultEntity(
+                seriesTitle = item.seriesTitle,
+                chapterTitle = item.chapterTitle,
+                chapterUrl = item.chapterUrl,
+                pdfPath = pdfResult.pdfUriString,
+                sizeBytes = pdfResult.sizeBytes,
+                pageCount = totalPages,
+                status = MangaResultEntity.STATUS_NOT_COMPLETED,
+                errorMessage = pdfResult.warningMessage
+            )
+            resultDao.insert(resultEntity)
+
+            // Mark download item as completed so it leaves active queue
             dao.markCompletedIfDownloading(
                 id = item.id,
-                finalStatus = finalStatus,
+                finalStatus = MangaDownloadEntity.STATUS_COMPLETED,
                 totalPages = totalPages,
                 downloadedPages = totalPages,
                 bytes = pdfResult.sizeBytes,
@@ -305,6 +322,76 @@ class MangaDownloadWorker(
             )
         } finally {
             tempDir.deleteRecursively()
+        }
+    }
+
+    private suspend fun processCompressionItem(item: MangaDownloadEntity) {
+        dao.updateStageProgress(item.id, MangaDownloadEntity.STAGE_BUILDING_PDF, 0)
+        showForegroundNotification("Compressing PDF", item.chapterTitle)
+
+        val resultId = item.id // or passed via chapterUrl/outputFileName
+        // Let's find result by chapterUrl or outputFileName if needed, or pass resultId in chapterUrl or similar.
+        // Even better, let's store resultId or query latest result for this chapterUrl.
+        val resultEntity = resultDao.getAllResultsLiveData().value?.find { it.chapterUrl == item.chapterUrl }
+            ?: resultDao.getAllResultsLiveData().value?.firstOrNull()
+
+        if (resultEntity == null) {
+            dao.markFailedIfDownloading(item.id, "Result PDF tidak ditemukan untuk kompresi.")
+            return
+        }
+
+        resultDao.updateStatus(resultEntity.id, MangaResultEntity.STATUS_COMPRESSING)
+
+        val sourceUri = Uri.parse(resultEntity.pdfPath)
+        val sourceFile = File(applicationContext.cacheDir, "source_compress_${System.currentTimeMillis()}.pdf")
+        try {
+            applicationContext.contentResolver.openInputStream(sourceUri)?.use { input ->
+                FileOutputStream(sourceFile).use { output ->
+                    input.copyTo(output)
+                }
+            } ?: throw IOException("Gagal membaca file PDF sumber.")
+
+            val compressResult = PdfBuilder.compressExistingPdf(
+                context = applicationContext,
+                sourcePdfFile = sourceFile,
+                outputFileName = item.outputFileName,
+                quality = 75,
+                maxDimension = 1400,
+                maxSizeBytes = 20 * 1024 * 1024L,
+                isCancelledCheck = {
+                    isStopped || dao.getById(item.id)?.status == MangaDownloadEntity.STATUS_CANCELLED
+                },
+                onProgress = { stage, percent ->
+                    dao.updateStageProgress(item.id, stage, percent.coerceIn(0, 100))
+                }
+            )
+
+            resultDao.updatePdfResult(
+                id = resultEntity.id,
+                pdfPath = compressResult.pdfUriString,
+                sizeBytes = compressResult.sizeBytes,
+                status = MangaResultEntity.STATUS_COMPLETED,
+                errorMessage = compressResult.warningMessage
+            )
+
+            dao.markCompletedIfDownloading(
+                id = item.id,
+                finalStatus = MangaDownloadEntity.STATUS_COMPLETED,
+                totalPages = resultEntity.pageCount,
+                downloadedPages = resultEntity.pageCount,
+                bytes = compressResult.sizeBytes,
+                totalBytes = compressResult.sizeBytes,
+                pdfPath = compressResult.pdfUriString,
+                warningMessage = compressResult.warningMessage
+            )
+        } catch (e: Exception) {
+            resultDao.updateStatus(resultEntity.id, MangaResultEntity.STATUS_FAILED, e.localizedMessage ?: "Kompresi gagal")
+            dao.markFailedIfDownloading(item.id, e.localizedMessage ?: "Kompresi gagal")
+            throw e
+        } finally {
+            if (sourceFile.exists()) {
+                sourceFile.delete()
+            }
         }
     }
 
@@ -319,8 +406,11 @@ class MangaDownloadWorker(
         activeCalls[itemId] = call
 
         call.execute().use { response ->
-            if (response.code == 401 || response.code == 403) {
-                throw IOException("Akses gambar ditolak (HTTP ${response.code}). URL mungkin kedaluwarsa.")
+            if (response.code == 401) {
+                throw MangaAuthRequiredException("Sesi login kedaluwarsa (HTTP 401).")
+            }
+            if (response.code == 403) {
+                throw IOException("Akses gambar ditolak (HTTP 403). URL mungkin kedaluwarsa.")
             }
             if (!response.isSuccessful) throw IOException("HTTP ${response.code} pada gambar")
             val body = response.body ?: throw IOException("Respons gambar kosong")

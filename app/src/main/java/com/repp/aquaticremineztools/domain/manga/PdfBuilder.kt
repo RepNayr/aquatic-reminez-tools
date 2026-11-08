@@ -70,36 +70,55 @@ object PdfBuilder {
 
         val tempPdfFile = File(context.cacheDir, "temp_${System.currentTimeMillis()}_$outputFileName")
 
-        val qualities = listOf(90, 75, 60, 45, 35)
-        val maxDimensions = listOf(1800, 1400, 1100, 900, 750)
-
-        var lastSizeBytes = 0L
-        var achieved = false
+        // Single pass build without aggressive auto-compression during PDF Building (per Part 2 requirements)
+        val quality = 90
+        val maxDimension = 1600
 
         try {
-            for (i in qualities.indices) {
-                coroutineContext.ensureActive()
-                if (isCancelledCheck?.invoke() == true) {
-                    throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
-                }
-                val quality = qualities[i]
-                val maxDim = maxDimensions[i]
-
-                val stage = if (i == 0) MangaDownloadEntity.STAGE_BUILDING_PDF else MangaDownloadEntity.STAGE_COMPRESSING_PDF
-                val baseProgress = 15 + (i * 12)
-                onProgress?.invoke(stage, baseProgress)
-
-                generatePdfPass(imageFiles, tempPdfFile, quality, maxDim, isCancelledCheck) { passPercent ->
-                    val mapped = baseProgress + (passPercent * 12 / 100)
-                    // Note: non-suspend callback invoked inside generatePdfPass can call a blocking or we can launch/run or invoke onProgress via runBlocking if needed, or keep passProgress simple.
-                }
-
-                lastSizeBytes = tempPdfFile.length()
-                if (lastSizeBytes <= MAX_PDF_SIZE_BYTES) {
-                    achieved = true
-                    break
-                }
+            coroutineContext.ensureActive()
+            if (isCancelledCheck?.invoke() == true) {
+                throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
             }
+
+            val pdfDocument = PdfDocument()
+            try {
+                val total = imageFiles.size
+                imageFiles.forEachIndexed { index, file ->
+                    coroutineContext.ensureActive()
+                    if (isCancelledCheck?.invoke() == true) {
+                        throw CancellationException("Pembuatan PDF dibatalkan saat proses halaman ${index + 1}.")
+                    }
+                    val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension)
+                        ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
+
+                    val pageInfo = PdfDocument.PageInfo.Builder(
+                        compressedBitmap.width,
+                        compressedBitmap.height,
+                        index + 1
+                    ).create()
+
+                    val page = pdfDocument.startPage(pageInfo)
+                    val canvas: Canvas = page.canvas
+                    val paint = Paint()
+
+                    canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)
+                    pdfDocument.finishPage(page)
+
+                    compressedBitmap.recycle()
+
+                    val percent = 15 + ((index + 1) * 65 / total)
+                    onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, percent.coerceIn(15, 80))
+                }
+
+                FileOutputStream(tempPdfFile).use { out ->
+                    pdfDocument.writeTo(out)
+                }
+            } finally {
+                pdfDocument.close()
+            }
+
+            val lastSizeBytes = tempPdfFile.length()
+            val achieved = lastSizeBytes <= MAX_PDF_SIZE_BYTES
 
             coroutineContext.ensureActive()
             if (isCancelledCheck?.invoke() == true) {
@@ -132,7 +151,7 @@ object PdfBuilder {
             val warning = if (!achieved) {
                 String.format(
                     Locale.US,
-                    "Ukuran PDF (%.1f MB) melebihi batas 20 MB meskipun telah dikompresi maksimal.",
+                    "Ukuran PDF (%.1f MB) melebihi batas 20 MB.",
                     actualSizeBytes / (1024f * 1024f)
                 )
             } else null
@@ -147,6 +166,143 @@ object PdfBuilder {
         } finally {
             if (tempPdfFile.exists()) {
                 tempPdfFile.delete()
+            }
+        }
+    }
+
+    suspend fun compressExistingPdf(
+        context: Context,
+        sourcePdfFile: File,
+        outputFileName: String,
+        quality: Int,
+        maxDimension: Int,
+        maxSizeBytes: Long,
+        isCancelledCheck: (suspend () -> Boolean)? = null,
+        onProgress: (suspend (stage: String, percent: Int) -> Unit)? = null
+    ): PdfBuildResult = withContext(Dispatchers.IO) {
+        onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, 10)
+
+        val uri = Uri.fromFile(sourcePdfFile)
+        val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+            ?: throw IOException("Gagal membuka file PDF sumber untuk kompresi.")
+
+        val tempImageFiles = mutableListOf<File>()
+        val tempDir = File(context.cacheDir, "compress_temp_${System.currentTimeMillis()}").apply { mkdirs() }
+        val tempOutputPdf = File(context.cacheDir, "temp_compressed_${System.currentTimeMillis()}_$outputFileName")
+
+        try {
+            PdfRenderer(pfd).use { renderer ->
+                val pageCount = renderer.pageCount
+                for (i in 0 until pageCount) {
+                    coroutineContext.ensureActive()
+                    if (isCancelledCheck?.invoke() == true) {
+                        throw CancellationException("Kompresi dibatalkan oleh pengguna.")
+                    }
+                    renderer.openPage(i).use { page ->
+                        val bitmap = Bitmap.createBitmap(page.width, page.height, Bitmap.Config.ARGB_8888)
+                        page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
+
+                        val imgFile = File(tempDir, "page_$i.jpg")
+                        FileOutputStream(imgFile).use { out ->
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                        }
+                        bitmap.recycle()
+                        tempImageFiles.add(imgFile)
+                    }
+                    val progressPercent = 10 + ((i + 1) * 40 / pageCount)
+                    onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, progressPercent)
+                }
+            }
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, 55)
+
+            val pdfDocument = PdfDocument()
+            try {
+                val total = tempImageFiles.size
+                tempImageFiles.forEachIndexed { index, file ->
+                    coroutineContext.ensureActive()
+                    if (isCancelledCheck?.invoke() == true) {
+                        throw CancellationException("Kompresi dibatalkan saat proses halaman ${index + 1}.")
+                    }
+                    val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension)
+                        ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
+
+                    val pageInfo = PdfDocument.PageInfo.Builder(
+                        compressedBitmap.width,
+                        compressedBitmap.height,
+                        index + 1
+                    ).create()
+
+                    val page = pdfDocument.startPage(pageInfo)
+                    val canvas: Canvas = page.canvas
+                    val paint = Paint()
+
+                    canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)
+                    pdfDocument.finishPage(page)
+
+                    compressedBitmap.recycle()
+
+                    val percent = 55 + ((index + 1) * 30 / total)
+                    onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, percent.coerceIn(55, 85))
+                }
+
+                FileOutputStream(tempOutputPdf).use { out ->
+                    pdfDocument.writeTo(out)
+                }
+            } finally {
+                pdfDocument.close()
+            }
+
+            coroutineContext.ensureActive()
+            if (isCancelledCheck?.invoke() == true) {
+                throw CancellationException("Kompresi dibatalkan oleh pengguna.")
+            }
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 88)
+
+            val pdfUriString = savePdfToMediaStore(context, tempOutputPdf, outputFileName)
+                ?: throw IOException("Gagal menyimpan PDF hasil kompresi ke MediaStore.")
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 95)
+
+            try {
+                if (isCancelledCheck?.invoke() == true) {
+                    throw CancellationException("Kompresi dibatalkan setelah publikasi MediaStore.")
+                }
+                validateStoredPdf(context, pdfUriString, tempImageFiles.size)
+            } catch (e: Exception) {
+                try {
+                    context.contentResolver.delete(Uri.parse(pdfUriString), null, null)
+                } catch (_: Exception) {}
+                throw e
+            }
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 100)
+
+            val actualSizeBytes = getStoredFileSize(context, pdfUriString) ?: tempOutputPdf.length()
+            val achieved = actualSizeBytes <= maxSizeBytes
+
+            val warning = if (!achieved) {
+                String.format(
+                    Locale.US,
+                    "Ukuran PDF (%.1f MB) masih melebihi target %.1f MB.",
+                    actualSizeBytes / (1024f * 1024f),
+                    maxSizeBytes / (1024f * 1024f)
+                )
+            } else null
+
+            PdfBuildResult(
+                pdfUriString = pdfUriString,
+                sizeBytes = actualSizeBytes,
+                pageCount = tempImageFiles.size,
+                isTargetSizeAchieved = achieved,
+                warningMessage = warning
+            )
+        } finally {
+            pfd.close()
+            tempDir.deleteRecursively()
+            if (tempOutputPdf.exists()) {
+                tempOutputPdf.delete()
             }
         }
     }

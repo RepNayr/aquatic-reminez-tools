@@ -2,9 +2,9 @@ package com.repp.aquaticremineztools.presentation.manga
 
 import android.content.ClipboardManager
 import android.content.Intent
-import android.net.Uri
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 
 class MangaActivity : AppCompatActivity() {
@@ -57,11 +58,15 @@ class MangaActivity : AppCompatActivity() {
     private lateinit var rvChapterList: RecyclerView
     private lateinit var btnDownloadAll: Button
 
+    private lateinit var tvResultsHeader: TextView
+    private lateinit var rvResultsList: RecyclerView
+
     private lateinit var btnFloatingDownload: FrameLayout
     private lateinit var tvBadgeCounter: TextView
     private lateinit var vPopupScrim: View
 
     private lateinit var chapterAdapter: MangaChapterAdapter
+    private lateinit var resultAdapter: MangaResultAdapter
 
     private var popupWindow: PopupWindow? = null
     private var popupAdapter: MangaDownloadAdapter? = null
@@ -69,8 +74,6 @@ class MangaActivity : AppCompatActivity() {
     private var popupEmptyStateText: TextView? = null
 
     private var currentActiveDownloads: List<MangaDownloadEntity> = emptyList()
-    private var currentCompletedDownloads: List<MangaDownloadEntity> = emptyList()
-    private var isCompletedTab: Boolean = false
 
     private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -111,6 +114,9 @@ class MangaActivity : AppCompatActivity() {
         rvChapterList = findViewById(R.id.rvChapterList)
         btnDownloadAll = findViewById(R.id.btnDownloadAll)
 
+        tvResultsHeader = findViewById(R.id.tvResultsHeader)
+        rvResultsList = findViewById(R.id.rvResultsList)
+
         btnFloatingDownload = findViewById(R.id.btnFloatingDownload)
         tvBadgeCounter = findViewById(R.id.tvBadgeCounter)
         vPopupScrim = findViewById(R.id.vPopupScrim)
@@ -135,6 +141,14 @@ class MangaActivity : AppCompatActivity() {
         )
         rvChapterList.layoutManager = LinearLayoutManager(this)
         rvChapterList.adapter = chapterAdapter
+
+        resultAdapter = MangaResultAdapter(
+            onCompressClick = { result -> showCompressionDialog(result) },
+            onSaveClick = { result -> openPdf(result.pdfPath) },
+            onRemoveClick = { result -> showRemoveResultDialog(result) }
+        )
+        rvResultsList.layoutManager = LinearLayoutManager(this)
+        rvResultsList.adapter = resultAdapter
     }
 
     private fun setupObservers() {
@@ -233,17 +247,18 @@ class MangaActivity : AppCompatActivity() {
 
         viewModel.activeDownloads.observe(this) { list ->
             currentActiveDownloads = list
-            if (!isCompletedTab) {
-                popupAdapter?.setItems(list)
-                updatePopupBadgeHeader(list)
-            }
+            popupAdapter?.setItems(list)
+            updatePopupBadgeHeader(list)
         }
 
-        viewModel.completedDownloads.observe(this) { list ->
-            currentCompletedDownloads = list
-            if (isCompletedTab) {
-                popupAdapter?.setItems(list)
-                updatePopupBadgeHeaderCompleted(list)
+        viewModel.mangaResults.observe(this) { list ->
+            if (list.isNullOrEmpty()) {
+                tvResultsHeader.visibility = View.GONE
+                rvResultsList.visibility = View.GONE
+            } else {
+                tvResultsHeader.visibility = View.VISIBLE
+                rvResultsList.visibility = View.VISIBLE
+                resultAdapter.setItems(list)
             }
         }
 
@@ -376,6 +391,30 @@ class MangaActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun showCompressionDialog(result: MangaResultEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Compress PDF")
+            .setMessage("Mulai proses kompresi untuk ${result.chapterTitle}?")
+            .setPositiveButton("Compress") { _, _ ->
+                viewModel.compressResult(result)
+                Toast.makeText(this, "Pekerjaan kompresi ditambahkan ke antrean.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun showRemoveResultDialog(result: MangaResultEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Result")
+            .setMessage("Hapus ${result.chapterTitle} dari daftar result?")
+            .setPositiveButton("Hapus") { _, _ ->
+                viewModel.deleteResult(result.id)
+                Toast.makeText(this, "Result dihapus.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
     override fun onStop() {
         super.onStop()
         if (isFinishing) {
@@ -409,67 +448,21 @@ class MangaActivity : AppCompatActivity() {
         popupStatusBadgeText = popupView.findViewById(R.id.tvPopupStatusBadge)
         popupEmptyStateText = popupView.findViewById(R.id.tvPopupEmptyState)
         val rvPopupList = popupView.findViewById<RecyclerView>(R.id.rvDownloadPopupList)
-        val btnTabActive = popupView.findViewById<TextView>(R.id.btnTabActive)
-        val btnTabCompleted = popupView.findViewById<TextView>(R.id.btnTabCompleted)
-
-        btnTabActive.text = "Active (${currentActiveDownloads.size})"
-        btnTabCompleted.text = "Completed (${currentCompletedDownloads.size})"
 
         popupAdapter = MangaDownloadAdapter(
             onCancelClick = { itemToCancel ->
-                if (isCompletedTab) {
-                    viewModel.deleteDownload(itemToCancel.id)
-                } else {
-                    viewModel.cancelDownload(itemToCancel.id)
-                }
+                viewModel.cancelDownload(itemToCancel.id)
             },
             onRetryClick = { itemToRetry ->
                 viewModel.retryDownload(itemToRetry)
                 Toast.makeText(this, "Mencoba mengunduh ulang ${itemToRetry.chapterTitle}", Toast.LENGTH_SHORT).show()
-            },
-            onOpenClick = { entity ->
-                openPdf(entity.pdfPath)
             }
         )
         rvPopupList.layoutManager = LinearLayoutManager(this)
         rvPopupList.adapter = popupAdapter
 
-        fun updateTabStyles() {
-            if (isCompletedTab) {
-                btnTabCompleted.setBackgroundResource(R.drawable.bg_manga_button_dark)
-                btnTabCompleted.setTextColor(Color.parseColor("#FFFDF8"))
-                btnTabActive.setBackgroundResource(R.drawable.bg_manga_button_secondary)
-                btnTabActive.setTextColor(Color.parseColor("#292722"))
-            } else {
-                btnTabActive.setBackgroundResource(R.drawable.bg_manga_button_dark)
-                btnTabActive.setTextColor(Color.parseColor("#FFFDF8"))
-                btnTabCompleted.setBackgroundResource(R.drawable.bg_manga_button_secondary)
-                btnTabCompleted.setTextColor(Color.parseColor("#292722"))
-            }
-        }
-
-        btnTabActive.setOnClickListener {
-            isCompletedTab = false
-            updateTabStyles()
-            popupAdapter?.setItems(currentActiveDownloads)
-            updatePopupBadgeHeader(currentActiveDownloads)
-        }
-
-        btnTabCompleted.setOnClickListener {
-            isCompletedTab = true
-            updateTabStyles()
-            popupAdapter?.setItems(currentCompletedDownloads)
-            updatePopupBadgeHeaderCompleted(currentCompletedDownloads)
-        }
-
-        updateTabStyles()
-        if (isCompletedTab) {
-            popupAdapter?.setItems(currentCompletedDownloads)
-            updatePopupBadgeHeaderCompleted(currentCompletedDownloads)
-        } else {
-            popupAdapter?.setItems(currentActiveDownloads)
-            updatePopupBadgeHeader(currentActiveDownloads)
-        }
+        popupAdapter?.setItems(currentActiveDownloads)
+        updatePopupBadgeHeader(currentActiveDownloads)
 
         btnClose.setOnClickListener {
             popupWindow?.dismiss()
@@ -508,10 +501,6 @@ class MangaActivity : AppCompatActivity() {
     }
 
     private fun updatePopupBadgeHeader(list: List<MangaDownloadEntity>) {
-        if (isCompletedTab) {
-            updatePopupBadgeHeaderCompleted(list)
-            return
-        }
         val activeCount = list.count { it.status == MangaDownloadEntity.STATUS_DOWNLOADING }
         val queuedCount = list.count { it.status == MangaDownloadEntity.STATUS_QUEUED || it.status == MangaDownloadEntity.STATUS_FAILED }
 
@@ -525,13 +514,6 @@ class MangaActivity : AppCompatActivity() {
         popupStatusBadgeText?.text = badgeStr
         popupEmptyStateText?.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
         popupEmptyStateText?.text = "No active or queued downloads"
-    }
-
-    private fun updatePopupBadgeHeaderCompleted(list: List<MangaDownloadEntity>) {
-        val count = list.size
-        popupStatusBadgeText?.text = "$count COMPLETED"
-        popupEmptyStateText?.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
-        popupEmptyStateText?.text = "No completed downloads yet"
     }
 
     private fun openPdf(pdfPath: String?) {

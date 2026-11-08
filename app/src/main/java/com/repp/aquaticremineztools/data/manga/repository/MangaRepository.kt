@@ -6,6 +6,7 @@ import androidx.room.withTransaction
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
@@ -24,6 +25,7 @@ class MangaRepository(
 ) {
 
     private val dao = db.mangaDownloadDao()
+    private val resultDao = db.mangaResultDao()
     private val appContext = context.applicationContext
 
     private val okHttpClient = OkHttpClient.Builder()
@@ -223,6 +225,30 @@ class MangaRepository(
 
     suspend fun deleteDownload(id: Long) = withContext(Dispatchers.IO) {
         dao.deleteById(id)
+    }
+
+    fun getResultsLiveData(): LiveData<List<MangaResultEntity>> {
+        return resultDao.getAllResultsLiveData()
+    }
+
+    suspend fun deleteResult(id: Long) = withContext(Dispatchers.IO) {
+        resultDao.deleteById(id)
+    }
+
+    suspend fun compressResult(result: MangaResultEntity) = withContext(Dispatchers.IO) {
+        val sanitizeTitle = sanitizeFileName("compressed_${result.seriesTitle}_${result.chapterTitle}.pdf")
+        val entity = MangaDownloadEntity(
+            seriesTitle = result.seriesTitle,
+            chapterTitle = result.chapterTitle,
+            chapterUrl = result.chapterUrl,
+            outputFileName = sanitizeTitle,
+            totalPages = result.pageCount,
+            status = MangaDownloadEntity.STATUS_QUEUED,
+            stage = MangaDownloadEntity.STAGE_COMPRESSING_PDF,
+            timestamp = System.currentTimeMillis()
+        )
+        dao.insert(entity)
+        MangaDownloadWorker.enqueueWork(appContext)
     }
 
     fun getActiveAndQueuedCountLiveData(): LiveData<Int> {
