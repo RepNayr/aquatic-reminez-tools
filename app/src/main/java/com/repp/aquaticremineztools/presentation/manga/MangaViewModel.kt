@@ -11,6 +11,8 @@ import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
 import com.repp.aquaticremineztools.data.manga.repository.MangaRepository
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
+import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
+import com.repp.aquaticremineztools.data.manga.source.MangaParseException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -114,16 +116,24 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
                     try {
                         val pages = repository.parsePagesForChapter(ch.chapterUrl)
-                        chapters[i] = ch.copy(
-                            status = ChapterAnalysisStatus.SUCCESS,
-                            pageCount = pages.size,
-                            pages = pages.map { it.imageUrl }
-                        )
+                        if (pages.isEmpty()) {
+                            chapters[i] = ch.copy(
+                                status = ChapterAnalysisStatus.FAILED,
+                                errorMessage = "No valid images found"
+                            )
+                        } else {
+                            chapters[i] = ch.copy(
+                                status = ChapterAnalysisStatus.SUCCESS,
+                                pageCount = pages.size,
+                                pages = pages.map { it.imageUrl },
+                                errorMessage = null
+                            )
+                        }
                     } catch (e: Exception) {
                         if (e is CancellationException) throw e
                         chapters[i] = ch.copy(
                             status = ChapterAnalysisStatus.FAILED,
-                            errorMessage = e.message ?: "Failed"
+                            errorMessage = toUserErrorMessage(e)
                         )
                     }
 
@@ -174,17 +184,24 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
             try {
                 val pages = repository.parsePagesForChapter(ch.chapterUrl)
-                chapters[index] = ch.copy(
-                    status = ChapterAnalysisStatus.SUCCESS,
-                    pageCount = pages.size,
-                    pages = pages.map { it.imageUrl },
-                    errorMessage = null
-                )
+                if (pages.isEmpty()) {
+                    chapters[index] = ch.copy(
+                        status = ChapterAnalysisStatus.FAILED,
+                        errorMessage = "No valid images found"
+                    )
+                } else {
+                    chapters[index] = ch.copy(
+                        status = ChapterAnalysisStatus.SUCCESS,
+                        pageCount = pages.size,
+                        pages = pages.map { it.imageUrl },
+                        errorMessage = null
+                    )
+                }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
                 chapters[index] = ch.copy(
                     status = ChapterAnalysisStatus.FAILED,
-                    errorMessage = e.message ?: "Failed"
+                    errorMessage = toUserErrorMessage(e)
                 )
             }
 
@@ -264,5 +281,39 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
             mainPath
         }
         return normalizedPath + queryAndHash
+    }
+
+    private fun toUserErrorMessage(e: Throwable): String {
+        val message = e.message ?: ""
+        val lower = message.lowercase()
+        return when {
+            e is java.net.UnknownHostException -> "Network connection failed"
+            e is java.net.SocketTimeoutException -> "Server timeout"
+            e is android.os.NetworkOnMainThreadException -> "Network operation error"
+            e is MangaAuthRequiredException -> {
+                when {
+                    lower.contains("401") -> "Access denied (401)"
+                    lower.contains("403") -> "Access denied (403)"
+                    else -> "Access denied (Login required)"
+                }
+            }
+            e is MangaParseException -> {
+                when {
+                    lower.contains("404") -> "Chapter not found (404)"
+                    lower.contains("429") -> "Rate limited (HTTP 429)"
+                    lower.contains("500") || lower.contains("502") || lower.contains("503") || lower.contains("server error") -> "Server error (5xx)"
+                    lower.contains("kosong") || lower.contains("empty") -> "Empty response"
+                    lower.contains("container") -> "Reader not detected"
+                    lower.contains("gambar") || lower.contains("image") || lower.contains("valid") -> "No valid images found"
+                    else -> message.ifBlank { "Analysis failed" }
+                }
+            }
+            lower.contains("404") -> "Chapter not found (404)"
+            lower.contains("403") -> "Access denied (403)"
+            lower.contains("429") -> "Rate limited (HTTP 429)"
+            lower.contains("timeout") -> "Server timeout"
+            lower.contains("unknownhost") || lower.contains("unable to resolve") -> "Network connection failed"
+            else -> if (message.isNotBlank() && !message.contains("Exception")) message else "Analysis failed"
+        }
     }
 }

@@ -116,8 +116,12 @@ class CrotPediaParser(
 
             if (response.code == 401 || response.code == 403) {
                 throw MangaAuthRequiredException("Akses ditolak (HTTP ${response.code}). Konten memerlukan autentikasi login.")
+            } else if (response.code == 404) {
+                throw MangaParseException("Chapter tidak ditemukan (HTTP 404).")
             } else if (response.code == 429) {
                 throw MangaParseException("Terlalu banyak permintaan (HTTP 429). Silakan coba lagi beberapa saat lagi.")
+            } else if (response.code >= 500) {
+                throw MangaParseException("Server error (HTTP ${response.code}).")
             } else if (!response.isSuccessful) {
                 throw MangaParseException("Gagal memuat halaman: HTTP ${response.code}")
             }
@@ -335,6 +339,8 @@ class CrotPediaParser(
     }
 
     private fun extractPagesFromChapterDoc(doc: Document): List<MangaPage> {
+        val readerContainer = doc.selectFirst("#readerarea, .reading-content, .reader-area, div#chpparent, div.ts-main-image, .entry-content, .post-body")
+
         val imgElements = doc.select("#readerarea img, .reading-content img, .reader-area img, div#chpparent img, div.ts-main-image img, .entry-content img")
         val candidateElements = if (imgElements.isNotEmpty()) {
             imgElements
@@ -367,6 +373,14 @@ class CrotPediaParser(
 
             if (src.isNotBlank() && isValidImageUrl(src) && seenUrls.add(src)) {
                 pageList.add(MangaPage(pageIndex = pageIndex++, imageUrl = src))
+            }
+        }
+
+        if (pageList.isEmpty()) {
+            if (readerContainer == null) {
+                throw MangaParseException("Reader container not detected")
+            } else {
+                throw MangaParseException("No valid images found")
             }
         }
 

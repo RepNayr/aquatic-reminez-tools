@@ -6,6 +6,8 @@ import com.repp.aquaticremineztools.data.manga.model.ChapterAnalysisStatus
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
+import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
+import com.repp.aquaticremineztools.data.manga.source.MangaParseException
 import com.repp.aquaticremineztools.presentation.manga.AnalyzeState
 import com.repp.aquaticremineztools.presentation.manga.MangaChapterAdapter
 import com.repp.aquaticremineztools.presentation.manga.MangaViewModel
@@ -14,11 +16,14 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 
 @RunWith(RobolectricTestRunner::class)
 @Config(manifest = "src/main/AndroidManifest.xml", sdk = [33])
@@ -51,6 +56,34 @@ class MangaPhase1Test {
         val errorState = state as AnalyzeState.Error
         assertTrue(errorState.isInvalidUrl)
         assertNull(viewModel.currentSeries)
+    }
+
+    @Test
+    fun testUserErrorMessageMapping() {
+        val viewModel = MangaViewModel(app)
+        val method = MangaViewModel::class.java.getDeclaredMethod("toUserErrorMessage", Throwable::class.java)
+        method.isAccessible = true
+
+        val msgUnknownHost = method.invoke(viewModel, UnknownHostException("Unable to resolve host")) as String
+        assertEquals("Network connection failed", msgUnknownHost)
+
+        val msgTimeout = method.invoke(viewModel, SocketTimeoutException("timeout")) as String
+        assertEquals("Server timeout", msgTimeout)
+
+        val msgAuth403 = method.invoke(viewModel, MangaAuthRequiredException("Akses ditolak (HTTP 403)")) as String
+        assertEquals("Access denied (403)", msgAuth403)
+
+        val msg404 = method.invoke(viewModel, MangaParseException("Chapter tidak ditemukan (HTTP 404).")) as String
+        assertEquals("Chapter not found (404)", msg404)
+
+        val msg429 = method.invoke(viewModel, MangaParseException("Terlalu banyak permintaan (HTTP 429).")) as String
+        assertEquals("Rate limited (HTTP 429)", msg429)
+
+        val msgNoContainer = method.invoke(viewModel, MangaParseException("Reader container not detected")) as String
+        assertEquals("Reader not detected", msgNoContainer)
+
+        val msgNoImages = method.invoke(viewModel, MangaParseException("No valid images found")) as String
+        assertEquals("No valid images found", msgNoImages)
     }
 
     @Test
@@ -135,6 +168,34 @@ class MangaPhase1Test {
     }
 
     @Test
+    fun testReaderExtractionWithoutImagesThrowsParseException() {
+        val html = """
+            <!DOCTYPE html>
+            <html>
+            <head><title>Empty Reader Page</title></head>
+            <body>
+                <div id="readerarea">
+                    <!-- No valid images inside reader -->
+                    <img src="https://crotpedia.net/logo.png" />
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+
+        val doc = Jsoup.parse(html, "https://crotpedia.net/baca/chapter-empty/")
+        val method = CrotPediaParser::class.java.getDeclaredMethod("extractPagesFromChapterDoc", org.jsoup.nodes.Document::class.java)
+        method.isAccessible = true
+
+        try {
+            method.invoke(parser, doc)
+            fail("Expected exception when no valid images found")
+        } catch (e: java.lang.reflect.InvocationTargetException) {
+            assertTrue(e.cause is MangaParseException)
+            assertEquals("No valid images found", e.cause?.message)
+        }
+    }
+
+    @Test
     fun testCoverExtractionFromExternalCdn() {
         val html = """
             <!DOCTYPE html>
@@ -197,7 +258,8 @@ class MangaPhase1Test {
             chapterUrl = "https://crotpedia.net/baca/ch1/",
             pageCount = -1,
             orderIndex = 1,
-            status = ChapterAnalysisStatus.FAILED
+            status = ChapterAnalysisStatus.FAILED,
+            errorMessage = "Server timeout"
         )
 
         val adapter = MangaChapterAdapter(

@@ -69,7 +69,8 @@ class MangaChapterAdapter(
                     btnDownload.alpha = 1.0f
                 }
                 ChapterAnalysisStatus.FAILED -> {
-                    tvPages.text = "Failed"
+                    val reason = chapter.errorMessage?.takeIf { it.isNotBlank() } ?: "Analysis failed"
+                    tvPages.text = "Failed · $reason"
                     tvPages.setTextColor(0xFFD32F2F.toInt())
                     btnRetry.visibility = View.VISIBLE
                     pbRetryLoading.visibility = View.GONE
