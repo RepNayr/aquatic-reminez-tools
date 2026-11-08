@@ -22,6 +22,7 @@ data class MangaDownloadEntity(
     val downloadSpeedBps: Long = 0L,
     val status: String = STATUS_QUEUED,
     val timestamp: Long = System.currentTimeMillis(),
+    val lastHeartbeatAt: Long = 0L,
     val pdfPath: String? = null,
     val errorMessage: String? = null
 ) {

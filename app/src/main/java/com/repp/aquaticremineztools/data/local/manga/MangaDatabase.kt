@@ -7,21 +7,31 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [MangaDownloadEntity::class], version = 3, exportSchema = false)
+@Database(entities = [MangaDownloadEntity::class], version = 4, exportSchema = false)
 abstract class MangaDatabase : RoomDatabase() {
 
     abstract fun mangaDownloadDao(): MangaDownloadDao
 
     companion object {
-        val MIGRATION_2_3 = object : Migration(2, 3) {
+        val MIGRATION_3_4 = object : Migration(3, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
             }
         }
 
-        val MIGRATION_1_3 = object : Migration(1, 3) {
+        val MIGRATION_2_4 = object : Migration(2, 4) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
+            }
+        }
+
+        val MIGRATION_1_4 = object : Migration(1, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_manga_downloads_chapterUrl ON manga_downloads(chapterUrl)")
             }
@@ -37,7 +47,7 @@ abstract class MangaDatabase : RoomDatabase() {
                     MangaDatabase::class.java,
                     "aquatic_manga_db"
                 )
-                .addMigrations(MIGRATION_1_3, MIGRATION_2_3)
+                .addMigrations(MIGRATION_1_4, MIGRATION_2_4, MIGRATION_3_4)
                 .build()
                 INSTANCE = instance
                 instance

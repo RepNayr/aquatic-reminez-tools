@@ -258,18 +258,19 @@ class MangaActivity : AppCompatActivity() {
         vPopupScrim.visibility = View.VISIBLE
 
         popupView.measure(
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
-            View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.widthPixels - 32, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.heightPixels / 2, View.MeasureSpec.AT_MOST)
         )
 
+        val popupWidth = popupView.measuredWidth
         val popupHeight = popupView.measuredHeight
 
         val location = IntArray(2)
         btnFloatingDownload.getLocationOnScreen(location)
-        val xPos = location[0]
-        val yPos = location[1] - popupHeight - 16
+        val xPos = location[0].coerceIn(16, resources.displayMetrics.widthPixels - popupWidth - 16)
+        val yPos = (location[1] - popupHeight - 16).coerceAtLeast(16)
 
-        popupWindow?.showAtLocation(btnFloatingDownload, Gravity.NO_GRAVITY, xPos.coerceAtLeast(16), yPos)
+        popupWindow?.showAtLocation(btnFloatingDownload, Gravity.NO_GRAVITY, xPos, yPos)
     }
 
     private fun updatePopupBadgeHeader(list: List<MangaDownloadEntity>) {

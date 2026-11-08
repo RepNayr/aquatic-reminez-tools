@@ -7,9 +7,11 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
+import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -37,7 +39,8 @@ object PdfBuilder {
     suspend fun createPdfFromImages(
         context: Context,
         imageFiles: List<File>,
-        outputFileName: String
+        outputFileName: String,
+        expectedPages: Int
     ): PdfBuildResult = withContext(Dispatchers.IO) {
         if (imageFiles.isEmpty()) {
             throw IllegalArgumentException("Tidak ada file gambar yang disediakan untuk membuat PDF.")
@@ -82,19 +85,29 @@ object PdfBuilder {
             val pdfUriString = savePdfToMediaStore(context, tempPdfFile, outputFileName)
                 ?: throw IOException("Gagal menyimpan PDF ke MediaStore (URI null).")
 
-            validateStoredPdf(context, pdfUriString)
+            try {
+                validateStoredPdf(context, pdfUriString, expectedPages)
+            } catch (e: Exception) {
+                try {
+                    context.contentResolver.delete(Uri.parse(pdfUriString), null, null)
+                } catch (_: Exception) {}
+                throw e
+            }
+
+            // Get actual saved file size from content resolver / descriptor
+            val actualSizeBytes = getStoredFileSize(context, pdfUriString) ?: lastSizeBytes
 
             val warning = if (!achieved) {
                 String.format(
                     Locale.US,
                     "Ukuran PDF (%.1f MB) melebihi batas 20 MB meskipun telah dikompresi maksimal.",
-                    lastSizeBytes / (1024f * 1024f)
+                    actualSizeBytes / (1024f * 1024f)
                 )
             } else null
 
             PdfBuildResult(
                 pdfUriString = pdfUriString,
-                sizeBytes = lastSizeBytes,
+                sizeBytes = actualSizeBytes,
                 pageCount = imageFiles.size,
                 isTargetSizeAchieved = achieved,
                 warningMessage = warning
@@ -178,14 +191,39 @@ object PdfBuilder {
         return BitmapFactory.decodeStream(ByteArrayInputStream(compressedBytes))
     }
 
-    private fun validateStoredPdf(context: Context, uriString: String) {
+    private fun validateStoredPdf(context: Context, uriString: String, expectedPages: Int) {
         val uri = Uri.parse(uriString)
-        context.contentResolver.openInputStream(uri)?.use { inputStream ->
-            val firstByte = inputStream.read()
-            if (firstByte == -1) {
-                throw IOException("Stored PDF is empty (read back failed).")
+        val pfd = context.contentResolver.openFileDescriptor(uri, "r")
+            ?: throw IOException("Stored PDF file descriptor is null (read back failed): $uriString")
+
+        pfd.use { parcelFileDescriptor ->
+            if (parcelFileDescriptor.statSize <= 0L) {
+                throw IOException("Stored PDF is empty (size 0): $uriString")
             }
-        } ?: throw IOException("Failed to open input stream for stored PDF verification: $uriString")
+            PdfRenderer(parcelFileDescriptor).use { renderer ->
+                if (renderer.pageCount != expectedPages) {
+                    throw IOException("Stored PDF page count (${renderer.pageCount}) does not match expected page count ($expectedPages).")
+                }
+                if (renderer.pageCount > 0) {
+                    renderer.openPage(0).use { page ->
+                        if (page.width <= 0 || page.height <= 0) {
+                            throw IOException("Stored PDF first page dimensions are invalid.")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun getStoredFileSize(context: Context, uriString: String): Long? {
+        return try {
+            val uri = Uri.parse(uriString)
+            context.contentResolver.openFileDescriptor(uri, "r")?.use { pfd ->
+                pfd.statSize
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun savePdfToMediaStore(context: Context, sourcePdfFile: File, displayName: String): String? {

@@ -34,14 +34,23 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE status = 'QUEUED' ORDER BY id ASC LIMIT 1")
     suspend fun getNextQueuedItem(): MangaDownloadEntity?
 
-    @Query("UPDATE manga_downloads SET status = 'DOWNLOADING' WHERE id = :id AND status = 'QUEUED'")
-    suspend fun claimQueuedItem(id: Long): Int
+    @Query("UPDATE manga_downloads SET status = 'DOWNLOADING', lastHeartbeatAt = :now WHERE id = :id AND status = 'QUEUED'")
+    suspend fun claimQueuedItem(id: Long, now: Long = System.currentTimeMillis()): Int
 
-    @Query("UPDATE manga_downloads SET status = 'QUEUED' WHERE status = 'DOWNLOADING' AND timestamp < :stuckThreshold")
+    @Query("UPDATE manga_downloads SET lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun updateHeartbeat(id: Long, now: Long = System.currentTimeMillis()): Int
+
+    @Query("UPDATE manga_downloads SET status = 'QUEUED', lastHeartbeatAt = 0 WHERE status = 'DOWNLOADING' AND lastHeartbeatAt > 0 AND lastHeartbeatAt < :stuckThreshold")
     suspend fun resetStuckDownloadingItems(stuckThreshold: Long): Int
 
-    @Query("UPDATE manga_downloads SET downloadedPages = :pages, downloadedBytes = :bytes, totalBytes = :totalBytes, downloadSpeedBps = :speed WHERE id = :id AND status = 'DOWNLOADING'")
-    suspend fun updateProgressIfDownloading(id: Long, pages: Int, bytes: Long, totalBytes: Long, speed: Long): Int
+    @Query("UPDATE manga_downloads SET downloadedPages = :pages, downloadedBytes = :bytes, totalBytes = :totalBytes, downloadSpeedBps = :speed, lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun updateProgressIfDownloading(id: Long, pages: Int, bytes: Long, totalBytes: Long, speed: Long, now: Long = System.currentTimeMillis()): Int
+
+    @Query("UPDATE manga_downloads SET status = 'FAILED', errorMessage = :errorMessage WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun markFailedIfDownloading(id: Long, errorMessage: String): Int
+
+    @Query("UPDATE manga_downloads SET status = :finalStatus, downloadedPages = :pages, downloadedBytes = :bytes, totalBytes = :totalBytes, pdfPath = :pdfPath, errorMessage = :warningMessage WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun markCompletedIfDownloading(id: Long, finalStatus: String, pages: Int, bytes: Long, totalBytes: Long, pdfPath: String, warningMessage: String?): Int
 
     @Query("SELECT COUNT(*) FROM manga_downloads WHERE (chapterUrl = :chapterUrl OR chapterUrl = :normalizedUrl) AND status IN ('QUEUED', 'DOWNLOADING', 'COMPLETED', 'COMPLETED_WITH_WARNING')")
     suspend fun countExistingActiveOrCompleted(chapterUrl: String, normalizedUrl: String): Int

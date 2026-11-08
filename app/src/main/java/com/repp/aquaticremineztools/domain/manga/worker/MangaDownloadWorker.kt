@@ -66,7 +66,7 @@ class MangaDownloadWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
 
-        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms)
+        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms) based on lastHeartbeatAt
         val stuckThreshold = System.currentTimeMillis() - 300000L
         dao.resetStuckDownloadingItems(stuckThreshold)
 
@@ -88,18 +88,15 @@ class MangaDownloadWorker(
                 activeCalls.remove(currentItem.id)
                 val checkCancelled = dao.getById(currentItem.id)
                 if (checkCancelled?.status != MangaDownloadEntity.STATUS_CANCELLED) {
-                    dao.cancelDownload(currentItem.id)
+                    // System/WorkManager cancellation, reset to QUEUED or leave for recovery
+                    dao.markFailedIfDownloading(currentItem.id, "Download dihentikan sistem.")
                 }
                 throw e
             } catch (e: Exception) {
                 activeCalls.remove(currentItem.id)
                 val checkItem = dao.getById(currentItem.id)
                 if (checkItem?.status != MangaDownloadEntity.STATUS_CANCELLED) {
-                    val failedItem = currentItem.copy(
-                        status = MangaDownloadEntity.STATUS_FAILED,
-                        errorMessage = e.localizedMessage ?: "Download error"
-                    )
-                    dao.update(failedItem)
+                    dao.markFailedIfDownloading(currentItem.id, e.localizedMessage ?: "Download error")
                 }
             } finally {
                 activeCalls.remove(currentItem.id)
@@ -113,15 +110,24 @@ class MangaDownloadWorker(
         val checkPre = dao.getById(item.id)
         if (checkPre?.status == MangaDownloadEntity.STATUS_CANCELLED) return
 
+        dao.updateHeartbeat(item.id)
+
         val pages = parser.parsePagesForChapter(item.chapterUrl)
         if (pages.isEmpty()) {
-            dao.update(item.copy(status = MangaDownloadEntity.STATUS_FAILED, errorMessage = "Tidak ada gambar yang ditemukan untuk chapter ini."))
+            dao.markFailedIfDownloading(item.id, "Tidak ada gambar yang ditemukan untuk chapter ini.")
             return
         }
 
         val totalPages = pages.size
-        val updatedTotalPagesItem = item.copy(totalPages = totalPages, status = MangaDownloadEntity.STATUS_DOWNLOADING)
-        dao.update(updatedTotalPagesItem)
+        // Update total pages and ensure status is still DOWNLOADING
+        val updatedRows = dao.updateProgressIfDownloading(
+            id = item.id,
+            pages = 0,
+            bytes = 0L,
+            totalBytes = 0L,
+            speed = 0L
+        )
+        if (updatedRows == 0) return // Item was cancelled or changed status
 
         val tempDir = File(applicationContext.cacheDir, "manga_temp_${item.id}_${System.currentTimeMillis()}").apply { mkdirs() }
         val downloadedFiles = mutableListOf<File>()
@@ -137,6 +143,8 @@ class MangaDownloadWorker(
                     return
                 }
 
+                dao.updateHeartbeat(item.id)
+
                 val pageFile = File(tempDir, "page_${page.pageIndex}.jpg")
                 val bytes = downloadFile(item.id, page.imageUrl, pageFile)
                 totalBytesDownloaded += bytes
@@ -145,13 +153,16 @@ class MangaDownloadWorker(
                 val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
                 val speedBps = if (elapsedSec > 0) (totalBytesDownloaded / elapsedSec).toLong() else 0L
 
-                dao.updateProgressIfDownloading(
+                val progressUpdated = dao.updateProgressIfDownloading(
                     id = item.id,
                     pages = page.pageIndex,
                     bytes = totalBytesDownloaded,
-                    totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else 0L,
+                    totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else totalBytesDownloaded,
                     speed = speedBps
                 )
+                if (progressUpdated == 0) {
+                    return // Cancelled or state changed
+                }
 
                 showForegroundNotification(
                     "Downloading ${item.chapterTitle}",
@@ -167,7 +178,8 @@ class MangaDownloadWorker(
             val pdfResult = PdfBuilder.createPdfFromImages(
                 applicationContext,
                 downloadedFiles,
-                item.outputFileName
+                item.outputFileName,
+                totalPages
             )
 
             // Strict success verification
@@ -183,18 +195,29 @@ class MangaDownloadWorker(
 
             val recheckCancelled = dao.getById(item.id)
             if (recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                // Clean up published PDF since download was cancelled
+                try {
+                    applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
+                } catch (_: Exception) {}
                 return
             }
 
-            val completedItem = updatedTotalPagesItem.copy(
-                status = finalStatus,
-                downloadedPages = totalPages,
-                downloadedBytes = totalBytesDownloaded,
-                totalBytes = totalBytesDownloaded,
+            val completedRows = dao.markCompletedIfDownloading(
+                id = item.id,
+                finalStatus = finalStatus,
+                pages = totalPages,
+                bytes = pdfResult.sizeBytes,
+                totalBytes = pdfResult.sizeBytes,
                 pdfPath = pdfResult.pdfUriString,
-                errorMessage = pdfResult.warningMessage
+                warningMessage = pdfResult.warningMessage
             )
-            dao.update(completedItem)
+
+            if (completedRows == 0) {
+                // If update failed (e.g. cancelled in between), delete published PDF
+                try {
+                    applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
+                } catch (_: Exception) {}
+            }
 
         } finally {
             tempDir.deleteRecursively()
