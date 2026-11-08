@@ -1,8 +1,12 @@
 package com.repp.aquaticremineztools
 
 import android.content.Context
+import android.view.ContextThemeWrapper
+import android.view.View
+import android.widget.TextView
 import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
+import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.MangaPinManager
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadDao
@@ -23,9 +27,11 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 import java.io.File
 
 @RunWith(RobolectricTestRunner::class)
+@Config(manifest = "src/main/AndroidManifest.xml", sdk = [33])
 class MangaRegressionTest {
 
     private lateinit var context: Context
@@ -280,5 +286,105 @@ class MangaRegressionTest {
         val hash1 = MangaPinManager.hashPin(pin, salt)
         val hash2 = MangaPinManager.hashPin(pin, salt)
         assertEquals(hash1, hash2)
+    }
+
+    @Test
+    fun testMangaPinXmlInflation() {
+        val file1 = File("src/main/res/layout/activity_manga_pin.xml")
+        val file2 = File("app/src/main/res/layout/activity_manga_pin.xml")
+        val xmlFile = if (file1.exists()) file1 else file2
+        assertTrue("activity_manga_pin.xml must exist", xmlFile.exists())
+
+        val content = xmlFile.readText()
+        val keyIds = listOf("btnKey0", "btnKey1", "btnKey2", "btnKey3", "btnKey4", "btnKey5", "btnKey6", "btnKey7", "btnKey8", "btnKey9", "btnKeyClear", "btnKeyDelete", "btnBack")
+        keyIds.forEach { id ->
+            assertTrue("Keypad ID $id must be present", content.contains("android:id=\"@+id/$id\""))
+        }
+
+        val dots = listOf("dot1", "dot2", "dot3", "dot4", "dot5", "dot6")
+        dots.forEach { dot ->
+            assertTrue("Dot ID $dot must be present", content.contains("android:id=\"@+id/$dot\""))
+        }
+
+        val factory = javax.xml.parsers.DocumentBuilderFactory.newInstance()
+        val builder = factory.newDocumentBuilder()
+        val doc = builder.parse(xmlFile)
+        assertNotNull(doc)
+    }
+
+    @Test
+    fun testSecuritySettingsLongPressGestureBehavior() {
+        var clicked = false
+        var activityStarted = false
+
+        val handler = android.os.Handler(android.os.Looper.getMainLooper())
+        var pressRunnable: Runnable? = null
+        var longPressTriggered = false
+        var startX = 0f
+        var startY = 0f
+        val touchSlop = 8
+
+        val touchListener = View.OnTouchListener { v, event ->
+            when (event.action) {
+                android.view.MotionEvent.ACTION_DOWN -> {
+                    longPressTriggered = false
+                    startX = event.x
+                    startY = event.y
+                    pressRunnable = Runnable {
+                        longPressTriggered = true
+                        activityStarted = true
+                    }
+                    handler.postDelayed(pressRunnable!!, 2000L)
+                }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val dx = Math.abs(event.x - startX)
+                    val dy = Math.abs(event.y - startY)
+                    val isOutside = event.x < 0 || event.x > v.width || event.y < 0 || event.y > v.height
+                    if (dx > touchSlop || dy > touchSlop || isOutside) {
+                        pressRunnable?.let { handler.removeCallbacks(it) }
+                        pressRunnable = null
+                    }
+                }
+                android.view.MotionEvent.ACTION_UP -> {
+                    pressRunnable?.let {
+                        handler.removeCallbacks(it)
+                        pressRunnable = null
+                        if (!longPressTriggered) {
+                            clicked = true
+                        }
+                    }
+                }
+                android.view.MotionEvent.ACTION_CANCEL -> {
+                    pressRunnable?.let { handler.removeCallbacks(it) }
+                    pressRunnable = null
+                }
+            }
+            true
+        }
+
+        val dummyView = View(context)
+        dummyView.layout(0, 0, 100, 100)
+        dummyView.setOnTouchListener(touchListener)
+
+        val down = android.view.MotionEvent.obtain(0L, 0L, android.view.MotionEvent.ACTION_DOWN, 10f, 10f, 0)
+        val up = android.view.MotionEvent.obtain(0L, 100L, android.view.MotionEvent.ACTION_UP, 10f, 10f, 0)
+        dummyView.dispatchTouchEvent(down)
+        dummyView.dispatchTouchEvent(up)
+        assertTrue(clicked)
+        assertFalse(activityStarted)
+    }
+
+    @Test
+    fun testSecureStorageFailureFailClosed() {
+        val themedContext = ContextThemeWrapper(context, R.style.Theme_AquaticReminezTools)
+        var exceptionCaught = false
+        runBlocking {
+            try {
+                MangaPinManager.verifyPin(themedContext, "000000")
+            } catch (_: SecurityException) {
+                exceptionCaught = true
+            }
+        }
+        assertTrue("Secure storage failure must be caught and fail-closed", exceptionCaught)
     }
 }

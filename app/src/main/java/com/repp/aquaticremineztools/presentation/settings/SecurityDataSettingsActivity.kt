@@ -252,25 +252,43 @@ class SecurityDataSettingsActivity : AppCompatActivity() {
 
         val handler = android.os.Handler(android.os.Looper.getMainLooper())
         var pressRunnable: Runnable? = null
+        var longPressTriggered = false
+        var startX = 0f
+        var startY = 0f
+        val touchSlop = android.view.ViewConfiguration.get(this).scaledTouchSlop
 
         blurHiddenDiagnosticCard.setOnTouchListener { v, event ->
             when (event.action) {
                 android.view.MotionEvent.ACTION_DOWN -> {
+                    longPressTriggered = false
+                    startX = event.x
+                    startY = event.y
                     pressRunnable = Runnable {
+                        longPressTriggered = true
                         val intent = Intent(this, com.repp.aquaticremineztools.presentation.manga.MangaPinActivity::class.java)
                         startActivity(intent)
                     }
                     handler.postDelayed(pressRunnable!!, 2000L)
                 }
+                android.view.MotionEvent.ACTION_MOVE -> {
+                    val dx = Math.abs(event.x - startX)
+                    val dy = Math.abs(event.y - startY)
+                    val isOutside = event.x < 0 || event.x > v.width || event.y < 0 || event.y > v.height
+                    if (dx > touchSlop || dy > touchSlop || isOutside) {
+                        pressRunnable?.let { handler.removeCallbacks(it) }
+                        pressRunnable = null
+                    }
+                }
                 android.view.MotionEvent.ACTION_UP -> {
                     pressRunnable?.let {
                         handler.removeCallbacks(it)
                         pressRunnable = null
-                        v.performClick()
+                        if (!longPressTriggered) {
+                            v.performClick()
+                        }
                     }
                 }
-                android.view.MotionEvent.ACTION_CANCEL,
-                android.view.MotionEvent.ACTION_MOVE -> {
+                android.view.MotionEvent.ACTION_CANCEL -> {
                     pressRunnable?.let { handler.removeCallbacks(it) }
                     pressRunnable = null
                 }

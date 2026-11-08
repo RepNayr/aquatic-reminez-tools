@@ -32,7 +32,7 @@
         </FrameLayout>
     </FrameLayout>
 
-    <Spacer
+    <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />
@@ -125,7 +125,7 @@
         android:textSize="13sp"
         android:visibility="invisible" />
 
-    <Spacer
+    <Space
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1" />

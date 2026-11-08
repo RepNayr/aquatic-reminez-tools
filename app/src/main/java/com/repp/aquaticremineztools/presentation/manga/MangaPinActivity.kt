@@ -53,23 +53,40 @@ class MangaPinActivity : AppCompatActivity() {
     }
 
     private fun setupState() {
-        isCreatingPin = !MangaPinManager.hasPin(this)
-        if (isCreatingPin) {
-            tvPinTitle.text = "CREATE 6-DIGIT PIN"
-            tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
-        } else {
-            tvPinTitle.text = "ENTER SECURITY PIN"
-            tvPinSubtitle.text = "Enter 6-digit PIN to access Private Manga Downloader"
+        try {
+            isCreatingPin = !MangaPinManager.hasPin(this)
+            if (isCreatingPin) {
+                tvPinTitle.text = "CREATE 6-DIGIT PIN"
+                tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
+            } else {
+                tvPinTitle.text = "ENTER SECURITY PIN"
+                tvPinSubtitle.text = "Enter 6-digit PIN to access Private Manga Downloader"
+            }
+            updateLockoutState()
+        } catch (e: SecurityException) {
+            showError("Secure storage error: ${e.localizedMessage ?: "Access denied"}")
+            tvPinTitle.text = "SECURITY ERROR"
+            tvPinSubtitle.text = "Encrypted storage unavailable"
+            updateKeypadEnabled(false)
+        } catch (e: Exception) {
+            showError("Storage error: ${e.localizedMessage ?: "Unknown error"}")
         }
-        updateLockoutState()
     }
 
     private fun updateLockoutState() {
-        if (MangaPinManager.isLockedOut(this)) {
-            val remainingSec = MangaPinManager.getRemainingLockoutSeconds(this)
-            showError("Too many failed attempts. Try again in ${remainingSec}s")
-        } else {
-            tvPinError.visibility = View.INVISIBLE
+        try {
+            if (MangaPinManager.isLockedOut(this)) {
+                val remainingSec = MangaPinManager.getRemainingLockoutSeconds(this)
+                showError("Too many failed attempts. Try again in ${remainingSec}s")
+            } else {
+                if (tvPinError.text.startsWith("Too many failed attempts") || tvPinError.text.startsWith("Secure storage")) {
+                    tvPinError.visibility = View.INVISIBLE
+                }
+            }
+        } catch (e: SecurityException) {
+            showError("Secure storage error: ${e.localizedMessage ?: "Access denied"}")
+        } catch (e: Exception) {
+            // ignore
         }
     }
 
@@ -153,6 +170,9 @@ class MangaPinActivity : AppCompatActivity() {
         updateDots()
 
         isVerifying = true
+        updateKeypadEnabled(false)
+        val oldSubtitle = tvPinSubtitle.text.toString()
+        tvPinSubtitle.text = if (isCreatingPin && tempFirstPin != null) "Confirming PIN..." else if (isCreatingPin) "Saving PIN..." else "Verifying PIN..."
 
         lifecycleScope.launch {
             try {
@@ -185,9 +205,27 @@ class MangaPinActivity : AppCompatActivity() {
                         }
                     }
                 }
+            } catch (e: SecurityException) {
+                showError("Secure storage error: ${e.localizedMessage ?: "Access denied"}")
+                tvPinSubtitle.text = oldSubtitle
+            } catch (e: Exception) {
+                showError("Error: ${e.localizedMessage ?: "Unknown error"}")
+                tvPinSubtitle.text = oldSubtitle
             } finally {
                 isVerifying = false
+                updateKeypadEnabled(true)
             }
+        }
+    }
+
+    private fun updateKeypadEnabled(enabled: Boolean) {
+        val keyIds = listOf(
+            R.id.btnKey0, R.id.btnKey1, R.id.btnKey2, R.id.btnKey3, R.id.btnKey4,
+            R.id.btnKey5, R.id.btnKey6, R.id.btnKey7, R.id.btnKey8, R.id.btnKey9,
+            R.id.btnKeyDelete, R.id.btnKeyClear
+        )
+        keyIds.forEach { id ->
+            findViewById<Button>(id)?.isEnabled = enabled
         }
     }
 
