@@ -1,6 +1,7 @@
 package com.repp.aquaticremineztools.presentation.manga
 
 import android.content.ClipboardManager
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -12,11 +13,13 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +38,10 @@ class MangaActivity : AppCompatActivity() {
 
     private lateinit var viewTopSpacer: View
     private lateinit var btnBack: FrameLayout
+    private lateinit var btnAuthIndicator: View
+    private lateinit var tvAuthLabel: TextView
+    private lateinit var tvAuthTime: TextView
+
     private lateinit var etUrlInput: EditText
     private lateinit var btnPasteUrl: ImageView
     private lateinit var btnAnalyze: Button
@@ -62,6 +69,12 @@ class MangaActivity : AppCompatActivity() {
 
     private var currentActiveDownloads: List<MangaDownloadEntity> = emptyList()
 
+    private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) {
+            viewModel.checkSessionState()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_manga)
@@ -77,6 +90,10 @@ class MangaActivity : AppCompatActivity() {
     private fun bindViews() {
         viewTopSpacer = findViewById(R.id.viewTopSpacer)
         btnBack = findViewById(R.id.btnBack)
+        btnAuthIndicator = findViewById(R.id.btnAuthIndicator)
+        tvAuthLabel = findViewById(R.id.tvAuthLabel)
+        tvAuthTime = findViewById(R.id.tvAuthTime)
+
         etUrlInput = findViewById(R.id.etUrlInput)
         btnPasteUrl = findViewById(R.id.btnPasteUrl)
         btnAnalyze = findViewById(R.id.btnAnalyze)
@@ -185,6 +202,32 @@ class MangaActivity : AppCompatActivity() {
             }
         }
 
+        viewModel.sessionState.observe(this) { state ->
+            when (state) {
+                is SessionState.NotLoggedIn -> {
+                    tvAuthLabel.text = "LOGIN"
+                    tvAuthTime.visibility = View.GONE
+                    btnAuthIndicator.isEnabled = true
+                }
+                is SessionState.Checking -> {
+                    tvAuthLabel.text = "CHECKING..."
+                    tvAuthTime.visibility = View.GONE
+                    btnAuthIndicator.isEnabled = false
+                }
+                is SessionState.LoggedIn -> {
+                    tvAuthLabel.text = "LOGGED IN"
+                    tvAuthTime.text = state.timestampFormatted
+                    tvAuthTime.visibility = if (state.timestampFormatted.isNotBlank()) View.VISIBLE else View.GONE
+                    btnAuthIndicator.isEnabled = true
+                }
+                is SessionState.ConnectionError -> {
+                    tvAuthLabel.text = "CONNECTION ERROR"
+                    tvAuthTime.visibility = View.GONE
+                    btnAuthIndicator.isEnabled = true
+                }
+            }
+        }
+
         viewModel.activeDownloads.observe(this) { list ->
             currentActiveDownloads = list
             popupAdapter?.setItems(list)
@@ -203,6 +246,31 @@ class MangaActivity : AppCompatActivity() {
 
     private fun setupListeners() {
         btnBack.setOnClickListener { finish() }
+
+        btnAuthIndicator.setOnClickListener {
+            when (viewModel.sessionState.value) {
+                is SessionState.LoggedIn -> {
+                    val popup = PopupMenu(this, btnAuthIndicator)
+                    popup.menu.add(0, 1, 0, "Logout")
+                    popup.setOnMenuItemClickListener { item ->
+                        if (item.itemId == 1) {
+                            viewModel.logout()
+                            Toast.makeText(this, "Berhasil logout", Toast.LENGTH_SHORT).show()
+                            true
+                        } else {
+                            false
+                        }
+                    }
+                    popup.show()
+                }
+                is SessionState.ConnectionError -> {
+                    viewModel.checkSessionState()
+                }
+                else -> {
+                    loginLauncher.launch(Intent(this, CrotPediaLoginActivity::class.java))
+                }
+            }
+        }
 
         btnPasteUrl.setOnClickListener {
             val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager

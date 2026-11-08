@@ -23,7 +23,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp" />
 
-            <!-- Top Header: Back Arrow + Title -->
+            <!-- Top Header: Back Arrow + Title + Auth Indicator -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -47,14 +47,61 @@
                 </FrameLayout>
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="14dp"
+                    android:layout_weight="1"
                     android:fontFamily="@font/times_new_roman_bold"
                     android:text="Manga Downloader"
                     android:textColor="#292722"
                     android:textSize="22sp"
                     android:textStyle="bold" />
+
+                <!-- Auth Status Button / Indicator -->
+                <LinearLayout
+                    android:id="@+id/btnAuthIndicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:background="@drawable/bg_manga_button_secondary"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="10dp">
+
+                    <ImageView
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:src="@drawable/ic_security"
+                        app:tint="#292722" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvAuthLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_bold"
+                            android:text="LOGIN"
+                            android:textColor="#292722"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvAuthTime"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/times_new_roman_regular"
+                            android:text=""
+                            android:textColor="#746D62"
+                            android:textSize="9sp"
+                            android:visibility="gone" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <!-- URL Input Box -->

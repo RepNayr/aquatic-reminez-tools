@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import com.repp.aquaticremineztools.data.manga.model.ChapterAnalysisStatus
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
@@ -19,6 +20,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 sealed class AnalyzeState {
     object Idle : AnalyzeState()
@@ -39,12 +43,22 @@ sealed class AnalyzeState {
     data class ShowReanalysisConfirmation(val url: String) : AnalyzeState()
 }
 
+sealed class SessionState {
+    object NotLoggedIn : SessionState()
+    object Checking : SessionState()
+    data class LoggedIn(val timestampFormatted: String) : SessionState()
+    object ConnectionError : SessionState()
+}
+
 class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = MangaRepository(application)
 
     private val _analyzeState = MutableLiveData<AnalyzeState>(AnalyzeState.Idle)
     val analyzeState: LiveData<AnalyzeState> = _analyzeState
+
+    private val _sessionState = MutableLiveData<SessionState>(SessionState.NotLoggedIn)
+    val sessionState: LiveData<SessionState> = _sessionState
 
     val activeDownloads: LiveData<List<MangaDownloadEntity>> = repository.getActiveAndQueuedLiveData()
     val activeAndQueuedCount: LiveData<Int> = repository.getActiveAndQueuedCountLiveData()
@@ -54,6 +68,48 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
     private var lastAnalyzedUrl: String? = null
     private var analysisJob: Job? = null
+
+    init {
+        checkSessionState()
+    }
+
+    fun checkSessionState() {
+        if (!CrotPediaSessionStore.isLoggedIn(getApplication())) {
+            _sessionState.value = SessionState.NotLoggedIn
+            return
+        }
+
+        _sessionState.value = SessionState.Checking
+        viewModelScope.launch {
+            try {
+                val isValid = repository.validateSession()
+                if (isValid) {
+                    val timeStr = formatTimestamp(CrotPediaSessionStore.getLastLoginTime(getApplication()))
+                    _sessionState.value = SessionState.LoggedIn(timeStr)
+                } else {
+                    repository.logout()
+                    _sessionState.value = SessionState.NotLoggedIn
+                }
+            } catch (_: Exception) {
+                _sessionState.value = SessionState.ConnectionError
+            }
+        }
+    }
+
+    fun logout() {
+        repository.logout()
+        _sessionState.value = SessionState.NotLoggedIn
+    }
+
+    private fun formatTimestamp(timeMs: Long): String {
+        if (timeMs <= 0L) return ""
+        return try {
+            val sdf = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault())
+            sdf.format(Date(timeMs))
+        } catch (_: Exception) {
+            ""
+        }
+    }
 
     fun analyzeUrl(url: String, forceReanalysis: Boolean = false) {
         val cleanInput = url.trim()
@@ -131,6 +187,10 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
                         }
                     } catch (e: Exception) {
                         if (e is CancellationException) throw e
+                        if (e is MangaAuthRequiredException) {
+                            repository.logout()
+                            _sessionState.value = SessionState.NotLoggedIn
+                        }
                         chapters[i] = ch.copy(
                             status = ChapterAnalysisStatus.FAILED,
                             errorMessage = toUserErrorMessage(e)
@@ -160,9 +220,14 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
                 _analyzeState.value = AnalyzeState.Idle
                 throw e
             } catch (e: Exception) {
-                // Section 10: If a full reanalysis fails midway: cancel and clear state
                 currentSeries = null
-                _analyzeState.value = AnalyzeState.Error(e.message ?: "Analysis failed")
+                if (e is MangaAuthRequiredException) {
+                    repository.logout()
+                    _sessionState.value = SessionState.NotLoggedIn
+                    _analyzeState.value = AnalyzeState.Error("SESSION EXPIRED. Silakan login kembali.")
+                } else {
+                    _analyzeState.value = AnalyzeState.Error(e.message ?: "Analysis failed")
+                }
             }
         }
     }
@@ -199,6 +264,10 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
                 }
             } catch (e: Exception) {
                 if (e is CancellationException) throw e
+                if (e is MangaAuthRequiredException) {
+                    repository.logout()
+                    _sessionState.value = SessionState.NotLoggedIn
+                }
                 chapters[index] = ch.copy(
                     status = ChapterAnalysisStatus.FAILED,
                     errorMessage = toUserErrorMessage(e)
@@ -294,7 +363,7 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
                 when {
                     lower.contains("401") -> "Access denied (401)"
                     lower.contains("403") -> "Access denied (403)"
-                    else -> "Access denied (Login required)"
+                    else -> "Session expired / Login required"
                 }
             }
             e is MangaParseException -> {

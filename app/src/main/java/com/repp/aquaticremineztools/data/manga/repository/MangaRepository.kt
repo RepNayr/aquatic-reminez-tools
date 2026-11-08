@@ -3,14 +3,20 @@ package com.repp.aquaticremineztools.data.manga.repository
 import android.content.Context
 import androidx.lifecycle.LiveData
 import androidx.room.withTransaction
+import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
+import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.domain.manga.worker.MangaDownloadWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class MangaRepository(
     context: Context,
@@ -18,8 +24,16 @@ class MangaRepository(
 ) {
 
     private val dao = db.mangaDownloadDao()
-    private val parser = CrotPediaParser()
     private val appContext = context.applicationContext
+
+    private val okHttpClient = OkHttpClient.Builder()
+        .cookieJar(CrotPediaCookieJar(appContext))
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .followRedirects(true)
+        .build()
+
+    private val parser = CrotPediaParser(okHttpClient)
 
     suspend fun analyzeUrl(url: String): MangaSeries = withContext(Dispatchers.IO) {
         parser.parseUrl(url)
@@ -33,6 +47,40 @@ class MangaRepository(
         parser.parsePagesForChapter(chapterUrl)
     }
 
+    suspend fun validateSession(): Boolean = withContext(Dispatchers.IO) {
+        if (!CrotPediaSessionStore.isLoggedIn(appContext)) {
+            return@withContext false
+        }
+
+        val request = Request.Builder()
+            .url("https://crotpedia.net/")
+            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            .header("Referer", "https://crotpedia.net/")
+            .build()
+
+        try {
+            okHttpClient.newCall(request).execute().use { response ->
+                if (response.code == 401 || response.code == 403) {
+                    return@withContext false
+                }
+                val html = response.body?.string() ?: ""
+                val finalUrl = response.request.url.toString()
+                val isLoginPage = finalUrl.contains("/login") || finalUrl.contains("/signin")
+                val hasLoginForm = html.contains("form[action*=/login]") || html.contains("input[name=log]") || html.contains("id=\"loginform\"")
+
+                if (isLoginPage || hasLoginForm) {
+                    return@withContext false
+                }
+                response.isSuccessful
+            }
+        } catch (e: Exception) {
+            throw IOException("Network connection failed during session validation", e)
+        }
+    }
+
+    fun logout() {
+        CrotPediaSessionStore.clearSession(appContext)
+    }
 
     private fun canonicalUrl(url: String): String {
         val clean = url.trim()

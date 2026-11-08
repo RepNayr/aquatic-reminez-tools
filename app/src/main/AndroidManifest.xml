@@ -155,6 +155,11 @@
 
         <!-- Manga Downloader Private Feature Activities -->
         <activity
+            android:name=".presentation.manga.CrotPediaLoginActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
             android:name=".presentation.manga.MangaPinActivity"
             android:exported="false"
             android:screenOrientation="portrait" />

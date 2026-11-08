@@ -15,6 +15,7 @@ import androidx.work.WorkerParameters
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
+import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import kotlinx.coroutines.CancellationException
@@ -35,11 +36,13 @@ class MangaDownloadWorker(
 
     private val db = MangaDatabase.getInstance(context)
     private val dao = db.mangaDownloadDao()
-    private val parser = CrotPediaParser()
     private val okHttpClient = OkHttpClient.Builder()
+        .cookieJar(CrotPediaCookieJar(context))
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
+        .followRedirects(true)
         .build()
+    private val parser = CrotPediaParser(okHttpClient)
 
     companion object {
         private const val UNIQUE_WORK_NAME = "manga_download_fifo_worker"
