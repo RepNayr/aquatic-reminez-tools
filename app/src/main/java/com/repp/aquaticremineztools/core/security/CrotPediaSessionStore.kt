@@ -26,17 +26,25 @@ object CrotPediaSessionStore {
                 EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-        } catch (_: Exception) {
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        } catch (e: Exception) {
+            throw SecurityException("Secure storage (EncryptedSharedPreferences) failed or unavailable. Access denied (fail-closed).", e)
         }
     }
 
     fun isLoggedIn(context: Context): Boolean {
-        return getPrefs(context).getBoolean(KEY_IS_LOGGED_IN, false)
+        return try {
+            getPrefs(context).getBoolean(KEY_IS_LOGGED_IN, false)
+        } catch (_: Exception) {
+            false
+        }
     }
 
     fun getLastLoginTime(context: Context): Long {
-        return getPrefs(context).getLong(KEY_LAST_LOGIN_TIME, 0L)
+        return try {
+            getPrefs(context).getLong(KEY_LAST_LOGIN_TIME, 0L)
+        } catch (_: Exception) {
+            0L
+        }
     }
 
     fun saveSession(context: Context, cookies: String) {
@@ -49,11 +57,17 @@ object CrotPediaSessionStore {
     }
 
     fun getSavedCookies(context: Context): String? {
-        return getPrefs(context).getString(KEY_COOKIES_MAP, null)
+        return try {
+            getPrefs(context).getString(KEY_COOKIES_MAP, null)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun clearSession(context: Context) {
-        getPrefs(context).edit().clear().apply()
+        try {
+            getPrefs(context).edit().clear().apply()
+        } catch (_: Exception) {}
         try {
             val cookieManager = CookieManager.getInstance()
             cookieManager.setAcceptCookie(true)

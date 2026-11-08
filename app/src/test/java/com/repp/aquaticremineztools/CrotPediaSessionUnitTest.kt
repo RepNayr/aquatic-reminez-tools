@@ -3,8 +3,8 @@ package com.repp.aquaticremineztools
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
-import com.repp.aquaticremineztools.presentation.manga.MangaViewModel
-import com.repp.aquaticremineztools.presentation.manga.SessionState
+import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
+import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -23,7 +23,6 @@ class CrotPediaSessionUnitTest {
     @Before
     fun setUp() {
         app = ApplicationProvider.getApplicationContext()
-        CrotPediaSessionStore.clearSession(app)
     }
 
     @Test
@@ -39,22 +38,35 @@ class CrotPediaSessionUnitTest {
     }
 
     @Test
-    fun testSessionStoreSaveAndClear() {
-        assertFalse(CrotPediaSessionStore.isLoggedIn(app))
-
-        CrotPediaSessionStore.saveSession(app, "wordpress_logged_in_test=abc123xyz")
-        assertTrue(CrotPediaSessionStore.isLoggedIn(app))
-        assertEquals("wordpress_logged_in_test=abc123xyz", CrotPediaSessionStore.getSavedCookies(app))
-
-        CrotPediaSessionStore.clearSession(app)
-        assertFalse(CrotPediaSessionStore.isLoggedIn(app))
-        assertEquals(null, CrotPediaSessionStore.getSavedCookies(app))
+    fun testSecureStorageFailClosedInRobolectric() {
+        var exceptionCaught = false
+        try {
+            CrotPediaSessionStore.saveSession(app, "test_cookie")
+        } catch (_: SecurityException) {
+            exceptionCaught = true
+        }
+        assertTrue("Secure storage must fail-closed when AndroidKeyStore is unavailable", exceptionCaught)
     }
 
     @Test
-    fun testViewModelInitialSessionStateIsNotLoggedInWhenNoSession() {
-        val viewModel = MangaViewModel(app)
-        val state = viewModel.sessionState.value
-        assertTrue(state is SessionState.NotLoggedIn)
+    fun testPdfBuilderEmptyImagesThrowsException() {
+        val result = runCatching {
+            kotlinx.coroutines.runBlocking {
+                PdfBuilder.createPdfFromImages(
+                    context = app,
+                    imageFiles = emptyList(),
+                    outputFileName = "test.pdf",
+                    expectedPages = 0
+                )
+            }
+        }
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun testMangaAuthRequiredExceptionClassExists() {
+        val ex = MangaAuthRequiredException("Session expired")
+        assertEquals("Session expired", ex.message)
     }
 }

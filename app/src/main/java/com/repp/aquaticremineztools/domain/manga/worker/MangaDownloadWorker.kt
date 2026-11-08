@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.pm.ServiceInfo
+import android.graphics.BitmapFactory
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
@@ -13,10 +14,12 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.repp.aquaticremineztools.R
+import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.local.manga.MangaDatabase
 import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
+import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -26,6 +29,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.io.FileOutputStream
+import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
@@ -73,7 +77,6 @@ class MangaDownloadWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
 
-        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms) or legacy items with lastHeartbeatAt == 0
         val stuckThreshold = System.currentTimeMillis() - 300000L
         dao.resetStuckDownloadingItems(stuckThreshold)
 
@@ -98,6 +101,11 @@ class MangaDownloadWorker(
                     dao.resetItemToQueued(currentItem.id)
                 }
                 throw e
+            } catch (e: MangaAuthRequiredException) {
+                activeCalls.remove(currentItem.id)
+                CrotPediaSessionStore.clearSession(applicationContext)
+                dao.markFailedIfDownloading(currentItem.id, "SESSION EXPIRED")
+                return@withContext Result.failure()
             } catch (e: Exception) {
                 activeCalls.remove(currentItem.id)
                 val checkItem = dao.getById(currentItem.id)
@@ -123,14 +131,19 @@ class MangaDownloadWorker(
 
         dao.updateHeartbeat(item.id)
 
-        val pages = parser.parsePagesForChapter(item.chapterUrl)
+        var pages = try {
+            parser.parsePagesForChapter(item.chapterUrl)
+        } catch (e: Exception) {
+            if (e is MangaAuthRequiredException) throw e
+            throw IOException("Gagal memuat halaman chapter: ${e.message}", e)
+        }
+
         if (pages.isEmpty()) {
             dao.markFailedIfDownloading(item.id, "Tidak ada gambar yang ditemukan untuk chapter ini.")
             return
         }
 
         val totalPages = pages.size
-        // Update total pages and ensure status is still DOWNLOADING
         val updatedRows = dao.updateProgressIfDownloading(
             id = item.id,
             totalPages = totalPages,
@@ -166,7 +179,39 @@ class MangaDownloadWorker(
                 dao.updateHeartbeat(item.id)
 
                 val pageFile = File(tempDir, "page_${page.pageIndex}.jpg")
-                val bytes = downloadFile(item.id, page.imageUrl, pageFile)
+                var bytes = 0L
+                var downloadSuccess = false
+
+                for (attempt in 1..2) {
+                    try {
+                        bytes = downloadFile(item.id, page.imageUrl, pageFile)
+                        validateDownloadedImage(pageFile)
+                        downloadSuccess = true
+                        break
+                    } catch (e: Exception) {
+                        if (e is MangaAuthRequiredException) throw e
+                        if (attempt >= 2) {
+                            throw IOException("Gagal mengunduh halaman ${page.pageIndex} setelah retry: ${e.message}", e)
+                        }
+                        try {
+                            val refreshedPages = parser.parsePagesForChapter(item.chapterUrl)
+                            val refreshedPage = refreshedPages.find { it.pageIndex == page.pageIndex }
+                            if (refreshedPage != null && refreshedPage.imageUrl != page.imageUrl) {
+                                val mutablePages = pages.toMutableList()
+                                val idx = mutablePages.indexOfFirst { it.pageIndex == page.pageIndex }
+                                if (idx != -1) {
+                                    mutablePages[idx] = refreshedPage
+                                    pages = mutablePages.toList()
+                                }
+                            }
+                        } catch (_: Exception) {}
+                    }
+                }
+
+                if (!downloadSuccess) {
+                    throw IOException("Gagal mengunduh halaman ${page.pageIndex}")
+                }
+
                 totalBytesDownloaded += bytes
                 downloadedFiles.add(pageFile)
 
@@ -213,7 +258,6 @@ class MangaDownloadWorker(
                 }
             )
 
-            // Strict success verification
             if (pdfResult.pdfUriString.isBlank() || pdfResult.pageCount != totalPages) {
                 throw IllegalStateException("Validasi PDF gagal: URI kosong atau jumlah halaman tidak cocok.")
             }
@@ -226,7 +270,6 @@ class MangaDownloadWorker(
 
             val recheckCancelled = dao.getById(item.id)
             if (isStopped || recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
-                // Clean up published PDF since download was cancelled or worker stopped
                 try {
                     applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
                 } catch (_: Exception) {}
@@ -236,7 +279,7 @@ class MangaDownloadWorker(
                 return
             }
 
-            val completedRows = dao.markCompletedIfDownloading(
+            dao.markCompletedIfDownloading(
                 id = item.id,
                 finalStatus = finalStatus,
                 totalPages = totalPages,
@@ -246,18 +289,6 @@ class MangaDownloadWorker(
                 pdfPath = pdfResult.pdfUriString,
                 warningMessage = pdfResult.warningMessage
             )
-
-            if (completedRows == 0) {
-                // If update failed (e.g. cancelled in between), delete published PDF
-                try {
-                    applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
-                } catch (_: Exception) {}
-                val postCheck = dao.getById(item.id)
-                if (isStopped && postCheck?.status != MangaDownloadEntity.STATUS_CANCELLED) {
-                    dao.resetItemToQueued(item.id)
-                }
-            }
-
         } finally {
             tempDir.deleteRecursively()
         }
@@ -274,8 +305,11 @@ class MangaDownloadWorker(
         activeCalls[itemId] = call
 
         call.execute().use { response ->
-            if (!response.isSuccessful) throw IllegalStateException("HTTP ${response.code} pada gambar")
-            val body = response.body ?: throw IllegalStateException("Respons gambar kosong")
+            if (response.code == 401 || response.code == 403) {
+                throw MangaAuthRequiredException("Akses ditolak (HTTP ${response.code}). Login diperlukan.")
+            }
+            if (!response.isSuccessful) throw IOException("HTTP ${response.code} pada gambar")
+            val body = response.body ?: throw IOException("Respons gambar kosong")
 
             var bytesCopied = 0L
             body.byteStream().use { input ->
@@ -289,6 +323,28 @@ class MangaDownloadWorker(
                 }
             }
             return bytesCopied
+        }
+    }
+
+    private fun validateDownloadedImage(file: File) {
+        if (!file.exists() || file.length() == 0L) {
+            throw IOException("File gambar kosong atau tidak ditemukan.")
+        }
+        val sampleBytes = ByteArray(100)
+        try {
+            file.inputStream().use { it.read(sampleBytes) }
+            val sampleStr = String(sampleBytes, Charsets.UTF_8).lowercase()
+            if (sampleStr.contains("<!doctype") || sampleStr.contains("<html") || sampleStr.contains("<body") || sampleStr.contains("access denied")) {
+                throw IOException("File yang diunduh adalah halaman error HTML, bukan gambar.")
+            }
+        } catch (e: IOException) {
+            throw e
+        } catch (_: Exception) {}
+
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(file.absolutePath, options)
+        if (options.outWidth <= 0 || options.outHeight <= 0) {
+            throw IOException("File gambar korup atau gagal didecode.")
         }
     }
 
