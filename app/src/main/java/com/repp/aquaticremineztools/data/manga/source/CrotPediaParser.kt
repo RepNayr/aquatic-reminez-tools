@@ -42,6 +42,48 @@ class CrotPediaParser(
                 false
             }
         }
+
+        fun isValidImageUrl(url: String): Boolean {
+            val clean = url.trim()
+            if (clean.isEmpty() || isPlaceholderUrl(clean) || isPromoBannerUrl(clean)) return false
+
+            val uri = try { URI(clean) } catch (e: Exception) { return false }
+            val scheme = uri.scheme?.lowercase() ?: return false
+            if (scheme != "http" && scheme != "https") return false
+            val host = uri.host?.lowercase() ?: return false
+            if (host.isEmpty()) return false
+
+            val lower = clean.lowercase()
+            if (lower.contains("logo") || lower.contains("banner") || lower.contains("advertisement") ||
+                lower.contains("advert") || lower.contains("promo") || lower.contains("adserver") ||
+                lower.contains("ad-server") || lower.contains("/ad/") || lower.contains("/ads/") ||
+                lower.contains("/ads-") || lower.contains("square-ad") || lower.contains("-ad.") ||
+                lower.contains("icon") || lower.contains("avatar") || lower.contains("spinner") ||
+                lower.contains("loader") || lower.contains("facebook") || lower.contains("twitter") ||
+                lower.contains("telegram") || lower.contains("discord") || lower.contains("donate") ||
+                lower.contains("widget") || lower.contains("badge") || lower.contains("paypal") ||
+                lower.contains("disqus") || lower.contains("gravatar")
+            ) {
+                return false
+            }
+
+            return true
+        }
+
+        private fun isPlaceholderUrl(url: String): Boolean {
+            val lower = url.lowercase()
+            return lower.startsWith("data:image/") ||
+                    lower.contains("placeholder") ||
+                    lower.contains("loading") ||
+                    lower.contains("blank") ||
+                    lower.contains("spacer") ||
+                    lower.isEmpty()
+        }
+
+        private fun isPromoBannerUrl(url: String): Boolean {
+            val lower = url.lowercase()
+            return lower.contains("banner") || lower.contains("promo") || lower.contains("advert")
+        }
     }
 
     suspend fun parseUrl(inputUrl: String): MangaSeries = withContext(Dispatchers.IO) {
@@ -120,38 +162,38 @@ class CrotPediaParser(
             ".post-thumbnail img",
             "div.thumb img",
             ".series-info img",
-            "img"
+            ".series-details img",
+            ".summary_image img"
         )
         for (selector in coverSelectors) {
             val img = doc.selectFirst(selector)
             if (img != null) {
                 val url = extractImageUrlFromElement(doc, img)
-                if (url.isNotEmpty() && !isPlaceholderUrl(url) && !isPromoBannerUrl(url)) {
+                if (url.isNotEmpty() && isValidImageUrl(url)) {
                     return url
                 }
             }
         }
 
         val ogImage = extractMetaContent(doc, "og:image")
-        if (!ogImage.isNullOrEmpty() && !isPlaceholderUrl(ogImage) && !isPromoBannerUrl(ogImage)) {
+        if (!ogImage.isNullOrEmpty() && isValidImageUrl(ogImage)) {
             return ogImage
         }
 
-        val generalImg = doc.selectFirst(".entry-content img")
+        val twitterImage = extractMetaContent(doc, "twitter:image")
+        if (!twitterImage.isNullOrEmpty() && isValidImageUrl(twitterImage)) {
+            return twitterImage
+        }
+
+        val generalImg = doc.selectFirst(".entry-content img, .series-synops img")
         if (generalImg != null) {
             val url = extractImageUrlFromElement(doc, generalImg)
-            if (url.isNotEmpty() && !isPlaceholderUrl(url) && !isPromoBannerUrl(url)) {
+            if (url.isNotEmpty() && isValidImageUrl(url)) {
                 return url
             }
         }
 
         return ""
-    }
-
-    private fun isPromoBannerUrl(url: String): Boolean {
-        val lower = url.lowercase()
-        return lower.contains("/banner") || lower.contains("/promo") || lower.contains("/advert") || lower.contains("/ads/") ||
-                lower.contains("banner.") || lower.contains("promo.") || lower.contains("advert.") || lower.contains("ads.")
     }
 
     private fun canonicalizeChapterUrl(url: String): String {
@@ -239,27 +281,8 @@ class CrotPediaParser(
             throw MangaParseException("Tidak ada chapter yang ditemukan pada halaman series ini.")
         }
 
-        val parsedChapters = rawChapters.mapIndexed { index, (href, chTitle) ->
-            val num = parseChapterNumber(chTitle)
-            Triple(href, chTitle, Triple(index, num, href))
-        }
-
-        // Stable and deterministic sorting comparator using BigDecimal
-        val sortedChapters = parsedChapters.sortedWith(Comparator { a, b ->
-            val numA = a.third.second
-            val numB = b.third.second
-            when {
-                numA != null && numB != null -> {
-                    val cmp = numA.compareTo(numB)
-                    if (cmp != 0) cmp else a.third.first.compareTo(b.third.first)
-                }
-                numA != null -> -1
-                numB != null -> 1
-                else -> a.third.first.compareTo(b.third.first)
-            }
-        })
-
-        val chapterList = sortedChapters.mapIndexed { index, (href, chTitle, _) ->
+        // Preserve original website chapter order as scraped from DOM
+        val chapterList = rawChapters.mapIndexed { index, (href, chTitle) ->
             MangaChapter(
                 title = chTitle,
                 chapterUrl = href,
@@ -293,7 +316,8 @@ class CrotPediaParser(
             title = chTitle,
             chapterUrl = chapterUrl,
             pageCount = pages.size,
-            orderIndex = 1
+            orderIndex = 1,
+            pages = pages.map { it.imageUrl }
         )
 
         return MangaSeries(
@@ -323,9 +347,25 @@ class CrotPediaParser(
         var pageIndex = 1
 
         candidateElements.forEach { img ->
+            // Skip images inside ad/sidebar/header/footer containers
+            var parent: org.jsoup.nodes.Element? = img.parent()
+            var isAdOrNavigation = false
+            while (parent != null) {
+                val classOrId = (parent.className() + " " + parent.id()).lowercase()
+                if (classOrId.contains("ad-") || classOrId.contains("banner") || classOrId.contains("sidebar") ||
+                    classOrId.contains("comment") || classOrId.contains("footer") || classOrId.contains("header") ||
+                    classOrId.contains("social") || classOrId.contains("nav")
+                ) {
+                    isAdOrNavigation = true
+                    break
+                }
+                parent = parent.parent()
+            }
+            if (isAdOrNavigation) return@forEach
+
             val src = extractImageUrlFromElement(doc, img)
 
-            if (src.isNotBlank() && isMangaPageImage(src) && seenUrls.add(src)) {
+            if (src.isNotBlank() && isValidImageUrl(src) && seenUrls.add(src)) {
                 pageList.add(MangaPage(pageIndex = pageIndex++, imageUrl = src))
             }
         }
@@ -341,8 +381,7 @@ class CrotPediaParser(
             val value = img.attr(attr).trim()
             if (value.isNotEmpty() && !isPlaceholderUrl(value)) {
                 val clean = resolveUrlCandidate(doc.baseUri(), value)
-                println("DEBUG_ATTR: $attr = '$value' -> clean = '$clean', isAllowed = ${isAllowedUrl(clean)}")
-                if (clean.isNotEmpty() && isAllowedUrl(clean) && !isPlaceholderUrl(clean)) return clean
+                if (clean.isNotEmpty() && isValidImageUrl(clean)) return clean
             }
         }
 
@@ -354,22 +393,12 @@ class CrotPediaParser(
                 val urlPart = parts.firstOrNull()?.trim()
                 if (!urlPart.isNullOrEmpty() && !isPlaceholderUrl(urlPart)) {
                     val clean = resolveUrlCandidate(doc.baseUri(), urlPart)
-                    if (clean.isNotEmpty() && isAllowedUrl(clean) && !isPlaceholderUrl(clean)) return clean
+                    if (clean.isNotEmpty() && isValidImageUrl(clean)) return clean
                 }
             }
         }
 
         return ""
-    }
-
-    private fun isPlaceholderUrl(url: String): Boolean {
-        val lower = url.lowercase()
-        return lower.startsWith("data:image/") ||
-                lower.contains("placeholder") ||
-                lower.contains("loading") ||
-                lower.contains("blank") ||
-                lower.contains("spacer") ||
-                lower.isEmpty()
     }
 
     private fun resolveUrlCandidate(baseUri: String, url: String): String {
@@ -389,18 +418,6 @@ class CrotPediaParser(
         } catch (e: Exception) {
             trimmed
         }
-    }
-
-    private fun isMangaPageImage(url: String): Boolean {
-        val lower = url.lowercase()
-        if (lower.contains("logo") || lower.contains("banner") || lower.contains("icon") ||
-            lower.contains("avatar") || lower.contains("advertisement") || lower.contains("button") ||
-            lower.contains("spinner") || lower.contains("loader")
-        ) {
-            return false
-        }
-        return isAllowedUrl(url) && (lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".png") ||
-                lower.endsWith(".webp") || lower.contains("/uploads/") || lower.contains("/images/"))
     }
 
     internal fun parseChapterNumber(title: String): BigDecimal? {

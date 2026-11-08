@@ -1,7 +1,6 @@
 package com.repp.aquaticremineztools.presentation.manga
 
 import android.content.ClipboardManager
-import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -19,6 +18,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -45,6 +45,7 @@ class MangaActivity : AppCompatActivity() {
     private lateinit var tvCoverPlaceholder: TextView
     private lateinit var tvMangaTitle: TextView
 
+    private lateinit var tvChapterHeaderCount: TextView
     private lateinit var rvChapterList: RecyclerView
     private lateinit var btnDownloadAll: Button
 
@@ -86,6 +87,7 @@ class MangaActivity : AppCompatActivity() {
         tvCoverPlaceholder = findViewById(R.id.tvCoverPlaceholder)
         tvMangaTitle = findViewById(R.id.tvMangaTitle)
 
+        tvChapterHeaderCount = findViewById(R.id.tvChapterHeaderCount)
         rvChapterList = findViewById(R.id.rvChapterList)
         btnDownloadAll = findViewById(R.id.btnDownloadAll)
 
@@ -107,9 +109,10 @@ class MangaActivity : AppCompatActivity() {
     }
 
     private fun setupRecyclerView() {
-        chapterAdapter = MangaChapterAdapter { chapter ->
-            onDownloadChapterClicked(chapter)
-        }
+        chapterAdapter = MangaChapterAdapter(
+            onDownloadClick = { chapter -> onDownloadChapterClicked(chapter) },
+            onRetryClick = { chapter -> viewModel.retryChapter(chapter.id) }
+        )
         rvChapterList.layoutManager = LinearLayoutManager(this)
         rvChapterList.adapter = chapterAdapter
     }
@@ -121,9 +124,25 @@ class MangaActivity : AppCompatActivity() {
                     pbAnalyzeLoading.visibility = View.GONE
                     btnAnalyze.isEnabled = true
                 }
-                is AnalyzeState.Loading -> {
+                is AnalyzeState.Analyzing -> {
                     pbAnalyzeLoading.visibility = View.VISIBLE
                     btnAnalyze.isEnabled = false
+
+                    cardMangaPreview.visibility = View.VISIBLE
+                    tvMangaTitle.text = state.seriesTitle
+
+                    if (state.coverUrl.isNotBlank()) {
+                        ivCoverPreview.load(state.coverUrl) { crossfade(true) }
+                        tvCoverPlaceholder.visibility = View.GONE
+                    } else {
+                        tvCoverPlaceholder.visibility = View.VISIBLE
+                    }
+
+                    tvChapterHeaderCount.visibility = View.VISIBLE
+                    tvChapterHeaderCount.text = state.progressText
+
+                    chapterAdapter.setChapters(state.series.chapters)
+                    btnDownloadAll.visibility = View.GONE
                 }
                 is AnalyzeState.Success -> {
                     pbAnalyzeLoading.visibility = View.GONE
@@ -134,13 +153,14 @@ class MangaActivity : AppCompatActivity() {
                     tvMangaTitle.text = series.title
 
                     if (series.coverUrl.isNotBlank()) {
-                        ivCoverPreview.load(series.coverUrl) {
-                            crossfade(true)
-                        }
+                        ivCoverPreview.load(series.coverUrl) { crossfade(true) }
                         tvCoverPlaceholder.visibility = View.GONE
                     } else {
                         tvCoverPlaceholder.visibility = View.VISIBLE
                     }
+
+                    tvChapterHeaderCount.visibility = View.VISIBLE
+                    tvChapterHeaderCount.text = "${series.chapters.size} Chapters"
 
                     chapterAdapter.setChapters(series.chapters)
                     btnDownloadAll.visibility = if (series.chapters.isNotEmpty()) View.VISIBLE else View.GONE
@@ -148,7 +168,19 @@ class MangaActivity : AppCompatActivity() {
                 is AnalyzeState.Error -> {
                     pbAnalyzeLoading.visibility = View.GONE
                     btnAnalyze.isEnabled = true
-                    Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+
+                    if (state.isInvalidUrl) {
+                        showInvalidUrlDialog(state.message)
+                    } else if (state.isNoChaptersFound) {
+                        showNoChaptersFoundDialog(state.message)
+                    } else {
+                        Toast.makeText(this, state.message, Toast.LENGTH_LONG).show()
+                    }
+                }
+                is AnalyzeState.ShowReanalysisConfirmation -> {
+                    pbAnalyzeLoading.visibility = View.GONE
+                    btnAnalyze.isEnabled = true
+                    showReanalysisConfirmationDialog(state.url)
                 }
             }
         }
@@ -216,6 +248,58 @@ class MangaActivity : AppCompatActivity() {
                 }
             }
         })
+    }
+
+    private fun showInvalidUrlDialog(message: String) {
+        AlertDialog.Builder(this)
+            .setTitle("URL Tidak Valid")
+            .setMessage(message)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+                etUrlInput.setText("")
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun showNoChaptersFoundDialog(message: String) {
+        cardMangaPreview.visibility = View.GONE
+        tvChapterHeaderCount.visibility = View.GONE
+        btnDownloadAll.visibility = View.GONE
+        chapterAdapter.setChapters(emptyList())
+
+        AlertDialog.Builder(this)
+            .setTitle("No Chapters Found")
+            .setMessage(message)
+            .setPositiveButton("OK") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun showReanalysisConfirmationDialog(url: String) {
+        AlertDialog.Builder(this)
+            .setTitle("Analisis Ulang Series?")
+            .setMessage("Series ini sudah pernah dianalisis. Apakah Anda ingin menganalisis ulang seluruh chapter?")
+            .setPositiveButton("LANJUT") { dialog, _ ->
+                dialog.dismiss()
+                viewModel.analyzeUrl(url, forceReanalysis = true)
+            }
+            .setNegativeButton("TIDAK JADI") { dialog, _ ->
+                dialog.dismiss()
+                etUrlInput.setText("")
+                viewModel.onCancelReanalysis()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        if (isFinishing) {
+            viewModel.cancelAnalysis()
+        }
     }
 
     private fun onDownloadChapterClicked(chapter: MangaChapter) {

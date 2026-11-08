@@ -29,6 +29,19 @@ class CrotPediaParserUnitTest {
     }
 
     @Test
+    fun testIsValidImageUrlSupportsExternalCdnAndFiltersBanners() {
+        assertTrue(CrotPediaParser.isValidImageUrl("https://i0.wp.com/crotpedia.net/cover.jpg"))
+        assertTrue(CrotPediaParser.isValidImageUrl("https://cdn.manga.org/images/chapter1/01.webp"))
+        assertTrue(CrotPediaParser.isValidImageUrl("http://images.cdn.com/page.png"))
+
+        assertFalse(CrotPediaParser.isValidImageUrl("https://crotpedia.net/logo.png"))
+        assertFalse(CrotPediaParser.isValidImageUrl("https://crotpedia.net/wp-content/uploads/promo-banner.jpg"))
+        assertFalse(CrotPediaParser.isValidImageUrl("https://crotpedia.net/ads/square-ad.gif"))
+        assertFalse(CrotPediaParser.isValidImageUrl("data:image/svg+xml;base64,123"))
+        assertFalse(CrotPediaParser.isValidImageUrl(""))
+    }
+
+    @Test
     fun testParseChapterNumberExtraction() {
         assertEquals(BigDecimal("1"), parser.parseChapterNumber("Chapter 1"))
         assertEquals(BigDecimal("2.5"), parser.parseChapterNumber("Musume no Tomodachi Chapter 2.5 Bahasa Indonesia"))
@@ -45,7 +58,7 @@ class CrotPediaParserUnitTest {
             <head>
                 <title>Test Manga Series - CrotPedia</title>
                 <meta property="og:title" content="Meta Title Manga" />
-                <meta property="og:image" content="https://crotpedia.net/wp-content/uploads/cover.jpg" />
+                <meta property="og:image" content="https://i0.wp.com/crotpedia.net/wp-content/uploads/cover.jpg" />
                 <meta property="og:description" content="This is a test description." />
             </head>
             <body>
@@ -64,50 +77,23 @@ class CrotPediaParserUnitTest {
         val ogImage = doc.selectFirst("meta[property=og:image]")?.attr("content")
 
         assertEquals("Meta Title Manga", ogTitle)
-        assertEquals("https://crotpedia.net/wp-content/uploads/cover.jpg", ogImage)
+        assertEquals("https://i0.wp.com/crotpedia.net/wp-content/uploads/cover.jpg", ogImage)
     }
 
     @Test
-    fun testParseChapterHtmlLazyLoadedImages() {
-        val sampleChapterHtml = """
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Chapter 1 - CrotPedia</title>
-            </head>
-            <body>
-                <div id="readerarea">
-                    <img data-src="https://crotpedia.net/wp-content/uploads/2023/01/01.jpg" src="data:image/svg+xml;base64,123" />
-                    <img data-lazy-src="https://crotpedia.net/wp-content/uploads/2023/01/02.jpg" />
-                    <img src="https://crotpedia.net/wp-content/uploads/2023/01/03.jpg" />
-                    <img src="https://crotpedia.net/logo.png" />
-                </div>
-            </body>
-            </html>
-        """.trimIndent()
-
-        val doc = Jsoup.parse(sampleChapterHtml, "https://crotpedia.net/baca/test-chapter-1/")
-        val imgElements = doc.select("#readerarea img")
-
-        assertNotNull(imgElements)
-        assertEquals(4, imgElements.size)
-    }
-
-    @Test
-    fun testExtractCoverUrlDirect() {
+    fun testExtractCoverUrlWithExternalCdn() {
         val html = """
             <html><body>
-                <div class="series-thumb"><img src="https://crotpedia.net/wp-content/uploads/poster.jpg" /></div>
+                <div class="series-thumb"><img src="https://cdn.external.com/manga/poster.jpg" /></div>
             </body></html>
         """.trimIndent()
         val doc = Jsoup.parse(html, "https://crotpedia.net/baca/series/test/")
         val cover = parser.extractCoverUrl(doc)
-        println("DEBUG_COVER: '$cover'")
-        assertEquals("https://crotpedia.net/wp-content/uploads/poster.jpg", cover)
+        assertEquals("https://cdn.external.com/manga/poster.jpg", cover)
     }
 
     @Test
-    fun testSeriesParserFiltersUnwantedLinksAndCleansDatesAndDeduplicates() {
+    fun testSeriesParserPreservesOriginalDomOrderAndFiltersUnwantedLinks() {
         val html = """
             <!DOCTYPE html>
             <html>
@@ -138,10 +124,39 @@ class CrotPediaParserUnitTest {
         assertEquals("Test Series", series.title)
         assertEquals("https://crotpedia.net/wp-content/uploads/poster.jpg", series.coverUrl)
         assertEquals(4, series.chapters.size)
+        // Original DOM order preserved
         assertEquals("Chapter 1", series.chapters[0].title)
         assertEquals("Chapter 2", series.chapters[1].title)
-        assertEquals("Chapter 2.5", series.chapters[2].title)
-        assertEquals("Chapter 10", series.chapters[3].title)
+        assertEquals("Chapter 10", series.chapters[2].title)
+        assertEquals("Chapter 2.5", series.chapters[3].title)
+    }
+
+    @Test
+    fun testDuplicateChapterTitlesPreservedAsSeparateEntries() {
+        val html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Test Series - CrotPedia</title>
+            </head>
+            <body>
+                <div class="chapter-list">
+                    <a href="https://crotpedia.net/baca/chapter-1-v1/">Chapter 1</a>
+                    <a href="https://crotpedia.net/baca/chapter-1-v2/">Chapter 1</a>
+                    <a href="https://crotpedia.net/baca/chapter-2/">Chapter 2</a>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+
+        val doc = Jsoup.parse(html, "https://crotpedia.net/baca/series/test/")
+        val series = parser.parseSeriesDoc("https://crotpedia.net/baca/series/test/", doc)
+
+        assertEquals(3, series.chapters.size)
+        assertEquals("Chapter 1", series.chapters[0].title)
+        assertEquals("https://crotpedia.net/baca/chapter-1-v1", series.chapters[0].chapterUrl)
+        assertEquals("Chapter 1", series.chapters[1].title)
+        assertEquals("https://crotpedia.net/baca/chapter-1-v2", series.chapters[1].chapterUrl)
     }
 
     @Test

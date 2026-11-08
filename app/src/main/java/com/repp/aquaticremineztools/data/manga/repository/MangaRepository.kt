@@ -25,6 +25,15 @@ class MangaRepository(
         return parser.parseUrl(url)
     }
 
+    suspend fun parseSeries(url: String): MangaSeries {
+        return parser.parseUrl(url)
+    }
+
+    suspend fun parsePagesForChapter(chapterUrl: String): List<com.repp.aquaticremineztools.data.manga.model.MangaPage> {
+        return parser.parsePagesForChapter(chapterUrl)
+    }
+
+
     private fun canonicalUrl(url: String): String {
         val clean = url.trim()
         if (clean.isEmpty()) return clean
