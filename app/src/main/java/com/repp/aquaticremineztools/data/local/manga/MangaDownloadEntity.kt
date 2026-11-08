@@ -21,6 +21,8 @@ data class MangaDownloadEntity(
     val downloadedBytes: Long = 0L,
     val downloadSpeedBps: Long = 0L,
     val status: String = STATUS_QUEUED,
+    val stage: String = STAGE_DOWNLOADING_IMAGES,
+    val stageProgress: Int = 0,
     val timestamp: Long = System.currentTimeMillis(),
     val lastHeartbeatAt: Long = 0L,
     val pdfPath: String? = null,
@@ -33,5 +35,10 @@ data class MangaDownloadEntity(
         const val STATUS_COMPLETED_WITH_WARNING = "COMPLETED_WITH_WARNING"
         const val STATUS_FAILED = "FAILED"
         const val STATUS_CANCELLED = "CANCELLED"
+
+        const val STAGE_DOWNLOADING_IMAGES = "DOWNLOADING_IMAGES"
+        const val STAGE_BUILDING_PDF = "BUILDING_PDF"
+        const val STAGE_COMPRESSING_PDF = "COMPRESSING_PDF"
+        const val STAGE_VALIDATING_PDF = "VALIDATING_PDF"
     }
 }

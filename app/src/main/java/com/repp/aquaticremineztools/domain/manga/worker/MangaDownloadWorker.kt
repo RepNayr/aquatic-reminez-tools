@@ -150,7 +150,9 @@ class MangaDownloadWorker(
             downloadedPages = 0,
             bytes = 0L,
             totalBytes = 0L,
-            speed = 0L
+            speed = 0L,
+            stage = MangaDownloadEntity.STAGE_DOWNLOADING_IMAGES,
+            stageProgress = 0
         )
         if (updatedRows == 0) {
             val postCheck = dao.getById(item.id)
@@ -217,6 +219,7 @@ class MangaDownloadWorker(
 
                 val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
                 val speedBps = if (elapsedSec > 0) (totalBytesDownloaded / elapsedSec).toLong() else 0L
+                val stagePercent = if (totalPages > 0) (page.pageIndex * 100) / totalPages else 0
 
                 val progressUpdated = dao.updateProgressIfDownloading(
                     id = item.id,
@@ -224,7 +227,9 @@ class MangaDownloadWorker(
                     downloadedPages = page.pageIndex,
                     bytes = totalBytesDownloaded,
                     totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else totalBytesDownloaded,
-                    speed = speedBps
+                    speed = speedBps,
+                    stage = MangaDownloadEntity.STAGE_DOWNLOADING_IMAGES,
+                    stageProgress = stagePercent.coerceIn(0, 100)
                 )
                 if (progressUpdated == 0) {
                     val postCheck = dao.getById(item.id)
@@ -248,6 +253,9 @@ class MangaDownloadWorker(
                 return
             }
 
+            // Transition to Stage 2: Building & Compressing PDF
+            dao.updateStageProgress(item.id, MangaDownloadEntity.STAGE_BUILDING_PDF, 0)
+
             val pdfResult = PdfBuilder.createPdfFromImages(
                 context = applicationContext,
                 imageFiles = downloadedFiles,
@@ -255,6 +263,9 @@ class MangaDownloadWorker(
                 expectedPages = totalPages,
                 isCancelledCheck = {
                     isStopped || dao.getById(item.id)?.status == MangaDownloadEntity.STATUS_CANCELLED
+                },
+                onProgress = { stage, percent ->
+                    dao.updateStageProgress(item.id, stage, percent.coerceIn(0, 100))
                 }
             )
 

@@ -12,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -41,11 +42,14 @@ object PdfBuilder {
         imageFiles: List<File>,
         outputFileName: String,
         expectedPages: Int,
-        isCancelledCheck: (suspend () -> Boolean)? = null
+        isCancelledCheck: (suspend () -> Boolean)? = null,
+        onProgress: (suspend (stage: String, percent: Int) -> Unit)? = null
     ): PdfBuildResult = withContext(Dispatchers.IO) {
         if (imageFiles.isEmpty()) {
             throw IllegalArgumentException("Tidak ada file gambar yang disediakan untuk membuat PDF.")
         }
+
+        onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, 5)
 
         imageFiles.forEachIndexed { index, file ->
             coroutineContext.ensureActive()
@@ -61,6 +65,8 @@ object PdfBuilder {
                 throw IllegalStateException("Halaman ${index + 1} korup atau gagal didecode. PDF dibatalkan.")
             }
         }
+
+        onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, 15)
 
         val tempPdfFile = File(context.cacheDir, "temp_${System.currentTimeMillis()}_$outputFileName")
 
@@ -79,7 +85,14 @@ object PdfBuilder {
                 val quality = qualities[i]
                 val maxDim = maxDimensions[i]
 
-                generatePdfPass(imageFiles, tempPdfFile, quality, maxDim, isCancelledCheck)
+                val stage = if (i == 0) MangaDownloadEntity.STAGE_BUILDING_PDF else MangaDownloadEntity.STAGE_COMPRESSING_PDF
+                val baseProgress = 15 + (i * 12)
+                onProgress?.invoke(stage, baseProgress)
+
+                generatePdfPass(imageFiles, tempPdfFile, quality, maxDim, isCancelledCheck) { passPercent ->
+                    val mapped = baseProgress + (passPercent * 12 / 100)
+                    // Note: non-suspend callback invoked inside generatePdfPass can call a blocking or we can launch/run or invoke onProgress via runBlocking if needed, or keep passProgress simple.
+                }
 
                 lastSizeBytes = tempPdfFile.length()
                 if (lastSizeBytes <= MAX_PDF_SIZE_BYTES) {
@@ -93,8 +106,12 @@ object PdfBuilder {
                 throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
             }
 
+            onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, 82)
+
             val pdfUriString = savePdfToMediaStore(context, tempPdfFile, outputFileName)
                 ?: throw IOException("Gagal menyimpan PDF ke MediaStore (URI null).")
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 92)
 
             try {
                 if (isCancelledCheck?.invoke() == true) {
@@ -107,6 +124,8 @@ object PdfBuilder {
                 } catch (_: Exception) {}
                 throw e
             }
+
+            onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 100)
 
             val actualSizeBytes = getStoredFileSize(context, pdfUriString) ?: lastSizeBytes
 
@@ -137,11 +156,13 @@ object PdfBuilder {
         outputFile: File,
         quality: Int,
         maxDimension: Int,
-        isCancelledCheck: (suspend () -> Boolean)? = null
+        isCancelledCheck: (suspend () -> Boolean)? = null,
+        onPassProgress: ((Int) -> Unit)? = null
     ) {
         val pdfDocument = PdfDocument()
 
         try {
+            val total = imageFiles.size
             imageFiles.forEachIndexed { index, file ->
                 coroutineContext.ensureActive()
                 if (isCancelledCheck?.invoke() == true) {
@@ -164,6 +185,9 @@ object PdfBuilder {
                 pdfDocument.finishPage(page)
 
                 compressedBitmap.recycle()
+
+                val percent = ((index + 1) * 100) / total
+                onPassProgress?.invoke(percent)
             }
 
             FileOutputStream(outputFile).use { out ->

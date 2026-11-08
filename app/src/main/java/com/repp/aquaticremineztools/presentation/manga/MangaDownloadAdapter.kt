@@ -65,26 +65,46 @@ class MangaDownloadAdapter(
                 progressBar.progress = 0
                 tvPercent.text = "FAILED"
                 tvInfo.text = entity.errorMessage ?: "Download failed. Tap to retry."
+            } else if (entity.status == MangaDownloadEntity.STATUS_COMPLETED || entity.status == MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING) {
+                progressBar.isIndeterminate = false
+                progressBar.progress = 100
+                tvPercent.text = "100%"
+                tvInfo.text = "COMPLETED"
             } else {
                 progressBar.isIndeterminate = false
-                val percent = if (entity.totalPages > 0) {
-                    (entity.downloadedPages * 100) / entity.totalPages
-                } else 0
+                val stage = entity.stage.ifBlank { MangaDownloadEntity.STAGE_DOWNLOADING_IMAGES }
+                if (stage == MangaDownloadEntity.STAGE_DOWNLOADING_IMAGES) {
+                    val percent = if (entity.totalPages > 0) {
+                        (entity.downloadedPages * 100) / entity.totalPages
+                    } else 0
 
-                progressBar.progress = percent.coerceIn(0, 100)
-                tvPercent.text = "$percent%"
+                    progressBar.progress = percent.coerceIn(0, 100)
+                    tvPercent.text = "$percent%"
 
-                val downloadedMb = entity.downloadedBytes / (1024f * 1024f)
-                val totalMb = entity.totalBytes / (1024f * 1024f)
-                val speedMb = entity.downloadSpeedBps / (1024f * 1024f)
+                    val downloadedMb = entity.downloadedBytes / (1024f * 1024f)
+                    val totalMb = entity.totalBytes / (1024f * 1024f)
+                    val speedMb = entity.downloadSpeedBps / (1024f * 1024f)
 
-                tvInfo.text = String.format(
-                    Locale.US,
-                    "%.1f MB / %.1f MB (%.1f MB/s)",
-                    downloadedMb,
-                    totalMb,
-                    speedMb
-                )
+                    tvInfo.text = String.format(
+                        Locale.US,
+                        "DOWNLOADING IMAGES · %.1f MB / %.1f MB (%.1f MB/s)",
+                        downloadedMb,
+                        totalMb,
+                        speedMb
+                    )
+                } else {
+                    val progress = entity.stageProgress.coerceIn(0, 100)
+                    progressBar.progress = progress
+                    tvPercent.text = "$progress%"
+
+                    val stageLabel = when (stage) {
+                        MangaDownloadEntity.STAGE_BUILDING_PDF -> "BUILDING PDF"
+                        MangaDownloadEntity.STAGE_COMPRESSING_PDF -> "COMPRESSING PDF"
+                        MangaDownloadEntity.STAGE_VALIDATING_PDF -> "VALIDATING PDF"
+                        else -> "BUILDING PDF"
+                    }
+                    tvInfo.text = stageLabel
+                }
             }
         }
     }

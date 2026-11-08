@@ -34,19 +34,19 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads WHERE status = 'QUEUED' ORDER BY id ASC LIMIT 1")
     suspend fun getNextQueuedItem(): MangaDownloadEntity?
 
-    @Query("UPDATE manga_downloads SET status = 'DOWNLOADING', lastHeartbeatAt = :now WHERE id = :id AND status = 'QUEUED'")
+    @Query("UPDATE manga_downloads SET status = 'DOWNLOADING', stage = 'DOWNLOADING_IMAGES', stageProgress = 0, lastHeartbeatAt = :now WHERE id = :id AND status = 'QUEUED'")
     suspend fun claimQueuedItem(id: Long, now: Long = System.currentTimeMillis()): Int
 
     @Query("UPDATE manga_downloads SET lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun updateHeartbeat(id: Long, now: Long = System.currentTimeMillis()): Int
 
-    @Query("UPDATE manga_downloads SET status = 'QUEUED', lastHeartbeatAt = 0 WHERE status = 'DOWNLOADING' AND (lastHeartbeatAt = 0 OR lastHeartbeatAt < :stuckThreshold)")
+    @Query("UPDATE manga_downloads SET status = 'QUEUED', stage = 'DOWNLOADING_IMAGES', stageProgress = 0, lastHeartbeatAt = 0 WHERE status = 'DOWNLOADING' AND (lastHeartbeatAt = 0 OR lastHeartbeatAt < :stuckThreshold)")
     suspend fun resetStuckDownloadingItems(stuckThreshold: Long): Int
 
-    @Query("UPDATE manga_downloads SET status = 'QUEUED', lastHeartbeatAt = 0 WHERE id = :id AND status = 'DOWNLOADING'")
+    @Query("UPDATE manga_downloads SET status = 'QUEUED', stage = 'DOWNLOADING_IMAGES', stageProgress = 0, lastHeartbeatAt = 0 WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun resetItemToQueued(id: Long): Int
 
-    @Query("UPDATE manga_downloads SET totalPages = :totalPages, downloadedPages = :downloadedPages, downloadedBytes = :bytes, totalBytes = :totalBytes, downloadSpeedBps = :speed, lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
+    @Query("UPDATE manga_downloads SET totalPages = :totalPages, downloadedPages = :downloadedPages, downloadedBytes = :bytes, totalBytes = :totalBytes, downloadSpeedBps = :speed, stage = :stage, stageProgress = :stageProgress, lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun updateProgressIfDownloading(
         id: Long,
         totalPages: Int,
@@ -54,13 +54,23 @@ interface MangaDownloadDao {
         bytes: Long,
         totalBytes: Long,
         speed: Long,
+        stage: String = "DOWNLOADING_IMAGES",
+        stageProgress: Int = 0,
+        now: Long = System.currentTimeMillis()
+    ): Int
+
+    @Query("UPDATE manga_downloads SET stage = :stage, stageProgress = :stageProgress, lastHeartbeatAt = :now WHERE id = :id AND status = 'DOWNLOADING'")
+    suspend fun updateStageProgress(
+        id: Long,
+        stage: String,
+        stageProgress: Int,
         now: Long = System.currentTimeMillis()
     ): Int
 
     @Query("UPDATE manga_downloads SET status = 'FAILED', errorMessage = :errorMessage WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun markFailedIfDownloading(id: Long, errorMessage: String): Int
 
-    @Query("UPDATE manga_downloads SET status = :finalStatus, totalPages = :totalPages, downloadedPages = :downloadedPages, downloadedBytes = :bytes, totalBytes = :totalBytes, pdfPath = :pdfPath, errorMessage = :warningMessage WHERE id = :id AND status = 'DOWNLOADING'")
+    @Query("UPDATE manga_downloads SET status = :finalStatus, totalPages = :totalPages, downloadedPages = :downloadedPages, downloadedBytes = :bytes, totalBytes = :totalBytes, pdfPath = :pdfPath, errorMessage = :warningMessage, stageProgress = 100 WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun markCompletedIfDownloading(
         id: Long,
         finalStatus: String,
