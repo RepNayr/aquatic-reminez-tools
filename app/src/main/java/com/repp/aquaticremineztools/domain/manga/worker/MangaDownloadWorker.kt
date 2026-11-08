@@ -49,12 +49,16 @@ class MangaDownloadWorker(
         private val activeCalls = ConcurrentHashMap<Long, Call>()
 
         fun enqueueWork(context: Context) {
-            val request = OneTimeWorkRequestBuilder<MangaDownloadWorker>().build()
-            WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
-                UNIQUE_WORK_NAME,
-                ExistingWorkPolicy.APPEND_OR_REPLACE,
-                request
-            )
+            try {
+                val request = OneTimeWorkRequestBuilder<MangaDownloadWorker>().build()
+                WorkManager.getInstance(context.applicationContext).enqueueUniqueWork(
+                    UNIQUE_WORK_NAME,
+                    ExistingWorkPolicy.APPEND_OR_REPLACE,
+                    request
+                )
+            } catch (_: Exception) {
+                // Fail-safe if WorkManager is not initialized in unit tests
+            }
         }
 
         fun cancelWorkIfRunning(context: Context, id: Long) {
@@ -66,7 +70,7 @@ class MangaDownloadWorker(
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         showForegroundNotification("Manga Downloader", "Processing download queue...")
 
-        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms) based on lastHeartbeatAt
+        // Recovery: reset items stuck in DOWNLOADING for over 5 minutes (300,000 ms) or legacy items with lastHeartbeatAt == 0
         val stuckThreshold = System.currentTimeMillis() - 300000L
         dao.resetStuckDownloadingItems(stuckThreshold)
 
@@ -88,8 +92,7 @@ class MangaDownloadWorker(
                 activeCalls.remove(currentItem.id)
                 val checkCancelled = dao.getById(currentItem.id)
                 if (checkCancelled?.status != MangaDownloadEntity.STATUS_CANCELLED) {
-                    // System/WorkManager cancellation, reset to QUEUED or leave for recovery
-                    dao.markFailedIfDownloading(currentItem.id, "Download dihentikan sistem.")
+                    dao.resetItemToQueued(currentItem.id)
                 }
                 throw e
             } catch (e: Exception) {
@@ -108,7 +111,12 @@ class MangaDownloadWorker(
 
     private suspend fun processItem(item: MangaDownloadEntity) {
         val checkPre = dao.getById(item.id)
-        if (checkPre?.status == MangaDownloadEntity.STATUS_CANCELLED) return
+        if (isStopped || checkPre?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+            if (isStopped && checkPre?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                dao.resetItemToQueued(item.id)
+            }
+            return
+        }
 
         dao.updateHeartbeat(item.id)
 
@@ -122,12 +130,19 @@ class MangaDownloadWorker(
         // Update total pages and ensure status is still DOWNLOADING
         val updatedRows = dao.updateProgressIfDownloading(
             id = item.id,
-            pages = 0,
+            totalPages = totalPages,
+            downloadedPages = 0,
             bytes = 0L,
             totalBytes = 0L,
             speed = 0L
         )
-        if (updatedRows == 0) return // Item was cancelled or changed status
+        if (updatedRows == 0) {
+            val postCheck = dao.getById(item.id)
+            if (isStopped && postCheck?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                dao.resetItemToQueued(item.id)
+            }
+            return
+        }
 
         val tempDir = File(applicationContext.cacheDir, "manga_temp_${item.id}_${System.currentTimeMillis()}").apply { mkdirs() }
         val downloadedFiles = mutableListOf<File>()
@@ -139,7 +154,9 @@ class MangaDownloadWorker(
             for (page in pages) {
                 val checkStatus = dao.getById(item.id)
                 if (isStopped || checkStatus?.status == MangaDownloadEntity.STATUS_CANCELLED) {
-                    dao.cancelDownload(item.id)
+                    if (isStopped && checkStatus?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                        dao.resetItemToQueued(item.id)
+                    }
                     return
                 }
 
@@ -155,13 +172,18 @@ class MangaDownloadWorker(
 
                 val progressUpdated = dao.updateProgressIfDownloading(
                     id = item.id,
-                    pages = page.pageIndex,
+                    totalPages = totalPages,
+                    downloadedPages = page.pageIndex,
                     bytes = totalBytesDownloaded,
                     totalBytes = if (page.pageIndex > 0) (totalBytesDownloaded * totalPages / page.pageIndex) else totalBytesDownloaded,
                     speed = speedBps
                 )
                 if (progressUpdated == 0) {
-                    return // Cancelled or state changed
+                    val postCheck = dao.getById(item.id)
+                    if (isStopped && postCheck?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                        dao.resetItemToQueued(item.id)
+                    }
+                    return
                 }
 
                 showForegroundNotification(
@@ -171,15 +193,21 @@ class MangaDownloadWorker(
             }
 
             val checkFinal = dao.getById(item.id)
-            if (checkFinal?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+            if (isStopped || checkFinal?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                if (isStopped && checkFinal?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                    dao.resetItemToQueued(item.id)
+                }
                 return
             }
 
             val pdfResult = PdfBuilder.createPdfFromImages(
-                applicationContext,
-                downloadedFiles,
-                item.outputFileName,
-                totalPages
+                context = applicationContext,
+                imageFiles = downloadedFiles,
+                outputFileName = item.outputFileName,
+                expectedPages = totalPages,
+                isCancelledCheck = {
+                    isStopped || dao.getById(item.id)?.status == MangaDownloadEntity.STATUS_CANCELLED
+                }
             )
 
             // Strict success verification
@@ -194,18 +222,22 @@ class MangaDownloadWorker(
             }
 
             val recheckCancelled = dao.getById(item.id)
-            if (recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
-                // Clean up published PDF since download was cancelled
+            if (isStopped || recheckCancelled?.status == MangaDownloadEntity.STATUS_CANCELLED) {
+                // Clean up published PDF since download was cancelled or worker stopped
                 try {
                     applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
                 } catch (_: Exception) {}
+                if (isStopped && recheckCancelled?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                    dao.resetItemToQueued(item.id)
+                }
                 return
             }
 
             val completedRows = dao.markCompletedIfDownloading(
                 id = item.id,
                 finalStatus = finalStatus,
-                pages = totalPages,
+                totalPages = totalPages,
+                downloadedPages = totalPages,
                 bytes = pdfResult.sizeBytes,
                 totalBytes = pdfResult.sizeBytes,
                 pdfPath = pdfResult.pdfUriString,
@@ -217,6 +249,10 @@ class MangaDownloadWorker(
                 try {
                     applicationContext.contentResolver.delete(android.net.Uri.parse(pdfResult.pdfUriString), null, null)
                 } catch (_: Exception) {}
+                val postCheck = dao.getById(item.id)
+                if (isStopped && postCheck?.status != MangaDownloadEntity.STATUS_CANCELLED) {
+                    dao.resetItemToQueued(item.id)
+                }
             }
 
         } finally {

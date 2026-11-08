@@ -11,8 +11,8 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
-import android.os.ParcelFileDescriptor
 import android.provider.MediaStore
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
@@ -40,7 +40,8 @@ object PdfBuilder {
         context: Context,
         imageFiles: List<File>,
         outputFileName: String,
-        expectedPages: Int
+        expectedPages: Int,
+        isCancelledCheck: (suspend () -> Boolean)? = null
     ): PdfBuildResult = withContext(Dispatchers.IO) {
         if (imageFiles.isEmpty()) {
             throw IllegalArgumentException("Tidak ada file gambar yang disediakan untuk membuat PDF.")
@@ -48,6 +49,9 @@ object PdfBuilder {
 
         imageFiles.forEachIndexed { index, file ->
             coroutineContext.ensureActive()
+            if (isCancelledCheck?.invoke() == true) {
+                throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
+            }
             if (!file.exists() || file.length() == 0L) {
                 throw IllegalStateException("Halaman ${index + 1} tidak ditemukan atau file kosong (${file.name}). PDF dibatalkan.")
             }
@@ -69,10 +73,13 @@ object PdfBuilder {
         try {
             for (i in qualities.indices) {
                 coroutineContext.ensureActive()
+                if (isCancelledCheck?.invoke() == true) {
+                    throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
+                }
                 val quality = qualities[i]
                 val maxDim = maxDimensions[i]
 
-                generatePdfPass(imageFiles, tempPdfFile, quality, maxDim)
+                generatePdfPass(imageFiles, tempPdfFile, quality, maxDim, isCancelledCheck)
 
                 lastSizeBytes = tempPdfFile.length()
                 if (lastSizeBytes <= MAX_PDF_SIZE_BYTES) {
@@ -82,10 +89,17 @@ object PdfBuilder {
             }
 
             coroutineContext.ensureActive()
+            if (isCancelledCheck?.invoke() == true) {
+                throw CancellationException("Pembuatan PDF dibatalkan oleh pengguna.")
+            }
+
             val pdfUriString = savePdfToMediaStore(context, tempPdfFile, outputFileName)
                 ?: throw IOException("Gagal menyimpan PDF ke MediaStore (URI null).")
 
             try {
+                if (isCancelledCheck?.invoke() == true) {
+                    throw CancellationException("Pembuatan PDF dibatalkan setelah publikasi MediaStore.")
+                }
                 validateStoredPdf(context, pdfUriString, expectedPages)
             } catch (e: Exception) {
                 try {
@@ -94,7 +108,6 @@ object PdfBuilder {
                 throw e
             }
 
-            // Get actual saved file size from content resolver / descriptor
             val actualSizeBytes = getStoredFileSize(context, pdfUriString) ?: lastSizeBytes
 
             val warning = if (!achieved) {
@@ -123,13 +136,17 @@ object PdfBuilder {
         imageFiles: List<File>,
         outputFile: File,
         quality: Int,
-        maxDimension: Int
+        maxDimension: Int,
+        isCancelledCheck: (suspend () -> Boolean)? = null
     ) {
         val pdfDocument = PdfDocument()
 
         try {
             imageFiles.forEachIndexed { index, file ->
                 coroutineContext.ensureActive()
+                if (isCancelledCheck?.invoke() == true) {
+                    throw CancellationException("Pembuatan PDF dibatalkan saat kompresi halaman ${index + 1}.")
+                }
                 val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension)
                     ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
 

@@ -41,6 +41,6 @@
         android:fillColor="#35FFFFFF" />
 
 
-    <path android:pathData="M20,24 L14,32 L20,40 M44,24 L50,32 L44,40 M34,20 L30,44" android:strokeColor="#38BDF8" android:strokeWidth="3" stroke-linecap="round" />
+    <path android:pathData="M20,24 L14,32 L20,40 M44,24 L50,32 L44,40 M34,20 L30,44" android:strokeColor="#38BDF8" android:strokeWidth="3" android:strokeLineCap="round" />
 
 </vector>
