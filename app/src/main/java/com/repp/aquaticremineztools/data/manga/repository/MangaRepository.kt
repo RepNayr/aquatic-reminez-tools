@@ -221,6 +221,10 @@ class MangaRepository(
         return dao.getCompletedDownloadsLiveData()
     }
 
+    suspend fun deleteDownload(id: Long) = withContext(Dispatchers.IO) {
+        dao.deleteById(id)
+    }
+
     fun getActiveAndQueuedCountLiveData(): LiveData<Int> {
         return dao.getActiveAndQueuedCountLiveData()
     }

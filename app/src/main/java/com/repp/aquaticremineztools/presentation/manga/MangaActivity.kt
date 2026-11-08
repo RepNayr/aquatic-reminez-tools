@@ -2,6 +2,7 @@ package com.repp.aquaticremineztools.presentation.manga
 
 import android.content.ClipboardManager
 import android.content.Intent
+import android.net.Uri
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -68,6 +69,8 @@ class MangaActivity : AppCompatActivity() {
     private var popupEmptyStateText: TextView? = null
 
     private var currentActiveDownloads: List<MangaDownloadEntity> = emptyList()
+    private var currentCompletedDownloads: List<MangaDownloadEntity> = emptyList()
+    private var isCompletedTab: Boolean = false
 
     private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -230,8 +233,18 @@ class MangaActivity : AppCompatActivity() {
 
         viewModel.activeDownloads.observe(this) { list ->
             currentActiveDownloads = list
-            popupAdapter?.setItems(list)
-            updatePopupBadgeHeader(list)
+            if (!isCompletedTab) {
+                popupAdapter?.setItems(list)
+                updatePopupBadgeHeader(list)
+            }
+        }
+
+        viewModel.completedDownloads.observe(this) { list ->
+            currentCompletedDownloads = list
+            if (isCompletedTab) {
+                popupAdapter?.setItems(list)
+                updatePopupBadgeHeaderCompleted(list)
+            }
         }
 
         viewModel.activeAndQueuedCount.observe(this) { count ->
@@ -396,21 +409,67 @@ class MangaActivity : AppCompatActivity() {
         popupStatusBadgeText = popupView.findViewById(R.id.tvPopupStatusBadge)
         popupEmptyStateText = popupView.findViewById(R.id.tvPopupEmptyState)
         val rvPopupList = popupView.findViewById<RecyclerView>(R.id.rvDownloadPopupList)
+        val btnTabActive = popupView.findViewById<TextView>(R.id.btnTabActive)
+        val btnTabCompleted = popupView.findViewById<TextView>(R.id.btnTabCompleted)
+
+        btnTabActive.text = "Active (${currentActiveDownloads.size})"
+        btnTabCompleted.text = "Completed (${currentCompletedDownloads.size})"
 
         popupAdapter = MangaDownloadAdapter(
             onCancelClick = { itemToCancel ->
-                viewModel.cancelDownload(itemToCancel.id)
+                if (isCompletedTab) {
+                    viewModel.deleteDownload(itemToCancel.id)
+                } else {
+                    viewModel.cancelDownload(itemToCancel.id)
+                }
             },
             onRetryClick = { itemToRetry ->
                 viewModel.retryDownload(itemToRetry)
                 Toast.makeText(this, "Mencoba mengunduh ulang ${itemToRetry.chapterTitle}", Toast.LENGTH_SHORT).show()
+            },
+            onOpenClick = { entity ->
+                openPdf(entity.pdfPath)
             }
         )
         rvPopupList.layoutManager = LinearLayoutManager(this)
         rvPopupList.adapter = popupAdapter
 
-        popupAdapter?.setItems(currentActiveDownloads)
-        updatePopupBadgeHeader(currentActiveDownloads)
+        fun updateTabStyles() {
+            if (isCompletedTab) {
+                btnTabCompleted.setBackgroundResource(R.drawable.bg_manga_button_dark)
+                btnTabCompleted.setTextColor(Color.parseColor("#FFFDF8"))
+                btnTabActive.setBackgroundResource(R.drawable.bg_manga_button_secondary)
+                btnTabActive.setTextColor(Color.parseColor("#292722"))
+            } else {
+                btnTabActive.setBackgroundResource(R.drawable.bg_manga_button_dark)
+                btnTabActive.setTextColor(Color.parseColor("#FFFDF8"))
+                btnTabCompleted.setBackgroundResource(R.drawable.bg_manga_button_secondary)
+                btnTabCompleted.setTextColor(Color.parseColor("#292722"))
+            }
+        }
+
+        btnTabActive.setOnClickListener {
+            isCompletedTab = false
+            updateTabStyles()
+            popupAdapter?.setItems(currentActiveDownloads)
+            updatePopupBadgeHeader(currentActiveDownloads)
+        }
+
+        btnTabCompleted.setOnClickListener {
+            isCompletedTab = true
+            updateTabStyles()
+            popupAdapter?.setItems(currentCompletedDownloads)
+            updatePopupBadgeHeaderCompleted(currentCompletedDownloads)
+        }
+
+        updateTabStyles()
+        if (isCompletedTab) {
+            popupAdapter?.setItems(currentCompletedDownloads)
+            updatePopupBadgeHeaderCompleted(currentCompletedDownloads)
+        } else {
+            popupAdapter?.setItems(currentActiveDownloads)
+            updatePopupBadgeHeader(currentActiveDownloads)
+        }
 
         btnClose.setOnClickListener {
             popupWindow?.dismiss()
@@ -449,6 +508,10 @@ class MangaActivity : AppCompatActivity() {
     }
 
     private fun updatePopupBadgeHeader(list: List<MangaDownloadEntity>) {
+        if (isCompletedTab) {
+            updatePopupBadgeHeaderCompleted(list)
+            return
+        }
         val activeCount = list.count { it.status == MangaDownloadEntity.STATUS_DOWNLOADING }
         val queuedCount = list.count { it.status == MangaDownloadEntity.STATUS_QUEUED || it.status == MangaDownloadEntity.STATUS_FAILED }
 
@@ -461,5 +524,47 @@ class MangaActivity : AppCompatActivity() {
 
         popupStatusBadgeText?.text = badgeStr
         popupEmptyStateText?.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        popupEmptyStateText?.text = "No active or queued downloads"
+    }
+
+    private fun updatePopupBadgeHeaderCompleted(list: List<MangaDownloadEntity>) {
+        val count = list.size
+        popupStatusBadgeText?.text = "$count COMPLETED"
+        popupEmptyStateText?.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
+        popupEmptyStateText?.text = "No completed downloads yet"
+    }
+
+    private fun openPdf(pdfPath: String?) {
+        if (pdfPath.isNullOrBlank()) {
+            Toast.makeText(this, "File PDF tidak ditemukan.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        try {
+            val uri = Uri.parse(pdfPath)
+            val pfd = try {
+                contentResolver.openFileDescriptor(uri, "r")
+            } catch (e: Exception) {
+                null
+            }
+            if (pfd == null) {
+                Toast.makeText(this, "File PDF sudah dihapus atau URI tidak valid.", Toast.LENGTH_LONG).show()
+                return
+            }
+            pfd.close()
+
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, "application/pdf")
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            val resolveInfo = packageManager.resolveActivity(intent, 0)
+            if (resolveInfo != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Tidak ada aplikasi pembaca PDF yang terinstal.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Gagal membuka PDF: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
     }
 }

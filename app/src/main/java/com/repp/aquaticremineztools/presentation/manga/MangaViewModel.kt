@@ -61,6 +61,7 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
     val sessionState: LiveData<SessionState> = _sessionState
 
     val activeDownloads: LiveData<List<MangaDownloadEntity>> = repository.getActiveAndQueuedLiveData()
+    val completedDownloads: LiveData<List<MangaDownloadEntity>> = repository.getCompletedDownloadsLiveData()
     val activeAndQueuedCount: LiveData<Int> = repository.getActiveAndQueuedCountLiveData()
 
     var currentSeries: MangaSeries? = null
@@ -316,6 +317,12 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
     fun cancelDownload(downloadId: Long) {
         viewModelScope.launch {
             repository.cancelDownload(downloadId)
+        }
+    }
+
+    fun deleteDownload(downloadId: Long) {
+        viewModelScope.launch {
+            repository.deleteDownload(downloadId)
         }
     }
 

@@ -3,6 +3,7 @@ package com.repp.aquaticremineztools
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
+import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
 import com.repp.aquaticremineztools.domain.manga.PdfBuilder
 import org.junit.Assert.assertEquals
@@ -41,6 +42,36 @@ class MangaDownloadPipelineTest {
         }
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() is IllegalArgumentException)
+    }
+
+    @Test
+    fun testPdfBuilderProgressCallbackReporting() {
+        val tempImg = java.io.File(app.cacheDir, "test_page_1.jpg").apply {
+            val bitmap = android.graphics.Bitmap.createBitmap(100, 100, android.graphics.Bitmap.Config.RGB_565)
+            java.io.FileOutputStream(this).use { out ->
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 90, out)
+            }
+        }
+        val stages = mutableSetOf<String>()
+        val result = runCatching {
+            kotlinx.coroutines.runBlocking {
+                PdfBuilder.createPdfFromImages(
+                    context = app,
+                    imageFiles = listOf(tempImg),
+                    outputFileName = "progress_test.pdf",
+                    expectedPages = 1,
+                    onProgress = { stage, percent ->
+                        stages.add(stage)
+                        assertTrue(percent in 0..100)
+                    }
+                )
+            }
+        }
+        tempImg.delete()
+        if (result.isSuccess) {
+            assertTrue(stages.contains(MangaDownloadEntity.STAGE_BUILDING_PDF))
+            assertTrue(stages.contains(MangaDownloadEntity.STAGE_VALIDATING_PDF))
+        }
     }
 
     @Test

@@ -186,7 +186,8 @@ class MangaDownloadWorker(
 
                 for (attempt in 1..2) {
                     try {
-                        bytes = downloadFile(item.id, page.imageUrl, pageFile)
+                        val activePage = pages.find { it.pageIndex == page.pageIndex } ?: page
+                        bytes = downloadFile(item.id, activePage.imageUrl, pageFile)
                         validateDownloadedImage(pageFile)
                         downloadSuccess = true
                         break
@@ -198,13 +199,15 @@ class MangaDownloadWorker(
                         try {
                             val refreshedPages = parser.parsePagesForChapter(item.chapterUrl)
                             val refreshedPage = refreshedPages.find { it.pageIndex == page.pageIndex }
-                            if (refreshedPage != null && refreshedPage.imageUrl != page.imageUrl) {
+                            if (refreshedPage != null) {
                                 val mutablePages = pages.toMutableList()
                                 val idx = mutablePages.indexOfFirst { it.pageIndex == page.pageIndex }
                                 if (idx != -1) {
                                     mutablePages[idx] = refreshedPage
-                                    pages = mutablePages.toList()
+                                } else {
+                                    mutablePages.add(refreshedPage)
                                 }
+                                pages = mutablePages.sortedBy { it.pageIndex }
                             }
                         } catch (_: Exception) {}
                     }
@@ -317,7 +320,7 @@ class MangaDownloadWorker(
 
         call.execute().use { response ->
             if (response.code == 401 || response.code == 403) {
-                throw MangaAuthRequiredException("Akses ditolak (HTTP ${response.code}). Login diperlukan.")
+                throw IOException("Akses gambar ditolak (HTTP ${response.code}). URL mungkin kedaluwarsa.")
             }
             if (!response.isSuccessful) throw IOException("HTTP ${response.code} pada gambar")
             val body = response.body ?: throw IOException("Respons gambar kosong")
