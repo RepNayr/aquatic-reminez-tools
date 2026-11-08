@@ -146,6 +146,16 @@ class MangaRepository(
         MangaDownloadWorker.cancelWorkIfRunning(appContext, id)
     }
 
+    suspend fun retryDownload(entity: MangaDownloadEntity) {
+        val chapter = MangaChapter(
+            title = entity.chapterTitle,
+            chapterUrl = entity.chapterUrl,
+            pageCount = entity.totalPages,
+            orderIndex = 0
+        )
+        enqueueChapter(entity.seriesTitle, chapter)
+    }
+
     fun getActiveAndQueuedLiveData(): LiveData<List<MangaDownloadEntity>> {
         return dao.getActiveAndQueuedLiveData()
     }

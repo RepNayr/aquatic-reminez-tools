@@ -92,4 +92,77 @@ class CrotPediaParserUnitTest {
         assertNotNull(imgElements)
         assertEquals(4, imgElements.size)
     }
+
+    @Test
+    fun testExtractCoverUrlDirect() {
+        val html = """
+            <html><body>
+                <div class="series-thumb"><img src="https://crotpedia.net/wp-content/uploads/poster.jpg" /></div>
+            </body></html>
+        """.trimIndent()
+        val doc = Jsoup.parse(html, "https://crotpedia.net/baca/series/test/")
+        val cover = parser.extractCoverUrl(doc)
+        println("DEBUG_COVER: '$cover'")
+        assertEquals("https://crotpedia.net/wp-content/uploads/poster.jpg", cover)
+    }
+
+    @Test
+    fun testSeriesParserFiltersUnwantedLinksAndCleansDatesAndDeduplicates() {
+        val html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Test Series - CrotPedia</title>
+                <meta property="og:title" content="Test Series" />
+            </head>
+            <body>
+                <div class="series-thumb"><img src="https://crotpedia.net/wp-content/uploads/poster.jpg" /></div>
+                <div class="chapter-list">
+                    <a href="https://crotpedia.net/baca/chapter-1/">Chapter 1November 7, 2026</a>
+                    <a href="https://crotpedia.net/baca/chapter-2">Chapter 2</a>
+                    <a href="https://crotpedia.net/baca/chapter-2/">Chapter 2 (duplicate trailing slash)</a>
+                    <a href="https://crotpedia.net/baca/chapter-10/">Chapter 10</a>
+                    <a href="https://crotpedia.net/baca/chapter-2.5/">Chapter 2.5</a>
+                    <a href="https://crotpedia.net/series/other-series/">Request List</a>
+                    <a href="https://crotpedia.net/tag/ahegao/">Ahegao</a>
+                    <a href="https://crotpedia.net/category/big-breast/">Big Breast</a>
+                    <a href="https://crotpedia.net/baca/request/">Request</a>
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+
+        val doc = Jsoup.parse(html, "https://crotpedia.net/baca/series/test-series/")
+        val series = parser.parseSeriesDoc("https://crotpedia.net/baca/series/test-series/", doc)
+
+        assertEquals("Test Series", series.title)
+        assertEquals("https://crotpedia.net/wp-content/uploads/poster.jpg", series.coverUrl)
+        assertEquals(4, series.chapters.size)
+        assertEquals("Chapter 1", series.chapters[0].title)
+        assertEquals("Chapter 2", series.chapters[1].title)
+        assertEquals("Chapter 2.5", series.chapters[2].title)
+        assertEquals("Chapter 10", series.chapters[3].title)
+    }
+
+    @Test
+    fun testCoverExtractionPrioritizesSeriesThumbOverOgImagePromoBanner() {
+        val html = """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta property="og:image" content="https://crotpedia.net/wp-content/uploads/promo-banner.jpg" />
+            </head>
+            <body>
+                <div class="series-thumb">
+                    <img src="https://crotpedia.net/wp-content/uploads/real-manga-cover.jpg" />
+                </div>
+            </body>
+            </html>
+        """.trimIndent()
+
+        val doc = Jsoup.parse(html, "https://crotpedia.net/baca/series/test/")
+        val coverUrl = parser.extractCoverUrl(doc)
+
+        assertEquals("https://crotpedia.net/wp-content/uploads/real-manga-cover.jpg", coverUrl)
+    }
 }

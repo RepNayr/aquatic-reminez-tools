@@ -17,6 +17,12 @@
             android:orientation="vertical"
             android:padding="20dp">
 
+            <!-- Top Spacer for Window Inset / Status Bar -->
+            <View
+                android:id="@+id/viewTopSpacer"
+                android:layout_width="match_parent"
+                android:layout_height="0dp" />
+
             <!-- Top Header: Back Arrow + Title -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -115,19 +121,23 @@
                 android:indeterminateTint="#292722"
                 android:visibility="gone" />
 
-            <!-- Manga Preview Container -->
+            <!-- Manga Preview Container (Horizontal: Portrait Cover on Left, Title on Right) -->
             <LinearLayout
                 android:id="@+id/cardMangaPreview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:orientation="vertical"
+                android:background="@drawable/bg_manga_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="12dp"
                 android:visibility="gone">
 
+                <!-- Portrait Cover Frame -->
                 <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="200dp"
-                    android:background="@drawable/bg_manga_card">
+                    android:layout_width="100dp"
+                    android:layout_height="140dp"
+                    android:background="@drawable/bg_manga_input">
 
                     <ImageView
                         android:id="@+id/ivCoverPreview"
@@ -141,20 +151,25 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
                         android:fontFamily="@font/times_new_roman_bold"
-                        android:text="COVER PREVIEW"
+                        android:gravity="center"
+                        android:text="COVER"
                         android:textColor="#746D62"
-                        android:textSize="14sp" />
+                        android:textSize="12sp" />
                 </FrameLayout>
 
+                <!-- Manga Title on Right -->
                 <TextView
                     android:id="@+id/tvMangaTitle"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="14dp"
+                    android:layout_marginStart="14dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
                     android:fontFamily="@font/times_new_roman_bold"
+                    android:maxLines="5"
                     android:text="Judul Manga"
                     android:textColor="#292722"
-                    android:textSize="20sp"
+                    android:textSize="18sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
@@ -174,6 +189,8 @@
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="80dp"
                 android:background="@drawable/bg_manga_button_dark"
+                android:backgroundTint="@null"
+                app:backgroundTint="@null"
                 android:fontFamily="@font/times_new_roman_bold"
                 android:text="DOWNLOAD ALL"
                 android:textColor="#FFFDF8"

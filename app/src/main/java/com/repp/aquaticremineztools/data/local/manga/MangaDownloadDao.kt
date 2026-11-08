@@ -25,7 +25,7 @@ interface MangaDownloadDao {
     @Query("SELECT * FROM manga_downloads ORDER BY id ASC")
     fun getAllLiveData(): LiveData<List<MangaDownloadEntity>>
 
-    @Query("SELECT * FROM manga_downloads WHERE status IN ('QUEUED', 'DOWNLOADING') ORDER BY id ASC")
+    @Query("SELECT * FROM manga_downloads WHERE status IN ('QUEUED', 'DOWNLOADING', 'FAILED') ORDER BY id ASC")
     fun getActiveAndQueuedLiveData(): LiveData<List<MangaDownloadEntity>>
 
     @Query("SELECT * FROM manga_downloads WHERE status IN ('COMPLETED', 'COMPLETED_WITH_WARNING') ORDER BY timestamp DESC")

@@ -20,6 +20,8 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -31,6 +33,7 @@ class MangaActivity : AppCompatActivity() {
 
     private val viewModel: MangaViewModel by viewModels()
 
+    private lateinit var viewTopSpacer: View
     private lateinit var btnBack: FrameLayout
     private lateinit var etUrlInput: EditText
     private lateinit var btnPasteUrl: ImageView
@@ -63,6 +66,7 @@ class MangaActivity : AppCompatActivity() {
         setContentView(R.layout.activity_manga)
 
         bindViews()
+        setupWindowInsets()
         setupRecyclerView()
         setupObservers()
         setupListeners()
@@ -70,6 +74,7 @@ class MangaActivity : AppCompatActivity() {
     }
 
     private fun bindViews() {
+        viewTopSpacer = findViewById(R.id.viewTopSpacer)
         btnBack = findViewById(R.id.btnBack)
         etUrlInput = findViewById(R.id.etUrlInput)
         btnPasteUrl = findViewById(R.id.btnPasteUrl)
@@ -87,6 +92,18 @@ class MangaActivity : AppCompatActivity() {
         btnFloatingDownload = findViewById(R.id.btnFloatingDownload)
         tvBadgeCounter = findViewById(R.id.tvBadgeCounter)
         vPopupScrim = findViewById(R.id.vPopupScrim)
+    }
+
+    private fun setupWindowInsets() {
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.rootMangaLayout)) { _, insets ->
+            val statusBarHeight = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top
+            val lp = viewTopSpacer.layoutParams
+            if (lp.height != statusBarHeight) {
+                lp.height = statusBarHeight
+                viewTopSpacer.layoutParams = lp
+            }
+            insets
+        }
     }
 
     private fun setupRecyclerView() {
@@ -228,9 +245,15 @@ class MangaActivity : AppCompatActivity() {
         popupEmptyStateText = popupView.findViewById(R.id.tvPopupEmptyState)
         val rvPopupList = popupView.findViewById<RecyclerView>(R.id.rvDownloadPopupList)
 
-        popupAdapter = MangaDownloadAdapter { itemToCancel ->
-            viewModel.cancelDownload(itemToCancel.id)
-        }
+        popupAdapter = MangaDownloadAdapter(
+            onCancelClick = { itemToCancel ->
+                viewModel.cancelDownload(itemToCancel.id)
+            },
+            onRetryClick = { itemToRetry ->
+                viewModel.retryDownload(itemToRetry)
+                Toast.makeText(this, "Mencoba mengunduh ulang ${itemToRetry.chapterTitle}", Toast.LENGTH_SHORT).show()
+            }
+        )
         rvPopupList.layoutManager = LinearLayoutManager(this)
         rvPopupList.adapter = popupAdapter
 
@@ -275,12 +298,12 @@ class MangaActivity : AppCompatActivity() {
 
     private fun updatePopupBadgeHeader(list: List<MangaDownloadEntity>) {
         val activeCount = list.count { it.status == MangaDownloadEntity.STATUS_DOWNLOADING }
-        val queuedCount = list.count { it.status == MangaDownloadEntity.STATUS_QUEUED }
+        val queuedCount = list.count { it.status == MangaDownloadEntity.STATUS_QUEUED || it.status == MangaDownloadEntity.STATUS_FAILED }
 
         val badgeStr = when {
-            activeCount > 0 && queuedCount > 0 -> "$activeCount ACTIVE · $queuedCount QUEUED"
+            activeCount > 0 && queuedCount > 0 -> "$activeCount ACTIVE · $queuedCount QUEUED/FAILED"
             activeCount > 0 -> "$activeCount ACTIVE"
-            queuedCount > 0 -> "$queuedCount QUEUED"
+            queuedCount > 0 -> "$queuedCount QUEUED/FAILED"
             else -> "NO ACTIVE DOWNLOADS"
         }
 

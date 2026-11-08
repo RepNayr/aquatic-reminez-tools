@@ -12,7 +12,8 @@ import com.repp.aquaticremineztools.data.local.manga.MangaDownloadEntity
 import java.util.Locale
 
 class MangaDownloadAdapter(
-    private val onCancelClick: (MangaDownloadEntity) -> Unit
+    private val onCancelClick: (MangaDownloadEntity) -> Unit,
+    private val onRetryClick: (MangaDownloadEntity) -> Unit
 ) : RecyclerView.Adapter<MangaDownloadAdapter.ViewHolder>() {
 
     private val items = mutableListOf<MangaDownloadEntity>()
@@ -30,7 +31,7 @@ class MangaDownloadAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.bind(item, onCancelClick)
+        holder.bind(item, onCancelClick, onRetryClick)
     }
 
     override fun getItemCount(): Int = items.size
@@ -42,17 +43,28 @@ class MangaDownloadAdapter(
         private val tvInfo: TextView = itemView.findViewById(R.id.tvDownloadItemInfo)
         private val tvPercent: TextView = itemView.findViewById(R.id.tvDownloadItemPercent)
 
-        fun bind(entity: MangaDownloadEntity, onCancelClick: (MangaDownloadEntity) -> Unit) {
+        fun bind(entity: MangaDownloadEntity, onCancelClick: (MangaDownloadEntity) -> Unit, onRetryClick: (MangaDownloadEntity) -> Unit) {
             tvTitle.text = entity.chapterTitle
 
             btnCancel.setOnClickListener {
                 onCancelClick(entity)
             }
 
+            itemView.setOnClickListener {
+                if (entity.status == MangaDownloadEntity.STATUS_FAILED) {
+                    onRetryClick(entity)
+                }
+            }
+
             if (entity.status == MangaDownloadEntity.STATUS_QUEUED) {
                 progressBar.isIndeterminate = true
                 tvPercent.text = "QUEUED"
                 tvInfo.text = "Waiting in queue..."
+            } else if (entity.status == MangaDownloadEntity.STATUS_FAILED) {
+                progressBar.isIndeterminate = false
+                progressBar.progress = 0
+                tvPercent.text = "FAILED"
+                tvInfo.text = entity.errorMessage ?: "Download failed. Tap to retry."
             } else {
                 progressBar.isIndeterminate = false
                 val percent = if (entity.totalPages > 0) {

@@ -111,37 +111,128 @@ class CrotPediaParser(
         return if (!content.isNullOrEmpty()) content else null
     }
 
-    private fun parseSeriesDoc(seriesUrl: String, doc: Document): MangaSeries {
+    internal fun extractCoverUrl(doc: Document): String {
+        val coverSelectors = listOf(
+            ".series-thumb img",
+            ".thumb img",
+            ".book img",
+            ".infox .thumb img",
+            ".post-thumbnail img",
+            "div.thumb img",
+            ".series-info img",
+            "img"
+        )
+        for (selector in coverSelectors) {
+            val img = doc.selectFirst(selector)
+            if (img != null) {
+                val url = extractImageUrlFromElement(doc, img)
+                if (url.isNotEmpty() && !isPlaceholderUrl(url) && !isPromoBannerUrl(url)) {
+                    return url
+                }
+            }
+        }
+
+        val ogImage = extractMetaContent(doc, "og:image")
+        if (!ogImage.isNullOrEmpty() && !isPlaceholderUrl(ogImage) && !isPromoBannerUrl(ogImage)) {
+            return ogImage
+        }
+
+        val generalImg = doc.selectFirst(".entry-content img")
+        if (generalImg != null) {
+            val url = extractImageUrlFromElement(doc, generalImg)
+            if (url.isNotEmpty() && !isPlaceholderUrl(url) && !isPromoBannerUrl(url)) {
+                return url
+            }
+        }
+
+        return ""
+    }
+
+    private fun isPromoBannerUrl(url: String): Boolean {
+        val lower = url.lowercase()
+        return lower.contains("/banner") || lower.contains("/promo") || lower.contains("/advert") || lower.contains("/ads/") ||
+                lower.contains("banner.") || lower.contains("promo.") || lower.contains("advert.") || lower.contains("ads.")
+    }
+
+    private fun canonicalizeChapterUrl(url: String): String {
+        val clean = url.trim()
+        val queryIndex = clean.indexOf('?')
+        val hashIndex = clean.indexOf('#')
+        val cutIndex = when {
+            queryIndex != -1 && hashIndex != -1 -> minOf(queryIndex, hashIndex)
+            queryIndex != -1 -> queryIndex
+            hashIndex != -1 -> hashIndex
+            else -> -1
+        }
+        val mainPath = if (cutIndex != -1) clean.substring(0, cutIndex) else clean
+        val queryAndHash = if (cutIndex != -1) clean.substring(cutIndex) else ""
+
+        val normalizedPath = if (mainPath.endsWith("/") && mainPath.length > 1 && !mainPath.endsWith("://")) {
+            mainPath.dropLast(1)
+        } else {
+            mainPath
+        }
+        return normalizedPath + queryAndHash
+    }
+
+    private fun cleanChapterTitle(title: String): String {
+        var cleaned = title
+        val dateRegex1 = Regex("(?i)(?:January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\s+\\d{1,2},?\\s*\\d{4}")
+        cleaned = dateRegex1.replace(cleaned, "")
+        val dateRegex2 = Regex("\\b\\d{1,2}[/-]\\d{1,2}[/-]\\d{2,4}\\b")
+        cleaned = dateRegex2.replace(cleaned, "")
+        return cleaned.replace(Regex("\\s+"), " ").trim()
+    }
+
+    internal fun parseSeriesDoc(seriesUrl: String, doc: Document): MangaSeries {
         val title = extractMetaContent(doc, "og:title")
             ?: doc.selectFirst(".series-title, h1.entry-title, .post-title")?.text()?.trim()
             ?: doc.title().replace("- CrotPedia", "").trim()
             .ifEmpty { "Judul Manga Tidak Diketahui" }
 
-        val coverUrl = extractMetaContent(doc, "og:image")
-            ?: doc.selectFirst(".series-thumb img, .thumb img, .entry-content img")?.let {
-                resolveUrlCandidate(doc.baseUri(), extractImageUrlFromElement(doc, it))
-            } ?: ""
+        val coverUrl = extractCoverUrl(doc)
 
         val desc = extractMetaContent(doc, "og:description")
             ?: doc.selectFirst(".series-synops, .entry-content p, .synopsis p")?.text()?.trim()
 
-        val chapterElements = doc.select(".chapter-list a, .eplister a, ul.cllist a, div#chapterlist a, .bxcl a")
-        val rawChapters = if (chapterElements.isNotEmpty()) {
-            chapterElements.mapNotNull { element ->
-                val href = element.attr("abs:href").ifEmpty { resolveUrlCandidate(doc.baseUri(), element.attr("href")) }
-                val chTitle = element.text().trim()
-                if (href.isNotEmpty() && chTitle.isNotEmpty() && !href.contains("/series/")) {
-                    href to chTitle
-                } else null
-            }
+        val chapterElements = doc.select(".chapter-list a, .eplister a, ul.cllist a, div#chapterlist a, .bxcl a, .clist ul li a, .episodelist ul li a, .allc a")
+        val candidateElements = if (chapterElements.isNotEmpty()) {
+            chapterElements
         } else {
-            doc.select("a[href*=/baca/]").mapNotNull { element ->
-                val href = element.attr("abs:href").ifEmpty { resolveUrlCandidate(doc.baseUri(), element.attr("href")) }
-                val chTitle = element.text().trim()
-                if (href.isNotEmpty() && !href.contains("/series/") && chTitle.isNotEmpty()) {
-                    href to chTitle
-                } else null
-            }.distinctBy { it.first }
+            doc.select("a[href*=/baca/]")
+        }
+
+        val forbiddenPathKeywords = listOf("/series/", "/tag/", "/category/", "/genre/", "/author/", "/page/", "/search/", "request", "wp-login", "wp-admin", "comment")
+        val forbiddenTitleKeywords = listOf("request list", "request", "ahegao", "big breast", "blowjob", "fingerings", "genre", "tag", "author", "category", "contact", "about", "privacy")
+
+        val rawChapters = mutableListOf<Pair<String, String>>()
+        val seenNormalizedUrls = mutableSetOf<String>()
+
+        candidateElements.forEach { element ->
+            val href = element.attr("abs:href").ifEmpty { resolveUrlCandidate(doc.baseUri(), element.attr("href")) }
+            if (href.isEmpty() || !isAllowedUrl(href)) return@forEach
+
+            val lowerHref = href.lowercase()
+            if (forbiddenPathKeywords.any { lowerHref.contains(it) }) return@forEach
+
+            if (!lowerHref.contains("/baca/") && !lowerHref.matches(Regex(".*-\\d+(?:\\.\\d+)?/?$"))) {
+                return@forEach
+            }
+
+            val clone = element.clone()
+            clone.select("time, .date, .chapter-date, span.date, span.dt, .dt").remove()
+            var chTitle = clone.text().trim()
+
+            chTitle = cleanChapterTitle(chTitle)
+            if (chTitle.isEmpty()) return@forEach
+
+            val lowerTitle = chTitle.lowercase()
+            if (forbiddenTitleKeywords.any { lowerTitle.contains(it) }) return@forEach
+
+            val canonicalUrl = canonicalizeChapterUrl(href)
+            if (seenNormalizedUrls.add(canonicalUrl)) {
+                rawChapters.add(canonicalUrl to chTitle)
+            }
         }
 
         if (rawChapters.isEmpty()) {
@@ -195,7 +286,7 @@ class CrotPediaParser(
         val seriesTitle = doc.selectFirst(".allsub a, .breadcrumb a[href*=/series/]")?.text()?.trim()
             ?: chTitle.replace(Regex("(?i)chapter\\s*\\d+.*"), "").trim().ifEmpty { chTitle }
 
-        val coverUrl = extractMetaContent(doc, "og:image") ?: ""
+        val coverUrl = extractCoverUrl(doc)
         val pages = extractPagesFromChapterDoc(doc)
 
         val chapter = MangaChapter(
@@ -244,12 +335,13 @@ class CrotPediaParser(
 
     private fun extractImageUrlFromElement(doc: Document, img: org.jsoup.nodes.Element): String {
         val attrs = listOf(
-            "abs:src", "data-src", "data-lazy-src", "data-original", "data-lazy", "data-url", "src"
+            "data-src", "data-lazy-src", "data-original", "data-lazy", "data-url", "src"
         )
         for (attr in attrs) {
             val value = img.attr(attr).trim()
             if (value.isNotEmpty() && !isPlaceholderUrl(value)) {
                 val clean = resolveUrlCandidate(doc.baseUri(), value)
+                println("DEBUG_ATTR: $attr = '$value' -> clean = '$clean', isAllowed = ${isAllowedUrl(clean)}")
                 if (clean.isNotEmpty() && isAllowedUrl(clean) && !isPlaceholderUrl(clean)) return clean
             }
         }
@@ -281,17 +373,21 @@ class CrotPediaParser(
     }
 
     private fun resolveUrlCandidate(baseUri: String, url: String): String {
+        val trimmed = url.trim()
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            return trimmed
+        }
+        if (trimmed.startsWith("//")) {
+            return "https:$trimmed"
+        }
         return try {
-            val trimmed = url.trim()
-            if (trimmed.startsWith("//")) {
-                "https:$trimmed"
-            } else if (baseUri.isNotEmpty()) {
+            if (baseUri.isNotEmpty()) {
                 URI(baseUri).resolve(trimmed).toString()
             } else {
                 trimmed
             }
         } catch (e: Exception) {
-            url.trim()
+            trimmed
         }
     }
 

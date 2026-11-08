@@ -69,4 +69,10 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
             repository.cancelDownload(downloadId)
         }
     }
+
+    fun retryDownload(entity: MangaDownloadEntity) {
+        viewModelScope.launch {
+            repository.retryDownload(entity)
+        }
+    }
 }
