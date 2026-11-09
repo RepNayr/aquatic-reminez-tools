@@ -340,9 +340,9 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun compressResult(result: MangaResultEntity) {
+    fun compressResult(result: MangaResultEntity, targetSizeBytes: Long) {
         viewModelScope.launch {
-            repository.compressResult(result)
+            repository.compressResult(result, targetSizeBytes)
         }
     }
 

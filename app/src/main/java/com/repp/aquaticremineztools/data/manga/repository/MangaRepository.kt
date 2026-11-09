@@ -235,7 +235,7 @@ class MangaRepository(
         resultDao.deleteById(id)
     }
 
-    suspend fun compressResult(result: MangaResultEntity) = withContext(Dispatchers.IO) {
+    suspend fun compressResult(result: MangaResultEntity, targetSizeBytes: Long = 20 * 1024 * 1024L) = withContext(Dispatchers.IO) {
         val sanitizeTitle = sanitizeFileName("compressed_${result.seriesTitle}_${result.chapterTitle}.pdf")
         val entity = MangaDownloadEntity(
             seriesTitle = result.seriesTitle,
@@ -243,6 +243,7 @@ class MangaRepository(
             chapterUrl = result.chapterUrl,
             outputFileName = sanitizeTitle,
             totalPages = result.pageCount,
+            totalBytes = targetSizeBytes,
             status = MangaDownloadEntity.STATUS_QUEUED,
             stage = MangaDownloadEntity.STAGE_COMPRESSING_PDF,
             timestamp = System.currentTimeMillis()

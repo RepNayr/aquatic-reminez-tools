@@ -74,11 +74,32 @@ class MangaActivity : AppCompatActivity() {
     private var popupEmptyStateText: TextView? = null
 
     private var currentActiveDownloads: List<MangaDownloadEntity> = emptyList()
+    private var pendingSaveResult: MangaResultEntity? = null
 
     private val loginLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK) {
             viewModel.checkSessionState()
         }
+    }
+
+    private val savePdfLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK && result.data?.data != null) {
+            val targetUri = result.data?.data!!
+            val sourcePath = pendingSaveResult?.pdfPath
+            if (!sourcePath.isNullOrBlank()) {
+                try {
+                    contentResolver.openInputStream(Uri.parse(sourcePath))?.use { input ->
+                        contentResolver.openOutputStream(targetUri, "w")?.use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                    Toast.makeText(this, "PDF berhasil disimpan ke folder pilihan!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(this, "Gagal menyimpan PDF: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        pendingSaveResult = null
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -143,8 +164,12 @@ class MangaActivity : AppCompatActivity() {
         rvChapterList.adapter = chapterAdapter
 
         resultAdapter = MangaResultAdapter(
-            onCompressClick = { result -> showCompressionDialog(result) },
-            onSaveClick = { result -> openPdf(result.pdfPath) },
+            onCompressClick = { result, targetSizeBytes ->
+                viewModel.compressResult(result, targetSizeBytes)
+                Toast.makeText(this, "Pekerjaan kompresi (target ${targetSizeBytes / (1024 * 1024)} MB) ditambahkan ke antrean.", Toast.LENGTH_SHORT).show()
+            },
+            onSaveClick = { result -> savePdf(result) },
+            onOpenClick = { result -> openPdf(result.pdfPath) },
             onRemoveClick = { result -> showRemoveResultDialog(result) }
         )
         rvResultsList.layoutManager = LinearLayoutManager(this)
@@ -391,18 +416,6 @@ class MangaActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showCompressionDialog(result: MangaResultEntity) {
-        AlertDialog.Builder(this)
-            .setTitle("Compress PDF")
-            .setMessage("Mulai proses kompresi untuk ${result.chapterTitle}?")
-            .setPositiveButton("Compress") { _, _ ->
-                viewModel.compressResult(result)
-                Toast.makeText(this, "Pekerjaan kompresi ditambahkan ke antrean.", Toast.LENGTH_SHORT).show()
-            }
-            .setNegativeButton("Batal", null)
-            .show()
-    }
-
     private fun showRemoveResultDialog(result: MangaResultEntity) {
         AlertDialog.Builder(this)
             .setTitle("Hapus Result")
@@ -413,6 +426,20 @@ class MangaActivity : AppCompatActivity() {
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    private fun savePdf(result: MangaResultEntity) {
+        pendingSaveResult = result
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+            addCategory(Intent.CATEGORY_OPENABLE)
+            type = "application/pdf"
+            putExtra(Intent.EXTRA_TITLE, "${result.seriesTitle}_${result.chapterTitle}.pdf".replace(Regex("[^a-zA-Z0-9._-]"), "_"))
+        }
+        try {
+            savePdfLauncher.launch(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Gagal membuka penyimpan file: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onStop() {

@@ -19,6 +19,9 @@ interface MangaResultDao {
     @Query("SELECT * FROM manga_results WHERE id = :id")
     suspend fun getById(id: Long): MangaResultEntity?
 
+    @Query("SELECT * FROM manga_results WHERE chapterUrl = :chapterUrl ORDER BY id DESC LIMIT 1")
+    suspend fun getByChapterUrl(chapterUrl: String): MangaResultEntity?
+
     @Query("SELECT * FROM manga_results ORDER BY timestamp DESC")
     fun getAllResultsLiveData(): LiveData<List<MangaResultEntity>>
 

@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.SeekBar
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.repp.aquaticremineztools.R
@@ -12,8 +13,9 @@ import com.repp.aquaticremineztools.data.local.manga.MangaResultEntity
 import java.util.Locale
 
 class MangaResultAdapter(
-    private val onCompressClick: (MangaResultEntity) -> Unit,
+    private val onCompressClick: (MangaResultEntity, targetSizeBytes: Long) -> Unit,
     private val onSaveClick: (MangaResultEntity) -> Unit,
+    private val onOpenClick: (MangaResultEntity) -> Unit,
     private val onRemoveClick: (MangaResultEntity) -> Unit
 ) : RecyclerView.Adapter<MangaResultAdapter.ViewHolder>() {
 
@@ -32,7 +34,7 @@ class MangaResultAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.bind(item, onCompressClick, onSaveClick, onRemoveClick)
+        holder.bind(item, onCompressClick, onSaveClick, onOpenClick, onRemoveClick)
     }
 
     override fun getItemCount(): Int = items.size
@@ -41,14 +43,21 @@ class MangaResultAdapter(
         private val tvStatusBadge: TextView = itemView.findViewById(R.id.tvResultStatusBadge)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvResultTitle)
         private val tvInfo: TextView = itemView.findViewById(R.id.tvResultInfo)
+        private val tvTargetSizeLabel: TextView = itemView.findViewById(R.id.tvTargetSizeLabel)
+        private val seekBarTargetSize: SeekBar = itemView.findViewById(R.id.seekBarTargetSize)
         private val btnCompress: Button = itemView.findViewById(R.id.btnResultCompress)
         private val btnSave: Button = itemView.findViewById(R.id.btnResultSave)
-        private val btnRemove: ImageView = itemView.findViewById(R.id.btnRemoveResult)
+        private val btnOpen: Button = itemView.findViewById(R.id.btnResultOpen)
+        private val btnRemove: Button = itemView.findViewById(R.id.btnResultRemove)
+        private val btnRemoveTop: ImageView = itemView.findViewById(R.id.btnRemoveResultTop)
+
+        private var selectedTargetMb: Int = 20
 
         fun bind(
             result: MangaResultEntity,
-            onCompressClick: (MangaResultEntity) -> Unit,
+            onCompressClick: (MangaResultEntity, Long) -> Unit,
             onSaveClick: (MangaResultEntity) -> Unit,
+            onOpenClick: (MangaResultEntity) -> Unit,
             onRemoveClick: (MangaResultEntity) -> Unit
         ) {
             tvTitle.text = if (result.seriesTitle.isNotBlank()) "${result.seriesTitle} - ${result.chapterTitle}" else result.chapterTitle
@@ -64,12 +73,41 @@ class MangaResultAdapter(
                 else -> result.status
             }
 
-            btnCompress.isEnabled = result.status != MangaResultEntity.STATUS_COMPRESSING
-            btnCompress.text = if (result.status == MangaResultEntity.STATUS_COMPRESSING) "COMPRESSING..." else "COMPRESS"
+            val isCompressing = result.status == MangaResultEntity.STATUS_COMPRESSING
 
-            btnCompress.setOnClickListener { onCompressClick(result) }
+            // Configure SeekBar (10 MB to 100 MB: progress 0 = 10, progress 90 = 100)
+            seekBarTargetSize.progress = (selectedTargetMb - 10).coerceIn(0, 90)
+            tvTargetSizeLabel.text = "$selectedTargetMb MB"
+
+            seekBarTargetSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    selectedTargetMb = progress + 10
+                    tvTargetSizeLabel.text = "$selectedTargetMb MB"
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+
+            // Set enabled & alpha state for COMPRESSING
+            val alpha = if (isCompressing) 0.5f else 1.0f
+            itemView.alpha = alpha
+
+            btnCompress.isEnabled = !isCompressing
+            btnSave.isEnabled = !isCompressing
+            btnOpen.isEnabled = !isCompressing
+            btnRemove.isEnabled = !isCompressing
+            btnRemoveTop.isEnabled = !isCompressing
+            seekBarTargetSize.isEnabled = !isCompressing
+
+            btnCompress.text = if (isCompressing) "COMPRESSING..." else "COMPRESS"
+
+            btnCompress.setOnClickListener {
+                onCompressClick(result, selectedTargetMb.toLong() * 1024L * 1024L)
+            }
             btnSave.setOnClickListener { onSaveClick(result) }
+            btnOpen.setOnClickListener { onOpenClick(result) }
             btnRemove.setOnClickListener { onRemoveClick(result) }
+            btnRemoveTop.setOnClickListener { onRemoveClick(result) }
         }
     }
 }

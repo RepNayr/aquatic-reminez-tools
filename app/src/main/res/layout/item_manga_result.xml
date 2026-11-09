@@ -25,7 +25,7 @@
             android:paddingVertical="2dp"
             android:text="NOT COMPLETED"
             android:textColor="#FFFDF8"
-            android:textSize="10sp"
+            android:textSize="11sp"
             android:textStyle="bold" />
 
         <TextView
@@ -42,13 +42,14 @@
             android:textSize="14sp" />
 
         <ImageView
-            android:id="@+id/btnRemoveResult"
-            android:layout_width="22dp"
-            android:layout_height="22dp"
+            android:id="@+id/btnRemoveResultTop"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:contentDescription="Remove"
             android:src="@drawable/ic_close"
             app:tint="#746D62" />
     </LinearLayout>
@@ -64,15 +65,60 @@
         android:textColor="#746D62"
         android:textSize="12sp" />
 
-    <!-- Row 3: Action Buttons (Compress, Save) -->
+    <!-- Row 3: Compression Size Slider Layout -->
     <LinearLayout
+        android:id="@+id/layoutCompressionSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="10dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="@font/times_new_roman_regular"
+                android:text="Target Compress Size:"
+                android:textColor="#746D62"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvTargetSizeLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/times_new_roman_bold"
+                android:text="20 MB"
+                android:textColor="#292722"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <SeekBar
+            android:id="@+id/seekBarTargetSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="90"
+            android:progress="10"
+            android:progressTint="#292722"
+            android:thumbTint="#292722" />
+    </LinearLayout>
+
+    <!-- Row 4: 4 Action Buttons (Compress, Save, Open, Remove) -->
+    <LinearLayout
+        android:id="@+id/layoutActionButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/btnResultCompress"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_weight="1"
@@ -82,22 +128,55 @@
             android:fontFamily="@font/times_new_roman_bold"
             android:text="COMPRESS"
             android:textColor="#FFFDF8"
-            android:textSize="12sp"
+            android:textSize="10sp"
             android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnResultSave"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="0dp"
             android:layout_height="38dp"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="4dp"
             android:background="@drawable/bg_manga_button_secondary"
             android:backgroundTint="@null"
             app:backgroundTint="@null"
             android:fontFamily="@font/times_new_roman_bold"
-            android:text="SAVE / OPEN"
+            android:text="SAVE"
             android:textColor="#292722"
-            android:textSize="12sp"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnResultOpen"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_manga_button_secondary"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="OPEN"
+            android:textColor="#292722"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnResultRemove"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="0dp"
+            android:layout_height="38dp"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:background="@drawable/bg_manga_button_secondary"
+            android:backgroundTint="@null"
+            app:backgroundTint="@null"
+            android:fontFamily="@font/times_new_roman_bold"
+            android:text="REMOVE"
+            android:textColor="#A83232"
+            android:textSize="10sp"
             android:textStyle="bold" />
     </LinearLayout>
 
