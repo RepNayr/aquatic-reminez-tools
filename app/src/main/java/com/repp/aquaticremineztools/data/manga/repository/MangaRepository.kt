@@ -247,6 +247,7 @@ class MangaRepository(
             totalBytes = targetSizeBytes,
             status = MangaDownloadEntity.STATUS_QUEUED,
             stage = MangaDownloadEntity.STAGE_COMPRESSING_PDF,
+            pdfPath = result.pdfPath,
             timestamp = System.currentTimeMillis()
         )
         dao.insert(entity)

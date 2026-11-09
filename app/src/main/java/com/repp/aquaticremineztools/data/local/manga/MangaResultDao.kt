@@ -22,6 +22,9 @@ interface MangaResultDao {
     @Query("SELECT * FROM manga_results WHERE chapterUrl = :chapterUrl ORDER BY id DESC LIMIT 1")
     suspend fun getByChapterUrl(chapterUrl: String): MangaResultEntity?
 
+    @Query("SELECT * FROM manga_results WHERE chapterUrl = :rawUrl OR chapterUrl = :urlWithoutSlash OR chapterUrl = :urlWithSlash ORDER BY id DESC LIMIT 1")
+    suspend fun getByUrl(rawUrl: String, urlWithoutSlash: String, urlWithSlash: String): MangaResultEntity?
+
     @Query("SELECT * FROM manga_results ORDER BY timestamp DESC")
     fun getAllResultsLiveData(): LiveData<List<MangaResultEntity>>
 

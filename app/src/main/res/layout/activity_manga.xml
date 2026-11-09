@@ -333,8 +333,7 @@
             android:layout_width="28dp"
             android:layout_height="28dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_cloud_download"
-            app:tint="#FFFDF8" />
+            android:src="@drawable/ic_cloud_download" />
 
         <!-- Counter Badge -->
         <TextView

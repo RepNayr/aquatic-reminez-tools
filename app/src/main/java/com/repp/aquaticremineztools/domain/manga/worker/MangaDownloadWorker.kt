@@ -330,20 +330,28 @@ class MangaDownloadWorker(
         dao.updateStageProgress(item.id, MangaDownloadEntity.STAGE_BUILDING_PDF, 0)
         showForegroundNotification("Compressing PDF", item.chapterTitle)
 
-        val resultId = item.id // or passed via chapterUrl/outputFileName
-        // Let's find result by chapterUrl or outputFileName if needed, or pass resultId in chapterUrl or similar.
-        // Even better, let's store resultId or query latest result for this chapterUrl.
-        val resultEntity = resultDao.getAllResultsLiveData().value?.find { it.chapterUrl == item.chapterUrl }
-            ?: resultDao.getAllResultsLiveData().value?.firstOrNull()
+        val (urlWithoutSlash, urlWithSlash) = getUrlVariants(item.chapterUrl)
+        val resultEntity = resultDao.getByUrl(item.chapterUrl, urlWithoutSlash, urlWithSlash)
+            ?: resultDao.getByChapterUrl(item.chapterUrl)
 
-        if (resultEntity == null) {
+        val sourcePdfPath = if (!item.pdfPath.isNullOrBlank()) {
+            item.pdfPath
+        } else {
+            resultEntity?.pdfPath
+        }
+
+        if (sourcePdfPath.isNullOrBlank()) {
             dao.markFailedIfDownloading(item.id, "Result PDF tidak ditemukan untuk kompresi.")
             return
         }
 
-        resultDao.updateStatus(resultEntity.id, MangaResultEntity.STATUS_COMPRESSING)
+        val targetResultId = resultEntity?.id
+        if (targetResultId != null) {
+            resultDao.updateStatus(targetResultId, MangaResultEntity.STATUS_COMPRESSING)
+        }
 
-        val sourceUri = Uri.parse(resultEntity.pdfPath)
+        val targetSizeBytes = if (item.totalBytes > 0) item.totalBytes else 20 * 1024 * 1024L
+        val sourceUri = Uri.parse(sourcePdfPath)
         val sourceFile = File(applicationContext.cacheDir, "source_compress_${System.currentTimeMillis()}.pdf")
         try {
             applicationContext.contentResolver.openInputStream(sourceUri)?.use { input ->
@@ -358,7 +366,7 @@ class MangaDownloadWorker(
                 outputFileName = item.outputFileName,
                 quality = 75,
                 maxDimension = 1400,
-                maxSizeBytes = 20 * 1024 * 1024L,
+                maxSizeBytes = targetSizeBytes,
                 isCancelledCheck = {
                     isStopped || dao.getById(item.id)?.status == MangaDownloadEntity.STATUS_CANCELLED
                 },
@@ -367,26 +375,30 @@ class MangaDownloadWorker(
                 }
             )
 
-            resultDao.updatePdfResult(
-                id = resultEntity.id,
-                pdfPath = compressResult.pdfUriString,
-                sizeBytes = compressResult.sizeBytes,
-                status = MangaResultEntity.STATUS_COMPLETED,
-                errorMessage = compressResult.warningMessage
-            )
+            if (targetResultId != null) {
+                resultDao.updatePdfResult(
+                    id = targetResultId,
+                    pdfPath = compressResult.pdfUriString,
+                    sizeBytes = compressResult.sizeBytes,
+                    status = MangaResultEntity.STATUS_COMPLETED,
+                    errorMessage = compressResult.warningMessage
+                )
+            }
 
             dao.markCompletedIfDownloading(
                 id = item.id,
                 finalStatus = MangaDownloadEntity.STATUS_COMPLETED,
-                totalPages = resultEntity.pageCount,
-                downloadedPages = resultEntity.pageCount,
+                totalPages = item.totalPages,
+                downloadedPages = item.totalPages,
                 bytes = compressResult.sizeBytes,
                 totalBytes = compressResult.sizeBytes,
                 pdfPath = compressResult.pdfUriString,
                 warningMessage = compressResult.warningMessage
             )
         } catch (e: Exception) {
-            resultDao.updateStatus(resultEntity.id, MangaResultEntity.STATUS_FAILED, e.localizedMessage ?: "Kompresi gagal")
+            if (targetResultId != null) {
+                resultDao.updateStatus(targetResultId, MangaResultEntity.STATUS_FAILED, e.localizedMessage ?: "Kompresi gagal")
+            }
             dao.markFailedIfDownloading(item.id, e.localizedMessage ?: "Kompresi gagal")
             throw e
         } finally {
@@ -394,6 +406,17 @@ class MangaDownloadWorker(
                 sourceFile.delete()
             }
         }
+    }
+
+    private fun getUrlVariants(url: String): Pair<String, String> {
+        val clean = url.trim()
+        val pathWithoutSlash = if (clean.endsWith("/") && clean.length > 1 && !clean.endsWith("://")) {
+            clean.dropLast(1)
+        } else {
+            clean
+        }
+        val pathWithSlash = "$pathWithoutSlash/"
+        return pathWithoutSlash to pathWithSlash
     }
 
     private fun downloadFile(itemId: Long, url: String, destFile: File): Long {
