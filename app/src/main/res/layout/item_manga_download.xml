@@ -42,12 +42,13 @@
 
         <ImageView
             android:id="@+id/btnCancelItem"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:padding="6dp"
             android:src="@drawable/ic_close"
             app:tint="#292722" />
     </LinearLayout>

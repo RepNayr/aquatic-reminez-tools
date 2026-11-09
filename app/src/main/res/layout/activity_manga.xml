@@ -102,6 +102,25 @@
                             android:visibility="gone" />
                     </LinearLayout>
                 </LinearLayout>
+
+                <!-- Profile / Login Action Button -->
+                <FrameLayout
+                    android:id="@+id/btnProfileLogin"
+                    android:layout_width="38dp"
+                    android:layout_height="38dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_manga_button_secondary"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="Profile Login"
+                        android:src="@drawable/ic_security"
+                        app:tint="#292722" />
+                </FrameLayout>
             </LinearLayout>
 
             <!-- URL Input Box -->

@@ -46,8 +46,9 @@ class MangaDownloadWorker(
 
     private val okHttpClient = OkHttpClient.Builder()
         .cookieJar(CrotPediaCookieJar(context))
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
         .followRedirects(true)
         .build()
     private val parser = CrotPediaParser(okHttpClient)

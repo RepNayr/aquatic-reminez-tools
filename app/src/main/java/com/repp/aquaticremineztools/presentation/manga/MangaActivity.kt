@@ -41,6 +41,7 @@ class MangaActivity : AppCompatActivity() {
     private lateinit var viewTopSpacer: View
     private lateinit var btnBack: FrameLayout
     private lateinit var btnAuthIndicator: View
+    private lateinit var btnProfileLogin: View
     private lateinit var tvAuthLabel: TextView
     private lateinit var tvAuthTime: TextView
 
@@ -118,6 +119,7 @@ class MangaActivity : AppCompatActivity() {
         viewTopSpacer = findViewById(R.id.viewTopSpacer)
         btnBack = findViewById(R.id.btnBack)
         btnAuthIndicator = findViewById(R.id.btnAuthIndicator)
+        btnProfileLogin = findViewById(R.id.btnProfileLogin)
         tvAuthLabel = findViewById(R.id.tvAuthLabel)
         tvAuthTime = findViewById(R.id.tvAuthTime)
 
@@ -323,6 +325,10 @@ class MangaActivity : AppCompatActivity() {
                     loginLauncher.launch(Intent(this, CrotPediaLoginActivity::class.java))
                 }
             }
+        }
+
+        btnProfileLogin.setOnClickListener {
+            loginLauncher.launch(Intent(this, CrotPediaLoginActivity::class.java))
         }
 
         btnPasteUrl.setOnClickListener {
