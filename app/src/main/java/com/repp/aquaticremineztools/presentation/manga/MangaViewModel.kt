@@ -74,6 +74,13 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         checkSessionState()
+        clearResultsOnStart()
+    }
+
+    fun clearResultsOnStart() {
+        viewModelScope.launch {
+            repository.clearAllResults()
+        }
     }
 
     fun checkSessionState() {

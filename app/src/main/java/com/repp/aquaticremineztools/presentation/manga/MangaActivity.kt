@@ -506,9 +506,12 @@ class MangaActivity : AppCompatActivity() {
             popupWindow?.dismiss()
         }
 
+        val screenWidth = resources.displayMetrics.widthPixels
+        val popupWidth = (screenWidth - 48).coerceAtLeast(280)
+
         popupWindow = PopupWindow(
             popupView,
-            ViewGroup.LayoutParams.WRAP_CONTENT,
+            popupWidth,
             ViewGroup.LayoutParams.WRAP_CONTENT,
             true
         ).apply {
@@ -523,16 +526,15 @@ class MangaActivity : AppCompatActivity() {
         vPopupScrim.visibility = View.VISIBLE
 
         popupView.measure(
-            View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.widthPixels - 32, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(popupWidth, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.heightPixels / 2, View.MeasureSpec.AT_MOST)
         )
 
-        val popupWidth = popupView.measuredWidth
         val popupHeight = popupView.measuredHeight
 
         val location = IntArray(2)
         btnFloatingDownload.getLocationOnScreen(location)
-        val xPos = location[0].coerceIn(16, resources.displayMetrics.widthPixels - popupWidth - 16)
+        val xPos = (screenWidth - popupWidth) / 2
         val yPos = (location[1] - popupHeight - 16).coerceAtLeast(16)
 
         popupWindow?.showAtLocation(btnFloatingDownload, Gravity.NO_GRAVITY, xPos, yPos)
@@ -559,17 +561,19 @@ class MangaActivity : AppCompatActivity() {
         if (!window.isShowing) return
         val contentView = window.contentView ?: return
 
+        val screenWidth = resources.displayMetrics.widthPixels
+        val popupWidth = (screenWidth - 48).coerceAtLeast(280)
+
         contentView.measure(
-            View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.widthPixels - 32, View.MeasureSpec.AT_MOST),
+            View.MeasureSpec.makeMeasureSpec(popupWidth, View.MeasureSpec.EXACTLY),
             View.MeasureSpec.makeMeasureSpec(resources.displayMetrics.heightPixels / 2, View.MeasureSpec.AT_MOST)
         )
 
-        val popupWidth = contentView.measuredWidth
         val popupHeight = contentView.measuredHeight
 
         val location = IntArray(2)
         btnFloatingDownload.getLocationOnScreen(location)
-        val xPos = location[0].coerceIn(16, resources.displayMetrics.widthPixels - popupWidth - 16)
+        val xPos = (screenWidth - popupWidth) / 2
         val yPos = (location[1] - popupHeight - 16).coerceAtLeast(16)
 
         window.update(xPos, yPos, popupWidth, popupHeight)

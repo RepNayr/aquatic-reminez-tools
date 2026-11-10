@@ -218,8 +218,19 @@ object PdfBuilder {
             onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, 45)
 
             // Multi-pass iterative reduction to reliably achieve target maxSizeBytes
-            val qualities = listOf(requestedQuality, 70, 55, 40, 28)
-            val maxDimensions = listOf(requestedMaxDimension, 1300, 1000, 800, 650)
+            val sourceSizeBytes = sourcePdfFile.length()
+            val ratio = if (sourceSizeBytes > 0L) maxSizeBytes.toDouble() / sourceSizeBytes.toDouble() else 0.5
+
+            val qualities = when {
+                ratio >= 0.70 -> listOf(88, 80, 70, 58, 45)
+                ratio >= 0.45 -> listOf(80, 70, 55, 42, 30)
+                else -> listOf(70, 55, 40, 30, 22)
+            }
+            val maxDimensions = when {
+                ratio >= 0.70 -> listOf(1700, 1500, 1300, 1000, 800)
+                ratio >= 0.45 -> listOf(1500, 1300, 1100, 900, 700)
+                else -> listOf(1300, 1100, 900, 750, 600)
+            }
 
             for (pass in qualities.indices) {
                 coroutineContext.ensureActive()

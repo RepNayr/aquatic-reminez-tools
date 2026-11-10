@@ -236,6 +236,10 @@ class MangaRepository(
         resultDao.deleteById(id)
     }
 
+    suspend fun clearAllResults() = withContext(Dispatchers.IO) {
+        resultDao.deleteAllResults()
+    }
+
     suspend fun compressResult(result: MangaResultEntity, targetSizeBytes: Long = 20 * 1024 * 1024L) = withContext(Dispatchers.IO) {
         val sanitizeTitle = sanitizeFileName("compressed_${result.seriesTitle}_${result.chapterTitle}.pdf")
         val entity = MangaDownloadEntity(

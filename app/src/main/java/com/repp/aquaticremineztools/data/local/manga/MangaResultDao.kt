@@ -36,4 +36,7 @@ interface MangaResultDao {
 
     @Query("DELETE FROM manga_results WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM manga_results")
+    suspend fun deleteAllResults()
 }
