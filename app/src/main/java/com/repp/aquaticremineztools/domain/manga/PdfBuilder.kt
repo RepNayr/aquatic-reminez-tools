@@ -222,14 +222,14 @@ object PdfBuilder {
             val ratio = if (sourceSizeBytes > 0L) maxSizeBytes.toDouble() / sourceSizeBytes.toDouble() else 0.5
 
             val qualities = when {
-                ratio >= 0.70 -> listOf(88, 80, 70, 58, 45)
-                ratio >= 0.45 -> listOf(80, 70, 55, 42, 30)
-                else -> listOf(70, 55, 40, 30, 22)
+                ratio >= 0.70 -> listOf(92, 87, 82, 77, 72, 65, 55)
+                ratio >= 0.45 -> listOf(84, 78, 72, 65, 55, 45, 35)
+                else -> listOf(75, 65, 55, 45, 35, 28, 20)
             }
             val maxDimensions = when {
-                ratio >= 0.70 -> listOf(1700, 1500, 1300, 1000, 800)
-                ratio >= 0.45 -> listOf(1500, 1300, 1100, 900, 700)
-                else -> listOf(1300, 1100, 900, 750, 600)
+                ratio >= 0.70 -> listOf(1800, 1700, 1600, 1500, 1400, 1250, 1100)
+                ratio >= 0.45 -> listOf(1600, 1450, 1300, 1150, 1000, 850, 700)
+                else -> listOf(1400, 1200, 1050, 900, 750, 600, 500)
             }
 
             for (pass in qualities.indices) {

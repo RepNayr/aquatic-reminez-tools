@@ -182,11 +182,11 @@ class MangaRepository(
                 if (existing != null) {
                     when (existing.status) {
                         MangaDownloadEntity.STATUS_QUEUED,
-                        MangaDownloadEntity.STATUS_DOWNLOADING,
-                        MangaDownloadEntity.STATUS_COMPLETED,
-                        MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING -> {
+                        MangaDownloadEntity.STATUS_DOWNLOADING -> {
                             false
                         }
+                        MangaDownloadEntity.STATUS_COMPLETED,
+                        MangaDownloadEntity.STATUS_COMPLETED_WITH_WARNING,
                         MangaDownloadEntity.STATUS_FAILED,
                         MangaDownloadEntity.STATUS_CANCELLED -> {
                             val updated = existing.copy(
@@ -200,6 +200,8 @@ class MangaRepository(
                                 downloadedBytes = 0L,
                                 downloadSpeedBps = 0L,
                                 status = MangaDownloadEntity.STATUS_QUEUED,
+                                stage = MangaDownloadEntity.STAGE_DOWNLOADING_IMAGES,
+                                stageProgress = 0,
                                 timestamp = System.currentTimeMillis(),
                                 lastHeartbeatAt = 0L,
                                 pdfPath = null,

@@ -118,13 +118,12 @@ class MangaRegressionTest {
             warningMessage = null
         )
 
-        // COMPLETED rejects duplicate enqueue
-        assertFalse(repository.enqueueChapter("Series A", ch))
+        // COMPLETED allows re-downloading per user request
+        assertTrue(repository.enqueueChapter("Series A", ch))
 
-        // Completed history preserved
-        val completedItem = dao.getById(retriedItem.id)!!
-        assertEquals(MangaDownloadEntity.STATUS_COMPLETED, completedItem.status)
-        assertEquals("file://test.pdf", completedItem.pdfPath)
+        // Re-enqueued item resets to QUEUED
+        val reEnqueuedItem = dao.getById(retriedItem.id)!!
+        assertEquals(MangaDownloadEntity.STATUS_QUEUED, reEnqueuedItem.status)
     }
 
     @Test
