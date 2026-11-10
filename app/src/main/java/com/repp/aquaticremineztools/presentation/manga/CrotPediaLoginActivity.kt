@@ -42,8 +42,9 @@ class CrotPediaLoginActivity : AppCompatActivity() {
     private val okHttpClient by lazy {
         OkHttpClient.Builder()
             .cookieJar(CrotPediaCookieJar(this))
-            .connectTimeout(15, TimeUnit.SECONDS)
-            .readTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .followRedirects(true)
             .build()
     }
@@ -58,7 +59,7 @@ class CrotPediaLoginActivity : AppCompatActivity() {
         setupListeners()
         setupBackPressHandler()
 
-        webViewCrotPedia.loadUrl(loginUrl)
+        loadUrlViaOkHttp(loginUrl)
     }
 
     private fun bindViews() {
@@ -97,6 +98,12 @@ class CrotPediaLoginActivity : AppCompatActivity() {
         cookieManager.setAcceptThirdPartyCookies(webViewCrotPedia, true)
 
         webViewCrotPedia.webViewClient = object : WebViewClient() {
+            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                val url = request?.url?.toString() ?: return false
+                loadUrlViaOkHttp(url)
+                return true
+            }
+
             override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
                 super.onPageStarted(view, url, favicon)
                 pbWebViewLoading.visibility = View.VISIBLE
@@ -114,7 +121,55 @@ class CrotPediaLoginActivity : AppCompatActivity() {
                 super.onReceivedError(view, request, error)
                 if (request?.isForMainFrame == true) {
                     pbWebViewLoading.visibility = View.GONE
-                    Toast.makeText(this@CrotPediaLoginActivity, "Gagal memuat halaman. Silakan tekan Retry.", Toast.LENGTH_SHORT).show()
+                    val failingUrl = request.url?.toString() ?: loginUrl
+                    loadUrlViaOkHttp(failingUrl)
+                }
+            }
+        }
+    }
+
+    private fun loadUrlViaOkHttp(url: String) {
+        pbWebViewLoading.visibility = View.VISIBLE
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val request = Request.Builder()
+                    .url(url)
+                    .header("User-Agent", CrotPediaParser.MOBILE_USER_AGENT)
+                    .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                    .header("Accept-Language", "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7")
+                    .header("Referer", "https://crotpedia.net/")
+                    .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+                    .header("Sec-Ch-Ua-Mobile", "?1")
+                    .header("Sec-Ch-Ua-Platform", "\"Android\"")
+                    .header("Sec-Fetch-Dest", "document")
+                    .header("Sec-Fetch-Mode", "navigate")
+                    .header("Sec-Fetch-Site", "same-origin")
+                    .header("Sec-Fetch-User", "?1")
+                    .header("Upgrade-Insecure-Requests", "1")
+                    .build()
+
+                okHttpClient.newCall(request).execute().use { response ->
+                    val html = response.body?.string() ?: ""
+                    val finalUrl = response.request.url.toString()
+
+                    val cookieManager = CookieManager.getInstance()
+                    response.headers("Set-Cookie").forEach { cookieHeader ->
+                        cookieManager.setCookie(finalUrl, cookieHeader)
+                    }
+                    cookieManager.flush()
+
+                    withContext(Dispatchers.Main) {
+                        pbWebViewLoading.visibility = View.GONE
+                        webViewCrotPedia.loadDataWithBaseURL(finalUrl, html, "text/html", "UTF-8", finalUrl)
+                        if (CrotPediaSessionStore.isAllowedCookieHost(android.net.Uri.parse(finalUrl).host)) {
+                            checkLoginSuccess(finalUrl)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    pbWebViewLoading.visibility = View.GONE
+                    Toast.makeText(this@CrotPediaLoginActivity, "Gagal memuat: ${e.localizedMessage}. Tekan Retry.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -127,7 +182,7 @@ class CrotPediaLoginActivity : AppCompatActivity() {
         }
 
         btnWebViewRetry.setOnClickListener {
-            webViewCrotPedia.reload()
+            loadUrlViaOkHttp(loginUrl)
         }
     }
 
