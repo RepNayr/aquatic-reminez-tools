@@ -11,6 +11,7 @@ import com.repp.aquaticremineztools.data.manga.model.MangaChapter
 import com.repp.aquaticremineztools.data.manga.model.MangaSeries
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
+import com.repp.aquaticremineztools.data.manga.source.SessionValidationResult
 import com.repp.aquaticremineztools.domain.manga.worker.MangaDownloadWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -50,19 +51,19 @@ class MangaRepository(
         parser.parsePagesForChapter(chapterUrl)
     }
 
-    suspend fun validateSession(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun validateSessionResult(): SessionValidationResult = withContext(Dispatchers.IO) {
         if (!CrotPediaSessionStore.isLoggedIn(appContext)) {
-            return@withContext false
+            return@withContext SessionValidationResult.Unauthenticated("No saved session")
         }
 
         val request = Request.Builder()
             .url("https://crotpedia.net/")
-            .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+            .header("User-Agent", CrotPediaParser.MOBILE_USER_AGENT)
             .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
             .header("Accept-Language", "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7")
             .header("Referer", "https://crotpedia.net/")
             .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
-            .header("Sec-Ch-Ua-Mobile", "?0")
+            .header("Sec-Ch-Ua-Mobile", "?1")
             .header("Sec-Ch-Ua-Platform", "\"Android\"")
             .header("Sec-Fetch-Dest", "document")
             .header("Sec-Fetch-Mode", "navigate")
@@ -71,23 +72,52 @@ class MangaRepository(
             .header("Upgrade-Insecure-Requests", "1")
             .build()
 
+        val startTime = System.currentTimeMillis()
         try {
             okHttpClient.newCall(request).execute().use { response ->
-                if (response.code == 401 || response.code == 403) {
-                    return@withContext false
-                }
-                val html = response.body?.string() ?: ""
+                val latency = System.currentTimeMillis() - startTime
+                val code = response.code
                 val finalUrl = response.request.url.toString()
+                android.util.Log.d("CrotPediaDiag", "validateSession: code=$code, latency=${latency}ms, url=$finalUrl")
+
+                if (code == 401) {
+                    return@withContext SessionValidationResult.Unauthenticated("HTTP 401")
+                }
+                if (code == 403) {
+                    return@withContext SessionValidationResult.AccessDenied(403)
+                }
+
+                val html = response.body?.string() ?: ""
+                val lowerHtml = html.lowercase()
+                if (lowerHtml.contains("just a moment") || lowerHtml.contains("attention required") || lowerHtml.contains("cf-mitigated")) {
+                    return@withContext SessionValidationResult.ChallengeRequired
+                }
+
                 val isLoginPage = finalUrl.contains("/login") || finalUrl.contains("/signin")
                 val hasLoginForm = html.contains("form[action*=/login]") || html.contains("input[name=log]") || html.contains("id=\"loginform\"")
 
                 if (isLoginPage || hasLoginForm) {
-                    return@withContext false
+                    return@withContext SessionValidationResult.Unauthenticated("Login redirect or form detected")
                 }
-                response.isSuccessful
+
+                if (response.isSuccessful) {
+                    SessionValidationResult.Valid
+                } else {
+                    SessionValidationResult.NetworkError(IOException("HTTP $code"))
+                }
             }
         } catch (e: Exception) {
-            throw IOException("Network connection failed during session validation", e)
+            android.util.Log.e("CrotPediaDiag", "validateSession network error: ${e.message}")
+            SessionValidationResult.NetworkError(e)
+        }
+    }
+
+    suspend fun validateSession(): Boolean = withContext(Dispatchers.IO) {
+        when (validateSessionResult()) {
+            is SessionValidationResult.Valid,
+            is SessionValidationResult.AccessDenied,
+            is SessionValidationResult.ChallengeRequired -> true
+            else -> false
         }
     }
 

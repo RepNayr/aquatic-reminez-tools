@@ -7,7 +7,6 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import java.util.Collections
-import java.util.concurrent.ConcurrentHashMap
 
 class CrotPediaCookieJar(context: Context) : CookieJar {
 
@@ -29,7 +28,6 @@ class CrotPediaCookieJar(context: Context) : CookieJar {
             }
             cookieManager.flush()
 
-            // Also capture all cookies for crotpedia.net from CookieManager and save to session store
             val allCookies = cookieManager.getCookie(urlString)
             if (!allCookies.isNullOrBlank()) {
                 CrotPediaSessionStore.saveSession(appContext, allCookies)
@@ -48,8 +46,12 @@ class CrotPediaCookieJar(context: Context) : CookieJar {
             cookieManager.setAcceptCookie(true)
 
             val urlString = url.toString()
-            val cookiesHeader = cookieManager.getCookie(urlString)
-                ?: CrotPediaSessionStore.getSavedCookies(appContext)
+            val managerCookies = cookieManager.getCookie(urlString)
+            val cookiesHeader = if (!managerCookies.isNullOrBlank()) {
+                managerCookies
+            } else {
+                CrotPediaSessionStore.getSavedCookies(appContext)
+            }
 
             if (!cookiesHeader.isNullOrBlank()) {
                 val cookiePairs = cookiesHeader.split(";")

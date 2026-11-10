@@ -24,8 +24,9 @@ class CrotPediaParser(
 ) {
 
     companion object {
-        private const val USER_AGENT =
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        const val MOBILE_USER_AGENT =
+            "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        private const val USER_AGENT = MOBILE_USER_AGENT
 
         private val CHAPTER_NUM_PATTERN = Pattern.compile("(?i)chapter\\s*(\\d+(?:\\.\\d+)?)")
         private val GENERIC_NUM_PATTERN = Pattern.compile("(\\d+(?:\\.\\d+)?)")
@@ -147,6 +148,13 @@ class CrotPediaParser(
     }
 
     private fun validateNotLoginPage(doc: Document, url: String) {
+        val title = doc.title().lowercase()
+        val text = doc.text().lowercase()
+        if (title.contains("just a moment") || title.contains("attention required") || title.contains("cf-mitigated") || text.contains("cloudflare")) {
+            android.util.Log.w("CrotPediaDiag", "Cloudflare challenge detected at $url")
+            throw MangaAuthRequiredException("Proteksi Cloudflare terdeteksi. Silakan verifikasi koneksi/coba beberapa saat lagi.")
+        }
+
         if (url.contains("/login/") || url.contains("action=login") || url.contains("/signin")) {
             throw MangaAuthRequiredException("Halaman memerlukan login resmi di CrotPedia.")
         }
@@ -156,8 +164,7 @@ class CrotPediaParser(
             throw MangaAuthRequiredException("Halaman ini memerlukan login resmi di CrotPedia.")
         }
 
-        val title = doc.title().lowercase()
-        if (title.contains("login") || title.contains("sign in") || title.contains("just a moment") || title.contains("attention required")) {
+        if (title.contains("login") || title.contains("sign in")) {
             throw MangaAuthRequiredException("Akses ditolak atau memerlukan login pada CrotPedia.")
         }
     }

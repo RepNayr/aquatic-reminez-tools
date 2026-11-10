@@ -15,6 +15,7 @@ import com.repp.aquaticremineztools.data.manga.repository.MangaRepository
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import com.repp.aquaticremineztools.data.manga.source.MangaAuthRequiredException
 import com.repp.aquaticremineztools.data.manga.source.MangaParseException
+import com.repp.aquaticremineztools.data.manga.source.SessionValidationResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -74,13 +75,6 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         checkSessionState()
-        clearResultsOnStart()
-    }
-
-    fun clearResultsOnStart() {
-        viewModelScope.launch {
-            repository.clearAllResults()
-        }
     }
 
     fun checkSessionState() {
@@ -91,17 +85,26 @@ class MangaViewModel(application: Application) : AndroidViewModel(application) {
 
         _sessionState.value = SessionState.Checking
         viewModelScope.launch {
-            try {
-                val isValid = repository.validateSession()
-                if (isValid) {
+            when (val result = repository.validateSessionResult()) {
+                is SessionValidationResult.Valid -> {
                     val timeStr = formatTimestamp(CrotPediaSessionStore.getLastLoginTime(getApplication()))
                     _sessionState.value = SessionState.LoggedIn(timeStr)
-                } else {
+                }
+                is SessionValidationResult.Unauthenticated -> {
                     repository.logout()
                     _sessionState.value = SessionState.NotLoggedIn
                 }
-            } catch (_: Exception) {
-                _sessionState.value = SessionState.ConnectionError
+                is SessionValidationResult.AccessDenied -> {
+                    val timeStr = formatTimestamp(CrotPediaSessionStore.getLastLoginTime(getApplication()))
+                    _sessionState.value = SessionState.LoggedIn("$timeStr (Access Denied)")
+                }
+                is SessionValidationResult.ChallengeRequired -> {
+                    val timeStr = formatTimestamp(CrotPediaSessionStore.getLastLoginTime(getApplication()))
+                    _sessionState.value = SessionState.LoggedIn("$timeStr (Challenge)")
+                }
+                is SessionValidationResult.NetworkError -> {
+                    _sessionState.value = SessionState.ConnectionError
+                }
             }
         }
     }

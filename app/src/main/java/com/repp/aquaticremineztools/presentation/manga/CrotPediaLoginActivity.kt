@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.repp.aquaticremineztools.R
 import com.repp.aquaticremineztools.core.security.CrotPediaSessionStore
 import com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar
+import com.repp.aquaticremineztools.data.manga.source.CrotPediaParser
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -89,6 +90,7 @@ class CrotPediaLoginActivity : AppCompatActivity() {
         settings.setSupportZoom(true)
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
+        settings.userAgentString = CrotPediaParser.MOBILE_USER_AGENT
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
@@ -146,6 +148,7 @@ class CrotPediaLoginActivity : AppCompatActivity() {
         if (isVerifying) return
 
         val cookieManager = CookieManager.getInstance()
+        cookieManager.flush()
         val cookies = cookieManager.getCookie(currentUrl) ?: cookieManager.getCookie("https://crotpedia.net/")
 
         if (!cookies.isNullOrBlank() && (cookies.contains("wordpress_logged_in_") || cookies.contains("logged_in") || cookies.contains("session") || cookies.contains("token"))) {
@@ -156,8 +159,13 @@ class CrotPediaLoginActivity : AppCompatActivity() {
                 try {
                     val request = Request.Builder()
                         .url("https://crotpedia.net/")
-                        .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                        .header("User-Agent", CrotPediaParser.MOBILE_USER_AGENT)
+                        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8")
+                        .header("Accept-Language", "id-ID,id;q=0.9,en-US;q=0.8,en;q=0.7")
                         .header("Referer", "https://crotpedia.net/")
+                        .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+                        .header("Sec-Ch-Ua-Mobile", "?1")
+                        .header("Sec-Ch-Ua-Platform", "\"Android\"")
                         .build()
 
                     okHttpClient.newCall(request).execute().use { response ->
