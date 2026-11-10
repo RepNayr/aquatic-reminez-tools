@@ -70,16 +70,6 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/tvDownloadItemInfo"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
-            android:fontFamily="@font/times_new_roman_regular"
-            android:text="12.8 MB / 33.0 MB (7.5 MB/s)"
-            android:textColor="#746D62"
-            android:textSize="12sp" />
-
-        <TextView
             android:id="@+id/tvDownloadItemPercent"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -89,6 +79,20 @@
             android:textColor="#292722"
             android:textSize="13sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDownloadItemInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_toStartOf="@id/tvDownloadItemPercent"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/times_new_roman_regular"
+            android:singleLine="true"
+            android:text="12.8 MB / 33.0 MB (7.5 MB/s)"
+            android:textColor="#746D62"
+            android:textSize="12sp" />
     </RelativeLayout>
 
 </LinearLayout>

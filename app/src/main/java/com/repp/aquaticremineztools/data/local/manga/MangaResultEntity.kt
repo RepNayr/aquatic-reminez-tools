@@ -12,6 +12,7 @@ data class MangaResultEntity(
     val chapterUrl: String,
     val pdfPath: String,
     val sizeBytes: Long,
+    val originalSizeBytes: Long = 0L,
     val pageCount: Int,
     val status: String = STATUS_NOT_COMPLETED,
     val timestamp: Long = System.currentTimeMillis(),

@@ -31,8 +31,8 @@ interface MangaResultDao {
     @Query("UPDATE manga_results SET status = :status, errorMessage = :errorMessage WHERE id = :id")
     suspend fun updateStatus(id: Long, status: String, errorMessage: String? = null)
 
-    @Query("UPDATE manga_results SET pdfPath = :pdfPath, sizeBytes = :sizeBytes, status = :status, errorMessage = :errorMessage WHERE id = :id")
-    suspend fun updatePdfResult(id: Long, pdfPath: String, sizeBytes: Long, status: String, errorMessage: String? = null)
+    @Query("UPDATE manga_results SET pdfPath = :pdfPath, sizeBytes = :sizeBytes, originalSizeBytes = CASE WHEN originalSizeBytes = 0 THEN :oldSizeBytes ELSE originalSizeBytes END, status = :status, errorMessage = :errorMessage WHERE id = :id")
+    suspend fun updatePdfResult(id: Long, pdfPath: String, sizeBytes: Long, oldSizeBytes: Long, status: String, errorMessage: String? = null)
 
     @Query("DELETE FROM manga_results WHERE id = :id")
     suspend fun deleteById(id: Long)

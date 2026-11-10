@@ -60,10 +60,20 @@ class MangaResultAdapter(
             onOpenClick: (MangaResultEntity) -> Unit,
             onRemoveClick: (MangaResultEntity) -> Unit
         ) {
-            tvTitle.text = if (result.seriesTitle.isNotBlank()) "${result.seriesTitle} - ${result.chapterTitle}" else result.chapterTitle
+            tvTitle.text = if (result.seriesTitle.isNotBlank()) {
+                "${result.chapterTitle} · ${result.seriesTitle}"
+            } else {
+                result.chapterTitle
+            }
 
-            val sizeMb = result.sizeBytes / (1024f * 1024f)
-            tvInfo.text = String.format(Locale.US, "%d pages · %.1f MB", result.pageCount, sizeMb)
+            val currentMb = result.sizeBytes / (1024f * 1024f)
+            val origMb = result.originalSizeBytes / (1024f * 1024f)
+
+            tvInfo.text = if (origMb > 0f && Math.abs(origMb - currentMb) > 0.05f && result.status == MangaResultEntity.STATUS_COMPLETED) {
+                String.format(Locale.US, "%d pages · Before: %.1f MB → After: %.1f MB", result.pageCount, origMb, currentMb)
+            } else {
+                String.format(Locale.US, "%d pages · %.1f MB", result.pageCount, currentMb)
+            }
 
             tvStatusBadge.text = when (result.status) {
                 MangaResultEntity.STATUS_NOT_COMPLETED -> "NOT COMPLETED"
@@ -77,12 +87,12 @@ class MangaResultAdapter(
 
             // Configure SeekBar (10 MB to 100 MB: progress 0 = 10, progress 90 = 100)
             seekBarTargetSize.progress = (selectedTargetMb - 10).coerceIn(0, 90)
-            tvTargetSizeLabel.text = "$selectedTargetMb MB"
+            tvTargetSizeLabel.text = String.format(Locale.US, "%d MB", selectedTargetMb)
 
             seekBarTargetSize.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     selectedTargetMb = progress + 10
-                    tvTargetSizeLabel.text = "$selectedTargetMb MB"
+                    tvTargetSizeLabel.text = String.format(Locale.US, "%d MB", selectedTargetMb)
                 }
                 override fun onStartTrackingTouch(seekBar: SeekBar?) {}
                 override fun onStopTrackingTouch(seekBar: SeekBar?) {}

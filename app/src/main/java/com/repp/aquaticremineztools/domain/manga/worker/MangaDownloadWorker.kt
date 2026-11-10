@@ -304,6 +304,7 @@ class MangaDownloadWorker(
                 chapterUrl = item.chapterUrl,
                 pdfPath = pdfResult.pdfUriString,
                 sizeBytes = pdfResult.sizeBytes,
+                originalSizeBytes = pdfResult.sizeBytes,
                 pageCount = totalPages,
                 status = MangaResultEntity.STATUS_NOT_COMPLETED,
                 errorMessage = pdfResult.warningMessage
@@ -364,8 +365,8 @@ class MangaDownloadWorker(
                 context = applicationContext,
                 sourcePdfFile = sourceFile,
                 outputFileName = item.outputFileName,
-                quality = 75,
-                maxDimension = 1400,
+                requestedQuality = 75,
+                requestedMaxDimension = 1400,
                 maxSizeBytes = targetSizeBytes,
                 isCancelledCheck = {
                     isStopped || dao.getById(item.id)?.status == MangaDownloadEntity.STATUS_CANCELLED
@@ -380,6 +381,7 @@ class MangaDownloadWorker(
                     id = targetResultId,
                     pdfPath = compressResult.pdfUriString,
                     sizeBytes = compressResult.sizeBytes,
+                    oldSizeBytes = resultEntity?.sizeBytes ?: compressResult.sizeBytes,
                     status = MangaResultEntity.STATUS_COMPLETED,
                     errorMessage = compressResult.warningMessage
                 )

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfRenderer
@@ -70,7 +71,6 @@ object PdfBuilder {
 
         val tempPdfFile = File(context.cacheDir, "temp_${System.currentTimeMillis()}_$outputFileName")
 
-        // Single pass build without aggressive auto-compression during PDF Building (per Part 2 requirements)
         val quality = 90
         val maxDimension = 1600
 
@@ -99,6 +99,7 @@ object PdfBuilder {
 
                     val page = pdfDocument.startPage(pageInfo)
                     val canvas: Canvas = page.canvas
+                    canvas.drawColor(Color.WHITE)
                     val paint = Paint()
 
                     canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)
@@ -174,8 +175,8 @@ object PdfBuilder {
         context: Context,
         sourcePdfFile: File,
         outputFileName: String,
-        quality: Int,
-        maxDimension: Int,
+        requestedQuality: Int,
+        requestedMaxDimension: Int,
         maxSizeBytes: Long,
         isCancelledCheck: (suspend () -> Boolean)? = null,
         onProgress: (suspend (stage: String, percent: Int) -> Unit)? = null
@@ -204,53 +205,70 @@ object PdfBuilder {
 
                         val imgFile = File(tempDir, "page_$i.jpg")
                         FileOutputStream(imgFile).use { out ->
-                            bitmap.compress(Bitmap.CompressFormat.JPEG, quality, out)
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
                         }
                         bitmap.recycle()
                         tempImageFiles.add(imgFile)
                     }
-                    val progressPercent = 10 + ((i + 1) * 40 / pageCount)
+                    val progressPercent = 10 + ((i + 1) * 35 / pageCount)
                     onProgress?.invoke(MangaDownloadEntity.STAGE_BUILDING_PDF, progressPercent)
                 }
             }
 
-            onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, 55)
+            onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, 45)
 
-            val pdfDocument = PdfDocument()
-            try {
-                val total = tempImageFiles.size
-                tempImageFiles.forEachIndexed { index, file ->
-                    coroutineContext.ensureActive()
-                    if (isCancelledCheck?.invoke() == true) {
-                        throw CancellationException("Kompresi dibatalkan saat proses halaman ${index + 1}.")
+            // Multi-pass iterative reduction to reliably achieve target maxSizeBytes
+            val qualities = listOf(requestedQuality, 70, 55, 40, 28)
+            val maxDimensions = listOf(requestedMaxDimension, 1300, 1000, 800, 650)
+
+            for (pass in qualities.indices) {
+                coroutineContext.ensureActive()
+                if (isCancelledCheck?.invoke() == true) {
+                    throw CancellationException("Kompresi dibatalkan oleh pengguna.")
+                }
+                val quality = qualities[pass]
+                val maxDim = maxDimensions[pass]
+
+                val passProgressBase = 45 + (pass * 8)
+                onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, passProgressBase)
+
+                val pdfDocument = PdfDocument()
+                try {
+                    tempImageFiles.forEachIndexed { index, file ->
+                        coroutineContext.ensureActive()
+                        if (isCancelledCheck?.invoke() == true) {
+                            throw CancellationException("Kompresi dibatalkan saat proses halaman ${index + 1}.")
+                        }
+                        val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDim)
+                            ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
+
+                        val pageInfo = PdfDocument.PageInfo.Builder(
+                            compressedBitmap.width,
+                            compressedBitmap.height,
+                            index + 1
+                        ).create()
+
+                        val page = pdfDocument.startPage(pageInfo)
+                        val canvas: Canvas = page.canvas
+                        canvas.drawColor(Color.WHITE)
+                        val paint = Paint()
+
+                        canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)
+                        pdfDocument.finishPage(page)
+
+                        compressedBitmap.recycle()
                     }
-                    val compressedBitmap = decodeAndCompressBitmap(file, quality, maxDimension)
-                        ?: throw IllegalStateException("Gagal memproses gambar halaman ${index + 1}")
 
-                    val pageInfo = PdfDocument.PageInfo.Builder(
-                        compressedBitmap.width,
-                        compressedBitmap.height,
-                        index + 1
-                    ).create()
-
-                    val page = pdfDocument.startPage(pageInfo)
-                    val canvas: Canvas = page.canvas
-                    val paint = Paint()
-
-                    canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)
-                    pdfDocument.finishPage(page)
-
-                    compressedBitmap.recycle()
-
-                    val percent = 55 + ((index + 1) * 30 / total)
-                    onProgress?.invoke(MangaDownloadEntity.STAGE_COMPRESSING_PDF, percent.coerceIn(55, 85))
+                    FileOutputStream(tempOutputPdf).use { out ->
+                        pdfDocument.writeTo(out)
+                    }
+                } finally {
+                    pdfDocument.close()
                 }
 
-                FileOutputStream(tempOutputPdf).use { out ->
-                    pdfDocument.writeTo(out)
+                if (tempOutputPdf.length() <= maxSizeBytes) {
+                    break
                 }
-            } finally {
-                pdfDocument.close()
             }
 
             coroutineContext.ensureActive()
@@ -280,9 +298,9 @@ object PdfBuilder {
             onProgress?.invoke(MangaDownloadEntity.STAGE_VALIDATING_PDF, 100)
 
             val actualSizeBytes = getStoredFileSize(context, pdfUriString) ?: tempOutputPdf.length()
-            val achieved = actualSizeBytes <= maxSizeBytes
+            val isTargetSizeAchieved = actualSizeBytes <= maxSizeBytes
 
-            val warning = if (!achieved) {
+            val warning = if (!isTargetSizeAchieved) {
                 String.format(
                     Locale.US,
                     "Ukuran PDF (%.1f MB) masih melebihi target %.1f MB.",
@@ -295,7 +313,7 @@ object PdfBuilder {
                 pdfUriString = pdfUriString,
                 sizeBytes = actualSizeBytes,
                 pageCount = tempImageFiles.size,
-                isTargetSizeAchieved = achieved,
+                isTargetSizeAchieved = isTargetSizeAchieved,
                 warningMessage = warning
             )
         } finally {
@@ -335,6 +353,7 @@ object PdfBuilder {
 
                 val page = pdfDocument.startPage(pageInfo)
                 val canvas: Canvas = page.canvas
+                canvas.drawColor(Color.WHITE)
                 val paint = Paint()
 
                 canvas.drawBitmap(compressedBitmap, 0f, 0f, paint)

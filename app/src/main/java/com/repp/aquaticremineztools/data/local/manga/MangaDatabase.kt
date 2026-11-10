@@ -7,13 +7,19 @@ import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-@Database(entities = [MangaDownloadEntity::class, MangaResultEntity::class], version = 6, exportSchema = false)
+@Database(entities = [MangaDownloadEntity::class, MangaResultEntity::class], version = 7, exportSchema = false)
 abstract class MangaDatabase : RoomDatabase() {
 
     abstract fun mangaDownloadDao(): MangaDownloadDao
     abstract fun mangaResultDao(): MangaResultDao
 
     companion object {
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE manga_results ADD COLUMN originalSizeBytes INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("""
@@ -24,6 +30,7 @@ abstract class MangaDatabase : RoomDatabase() {
                         chapterUrl TEXT NOT NULL,
                         pdfPath TEXT NOT NULL,
                         sizeBytes INTEGER NOT NULL,
+                        originalSizeBytes INTEGER NOT NULL DEFAULT 0,
                         pageCount INTEGER NOT NULL,
                         status TEXT NOT NULL DEFAULT 'NOT_COMPLETED',
                         timestamp INTEGER NOT NULL,
@@ -33,7 +40,7 @@ abstract class MangaDatabase : RoomDatabase() {
             }
         }
 
-        val MIGRATION_1_6 = object : Migration(1, 6) {
+        val MIGRATION_1_7 = object : Migration(1, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE manga_downloads ADD COLUMN lastHeartbeatAt INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("DROP INDEX IF EXISTS index_manga_downloads_chapterUrl")
@@ -48,6 +55,7 @@ abstract class MangaDatabase : RoomDatabase() {
                         chapterUrl TEXT NOT NULL,
                         pdfPath TEXT NOT NULL,
                         sizeBytes INTEGER NOT NULL,
+                        originalSizeBytes INTEGER NOT NULL DEFAULT 0,
                         pageCount INTEGER NOT NULL,
                         status TEXT NOT NULL DEFAULT 'NOT_COMPLETED',
                         timestamp INTEGER NOT NULL,
@@ -67,7 +75,7 @@ abstract class MangaDatabase : RoomDatabase() {
                     MangaDatabase::class.java,
                     "aquatic_manga_db"
                 )
-                .addMigrations(MIGRATION_1_6, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_7, MIGRATION_5_6, MIGRATION_6_7)
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
