@@ -37,6 +37,7 @@ class VideoDownloadAdapter(
     override fun getItemCount(): Int = items.size
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val tvBadge: TextView? = itemView.findViewById(R.id.tvDownloadBadge)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvDownloadItemTitle)
         private val tvSubtitle: TextView = itemView.findViewById(R.id.tvDownloadItemInfo)
         private val tvPercent: TextView = itemView.findViewById(R.id.tvDownloadItemPercent)
@@ -48,6 +49,7 @@ class VideoDownloadAdapter(
             onCancelClick: (VideoDownloadEntity) -> Unit,
             onRetryClick: (VideoDownloadEntity) -> Unit
         ) {
+            tvBadge?.text = if (item.stage == VideoDownloadEntity.STAGE_COMPRESSING_VIDEO) "VIDEO · COMPRESS" else "VIDEO · MP4"
             tvTitle.text = "${item.episodeTitle} · ${item.qualityLabel}"
 
             val isCompressing = item.stage == VideoDownloadEntity.STAGE_COMPRESSING_VIDEO

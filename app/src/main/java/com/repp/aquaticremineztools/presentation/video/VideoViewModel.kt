@@ -87,10 +87,28 @@ class VideoViewModel(application: Application) : AndroidViewModel(application) {
                 }
 
                 _analyzeState.value = AnalyzeVideoState.Success(buildConfiguredSeries(updatedSeries))
+
+                // Pre-resolve direct media sources in background for instant Bottom Sheet loading
+                fullEpisodes.forEach { ep ->
+                    ep.availableSources.forEach { src ->
+                        viewModelScope.launch {
+                            try {
+                                val resolved = parser.resolveDirectMediaSource(src)
+                                preResolvedSources[src.downloadPageUrl] = resolved
+                            } catch (_: Exception) {}
+                        }
+                    }
+                }
             } catch (e: Exception) {
                 _analyzeState.value = AnalyzeVideoState.Error(e.localizedMessage ?: "Gagal menganalisis series.")
             }
         }
+    }
+
+    private val preResolvedSources = java.util.concurrent.ConcurrentHashMap<String, com.repp.aquaticremineztools.data.video.model.ResolvedVideoSource>()
+
+    fun getPreResolvedSource(downloadPageUrl: String): com.repp.aquaticremineztools.data.video.model.ResolvedVideoSource? {
+        return preResolvedSources[downloadPageUrl]
     }
 
     fun saveEpisodeConfig(episodeId: String, serverId: String, qualityLabel: String) {

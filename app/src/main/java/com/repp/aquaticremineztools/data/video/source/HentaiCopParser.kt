@@ -87,7 +87,7 @@ class HentaiCopParser(
         val episodes = mutableListOf<VideoEpisode>()
         val epElements = doc.select("ol.ht-eplist__list li, div.ht-eplist li")
 
-        var order = 1
+        var fallbackOrder = epElements.size
         for (element in epElements) {
             val link = element.selectFirst("a.ht-eplist__item, a") ?: continue
             val epUrl = link.absUrl("href")
@@ -96,12 +96,21 @@ class HentaiCopParser(
             val epTitle = element.selectFirst("span.ht-eplist__name")?.text()?.trim()
                 ?: link.text().trim()
 
+            val numAttr = element.attr("data-num").ifBlank {
+                element.selectFirst("span.ht-eplist__num")?.text()?.trim() ?: ""
+            }
+            val parsedNum = numAttr.toIntOrNull() ?: run {
+                val matcher = Pattern.compile("(?i)episode\\s*(\\d+)").matcher(epTitle)
+                if (matcher.find()) matcher.group(1)?.toIntOrNull() else null
+            }
+            val realOrder = parsedNum ?: (fallbackOrder--)
+
             episodes.add(
                 VideoEpisode(
                     id = epUrl,
                     title = epTitle,
                     url = epUrl,
-                    order = order++
+                    order = realOrder
                 )
             )
         }
@@ -226,11 +235,23 @@ class HentaiCopParser(
         val dlPageUrl = source.downloadPageUrl
         require(dlPageUrl.isNotBlank()) { "Download page URL is blank." }
 
+        // Session warm-up: visit episode referer page first to populate session cookies
+        val refererUrl = if (source.refererHeader.isNotBlank()) source.refererHeader else "https://hentaicop.com/"
+        if (refererUrl.startsWith("http")) {
+            try {
+                val warmupReq = Request.Builder()
+                    .url(refererUrl)
+                    .header("User-Agent", USER_AGENT)
+                    .build()
+                client.newCall(warmupReq).execute().close()
+            } catch (_: Exception) {}
+        }
+
         // Step 1: Fetch download page html
         val request = Request.Builder()
             .url(dlPageUrl)
             .header("User-Agent", USER_AGENT)
-            .header("Referer", if (source.refererHeader.isNotBlank()) source.refererHeader else "https://hentaicop.com/")
+            .header("Referer", refererUrl)
             .build()
 
         var responseUrl = dlPageUrl

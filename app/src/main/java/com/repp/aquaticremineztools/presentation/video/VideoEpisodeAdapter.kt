@@ -57,7 +57,11 @@ class VideoEpisodeAdapter(
             }
 
             if (episode.thumbnailUrl.isNotBlank()) {
-                ivThumbnail.load(episode.thumbnailUrl) { crossfade(true) }
+                ivThumbnail.load(episode.thumbnailUrl) {
+                    crossfade(true)
+                    addHeader("User-Agent", com.repp.aquaticremineztools.data.video.source.HentaiCopParser.USER_AGENT)
+                    addHeader("Referer", "https://hentaicop.com/")
+                }
                 tvPlaceholder.visibility = View.GONE
             } else {
                 ivThumbnail.setImageDrawable(null)

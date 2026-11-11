@@ -210,7 +210,11 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
 
         lifecycleScope.launch {
             try {
-                val resolved = parser.resolveDirectMediaSource(source)
+                val viewModel = (activity as? VideoActivity)?.let {
+                    androidx.lifecycle.ViewModelProvider(it)[VideoViewModel::class.java]
+                }
+                val cached = viewModel?.getPreResolvedSource(source.downloadPageUrl)
+                val resolved = cached ?: parser.resolveDirectMediaSource(source)
 
                 val dataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
                     .setDefaultRequestProperties(mapOf("User-Agent" to resolved.userAgent, "Referer" to resolved.referer))
