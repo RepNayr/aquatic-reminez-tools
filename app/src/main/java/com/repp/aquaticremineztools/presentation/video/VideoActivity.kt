@@ -200,7 +200,7 @@ class VideoActivity : AppCompatActivity() {
                     tvEpisodeHeaderCount.visibility = View.VISIBLE
                     tvEpisodeHeaderCount.text = "${series.episodes.size} Episodes"
 
-                    episodeAdapter.setEpisodes(series.episodes)
+                    episodeAdapter.setEpisodes(series.episodes, series.coverUrl)
                     btnDownloadAll.visibility = if (series.episodes.isNotEmpty()) View.VISIBLE else View.GONE
                 }
                 is AnalyzeVideoState.Error -> {

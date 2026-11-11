@@ -18,9 +18,12 @@ class VideoEpisodeAdapter(
 
     private val episodes = mutableListOf<VideoEpisode>()
 
-    fun setEpisodes(newEpisodes: List<VideoEpisode>) {
+    private var seriesCoverUrl: String = ""
+
+    fun setEpisodes(newEpisodes: List<VideoEpisode>, coverUrl: String = "") {
         episodes.clear()
         episodes.addAll(newEpisodes)
+        seriesCoverUrl = coverUrl
         notifyDataSetChanged()
     }
 
@@ -56,8 +59,9 @@ class VideoEpisodeAdapter(
                 tvDuration.visibility = View.GONE
             }
 
-            if (episode.thumbnailUrl.isNotBlank()) {
-                ivThumbnail.load(episode.thumbnailUrl) {
+            val thumbToLoad = if (episode.thumbnailUrl.isNotBlank()) episode.thumbnailUrl else seriesCoverUrl
+            if (thumbToLoad.isNotBlank()) {
+                ivThumbnail.load(thumbToLoad) {
                     crossfade(true)
                     addHeader("User-Agent", com.repp.aquaticremineztools.data.video.source.HentaiCopParser.USER_AGENT)
                     addHeader("Referer", "https://hentaicop.com/")

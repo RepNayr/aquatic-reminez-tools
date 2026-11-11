@@ -265,7 +265,7 @@ class HentaiCopParser(
 
         // Step 2: Extract go link
         val goLinkElem = doc.selectFirst("a[data-hcu-go]")
-        val goUrl = goLinkElem?.absUrl("href") ?: run {
+        val rawGoUrl = goLinkElem?.absUrl("href") ?: run {
             val matcher = Pattern.compile("href=[\"']([^\"']*\\?go=[^\"']*)[\"']").matcher(responseHtml)
             if (matcher.find()) {
                 val found = matcher.group(1) ?: ""
@@ -278,6 +278,8 @@ class HentaiCopParser(
                 ""
             }
         }
+
+        val goUrl = rawGoUrl.replace("&#038;", "&").replace("&amp;", "&")
 
         require(goUrl.isNotBlank()) { "Tautan unduh (parameter 'go') tidak ditemukan di halaman." }
 
@@ -296,10 +298,11 @@ class HentaiCopParser(
         val mediaUrl = noRedirectClient.newCall(goRequest).execute().use { goResp ->
             val location = goResp.header("Location")
             if (!location.isNullOrBlank()) {
+                val cleanLoc = location.replace("&#038;", "&").replace("&amp;", "&")
                 try {
-                    URI(goUrl).resolve(location).toString()
+                    URI(goUrl).resolve(cleanLoc).toString()
                 } catch (_: Exception) {
-                    location
+                    cleanLoc
                 }
             } else if (goResp.isSuccessful) {
                 goResp.request.url.toString()

@@ -277,6 +277,11 @@ class VideoDownloadWorker(
         mediaUrl: String,
         destFile: File
     ) {
+        if (mediaUrl.contains(".m3u8") || mediaUrl.contains("/hls/")) {
+            downloadHlsPlaylistMedia(item, mediaUrl, destFile)
+            return
+        }
+
         var existingLength = if (destFile.exists()) destFile.length() else 0L
 
         val reqBuilder = Request.Builder()
@@ -354,6 +359,132 @@ class VideoDownloadWorker(
         }
     }
 
+    private suspend fun downloadHlsPlaylistMedia(
+        item: VideoDownloadEntity,
+        playlistUrl: String,
+        destFile: File
+    ) {
+        val req = Request.Builder()
+            .url(playlistUrl)
+            .header("User-Agent", HentaiCopParser.USER_AGENT)
+            .header("Referer", "https://hentaicop.com/")
+            .build()
+
+        val manifestText = okHttpClient.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} saat mengunduh playlist HLS")
+            resp.body?.string() ?: throw IOException("Manifest HLS kosong")
+        }
+
+        if (!manifestText.contains("#EXTM3U")) {
+            throw IOException("File playlist HLS tidak valid (tidak mengandung #EXTM3U)")
+        }
+
+        var activeMediaPlaylistUrl = playlistUrl
+        var activePlaylistText = manifestText
+
+        // Check if master playlist
+        if (manifestText.contains("#EXT-X-STREAM-INF")) {
+            val lines = manifestText.lines()
+            var variantUriStr = ""
+            for (i in lines.indices) {
+                if (lines[i].contains("#EXT-X-STREAM-INF")) {
+                    for (j in (i + 1) until lines.size) {
+                        val line = lines[j].trim()
+                        if (line.isNotBlank() && !line.startsWith("#")) {
+                            variantUriStr = line
+                            break
+                        }
+                    }
+                    break
+                }
+            }
+            if (variantUriStr.isNotBlank()) {
+                activeMediaPlaylistUrl = try {
+                    java.net.URI(playlistUrl).resolve(variantUriStr).toString()
+                } catch (_: Exception) {
+                    variantUriStr
+                }
+                val varReq = Request.Builder()
+                    .url(activeMediaPlaylistUrl)
+                    .header("User-Agent", HentaiCopParser.USER_AGENT)
+                    .header("Referer", "https://hentaicop.com/")
+                    .build()
+                activePlaylistText = okHttpClient.newCall(varReq).execute().use { resp ->
+                    if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} saat mengunduh variant HLS")
+                    resp.body?.string() ?: throw IOException("Variant HLS kosong")
+                }
+            }
+        }
+
+        // Extract segment URIs
+        val segmentUrls = mutableListOf<String>()
+        for (line in activePlaylistText.lines()) {
+            val trimmed = line.trim()
+            if (trimmed.isNotBlank() && !trimmed.startsWith("#")) {
+                val fullSegmentUrl = try {
+                    java.net.URI(activeMediaPlaylistUrl).resolve(trimmed).toString()
+                } catch (_: Exception) {
+                    if (trimmed.startsWith("http")) trimmed else "https://hentaicop.com$trimmed"
+                }
+                segmentUrls.add(fullSegmentUrl)
+            }
+        }
+
+        if (segmentUrls.isEmpty()) {
+            throw IOException("Tidak ada segmen video yang ditemukan di playlist HLS.")
+        }
+
+        val totalSegments = segmentUrls.size
+        destFile.delete()
+
+        var currentBytes = 0L
+        val startTime = System.currentTimeMillis()
+
+        FileOutputStream(destFile, true).use { output ->
+            segmentUrls.forEachIndexed { index, segUrl ->
+                val checkStatus = dao.getById(item.id)
+                if (isStopped || checkStatus?.status == VideoDownloadEntity.STATUS_CANCELLED) {
+                    return
+                }
+
+                val segReq = Request.Builder()
+                    .url(segUrl)
+                    .header("User-Agent", HentaiCopParser.USER_AGENT)
+                    .header("Referer", "https://hentaicop.com/")
+                    .build()
+
+                okHttpClient.newCall(segReq).execute().use { segResp ->
+                    if (!segResp.isSuccessful) throw IOException("HTTP ${segResp.code} saat mengunduh segmen ${index + 1}")
+                    val body = segResp.body ?: throw IOException("Segmen ${index + 1} kosong")
+                    val inputStream = body.byteStream()
+                    val buffer = ByteArray(32768)
+                    var read: Int
+                    while (inputStream.read(buffer).also { read = it } != -1) {
+                        output.write(buffer, 0, read)
+                        currentBytes += read
+                    }
+                }
+
+                val percent = ((index + 1) * 100) / totalSegments
+                val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
+                val speedBps = if (elapsedSec > 0) (currentBytes / elapsedSec).toLong() else 0L
+
+                dao.updateProgressIfDownloading(
+                    id = item.id,
+                    bytes = currentBytes,
+                    totalBytes = if (item.totalBytes > 0) item.totalBytes else currentBytes,
+                    speed = speedBps,
+                    percent = percent
+                )
+
+                showForegroundNotification(
+                    "Downloading ${item.episodeTitle}",
+                    "$percent% (${index + 1}/$totalSegments segmen)"
+                )
+            }
+        }
+    }
+
     private suspend fun showForegroundNotification(title: String, content: String) {
         val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -386,24 +517,30 @@ class VideoDownloadWorker(
             throw IOException("File video kosong atau berukuran kurang dari 1 KB.")
         }
 
-        if (expectedSizeBytes > 5 * 1024 * 1024L && file.length() < expectedSizeBytes / 20) {
-            throw IOException("File video terlalu kecil (${file.length()} bytes) dibandingkan ekspektasi ($expectedSizeBytes bytes). Kemungkinan unduhan terpotong.")
-        }
-
-        val retriever = android.media.MediaMetadataRetriever()
+        val sampleBytes = ByteArray(1024)
         try {
+            file.inputStream().use { it.read(sampleBytes) }
+            val sampleStr = String(sampleBytes, Charsets.UTF_8).lowercase()
+            if (sampleStr.contains("<!doctype") || sampleStr.contains("<html") || sampleStr.contains("<body") || sampleStr.contains("adblock")) {
+                throw IOException("File yang diunduh adalah halaman HTML/AdBlock error, bukan file video.")
+            }
+        } catch (e: IOException) {
+            throw e
+        } catch (_: Exception) {}
+
+        try {
+            val retriever = android.media.MediaMetadataRetriever()
             retriever.setDataSource(file.absolutePath)
             val durationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
             val durationMs = durationStr?.toLongOrNull() ?: 0L
-            if (durationMs <= 0L) {
-                throw IOException("File video tidak memiliki durasi valid (durasi = 0).")
+            retriever.release()
+            if (durationMs <= 0L && file.length() < 100_000L) {
+                throw IOException("File video terlalu kecil atau tidak memiliki durasi valid.")
             }
-        } catch (e: Exception) {
-            throw IOException("Validasi integritas media gagal (bukan file MP4/video valid): ${e.message}", e)
-        } finally {
-            try {
-                retriever.release()
-            } catch (_: Exception) {}
+        } catch (_: Exception) {
+            if (file.length() < 100_000L) {
+                throw IOException("File unduhan terlalu kecil (${file.length()} bytes).")
+            }
         }
     }
 }
