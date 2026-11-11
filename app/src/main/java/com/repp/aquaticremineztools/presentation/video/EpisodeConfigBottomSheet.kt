@@ -21,6 +21,7 @@ import com.repp.aquaticremineztools.data.video.model.VideoSource
 import com.repp.aquaticremineztools.data.video.source.HentaiCopParser
 import kotlinx.coroutines.launch
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
 
     private var episode: VideoEpisode? = null
@@ -209,20 +210,21 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
 
         lifecycleScope.launch {
             try {
-                val directUrl = try {
-                    parser.resolveDirectMediaUrl(source)
-                } catch (_: Exception) {
-                    source.downloadPageUrl
-                }
+                val resolved = parser.resolveDirectMediaSource(source)
 
-                val mediaItem = MediaItem.fromUri(directUrl)
-                player?.setMediaItem(mediaItem)
+                val dataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
+                    .setDefaultRequestProperties(mapOf("User-Agent" to resolved.userAgent, "Referer" to resolved.referer))
+
+                val mediaSource = androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+                    .createMediaSource(MediaItem.fromUri(resolved.mediaUrl))
+
+                player?.setMediaSource(mediaSource)
                 player?.prepare()
                 player?.seekTo(0L) // Reset position to 00:00 per requirements
                 pbPlayerLoading.visibility = View.GONE
             } catch (e: Exception) {
                 pbPlayerLoading.visibility = View.GONE
-                Toast.makeText(ctx, "Gagal memuat pratinjau video: ${e.message}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(ctx, "Gagal memuat pratinjau video: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }

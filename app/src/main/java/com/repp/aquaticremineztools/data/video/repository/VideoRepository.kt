@@ -30,13 +30,8 @@ class VideoRepository(private val context: Context) {
             return@withContext false
         }
 
-        val source = episode.availableSources.find { it.serverId == serverId || it.quality.label == qualityLabel }
-            ?: episode.availableSources.find { it.quality.height == 720 }
-            ?: episode.availableSources.firstOrNull()
-
-        if (source == null) {
-            return@withContext false
-        }
+        val source = episode.availableSources.find { it.serverId == serverId && it.quality.label == qualityLabel }
+            ?: return@withContext false
 
         val safeTitle = "${seriesTitle}_${episode.title}".replace(Regex("[^a-zA-Z0-9._-]"), "_")
         val fileName = "${safeTitle}_${source.quality.label}.mp4"

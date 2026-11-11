@@ -176,6 +176,7 @@ class VideoDownloadWorker(
             }
 
             val finalSizeBytes = finalFile.length()
+            validateDownloadedVideoFile(finalFile, item.totalBytes)
 
             // Insert into VideoResultEntity
             val resultEntity = VideoResultEntity(
@@ -295,6 +296,11 @@ class VideoDownloadWorker(
                 throw IOException("HTTP ${response.code} pada file video")
             }
 
+            val contentType = response.header("Content-Type")?.lowercase() ?: ""
+            if (contentType.contains("text/html") || contentType.contains("application/json")) {
+                throw IOException("Respons server bukan file video valid (Content-Type: $contentType)")
+            }
+
             val body = response.body ?: throw IOException("Body respons video kosong")
             val isPartialContent = response.code == 206
 
@@ -371,6 +377,32 @@ class VideoDownloadWorker(
             setForeground(ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC))
         } else {
             setForeground(ForegroundInfo(NOTIFICATION_ID, notification))
+        }
+    }
+
+    private fun validateDownloadedVideoFile(file: File, expectedSizeBytes: Long) {
+        if (!file.exists() || file.length() < 1024L) {
+            throw IOException("File video kosong atau berukuran kurang dari 1 KB.")
+        }
+
+        if (expectedSizeBytes > 5 * 1024 * 1024L && file.length() < expectedSizeBytes / 20) {
+            throw IOException("File video terlalu kecil (${file.length()} bytes) dibandingkan ekspektasi ($expectedSizeBytes bytes). Kemungkinan unduhan terpotong.")
+        }
+
+        val retriever = android.media.MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(file.absolutePath)
+            val durationStr = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_DURATION)
+            val durationMs = durationStr?.toLongOrNull() ?: 0L
+            if (durationMs <= 0L) {
+                throw IOException("File video tidak memiliki durasi valid (durasi = 0).")
+            }
+        } catch (e: Exception) {
+            throw IOException("Validasi integritas media gagal (bukan file MP4/video valid): ${e.message}", e)
+        } finally {
+            try {
+                retriever.release()
+            } catch (_: Exception) {}
         }
     }
 }

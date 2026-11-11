@@ -1,5 +1,6 @@
 package com.repp.aquaticremineztools.data.video.source
 
+import com.repp.aquaticremineztools.data.video.model.ResolvedVideoSource
 import com.repp.aquaticremineztools.data.video.model.VideoEpisode
 import com.repp.aquaticremineztools.data.video.model.VideoQuality
 import com.repp.aquaticremineztools.data.video.model.VideoSeries
@@ -215,7 +216,7 @@ class HentaiCopParser(
         )
     }
 
-    suspend fun resolveDirectMediaUrl(source: VideoSource): String = withContext(Dispatchers.IO) {
+    suspend fun resolveDirectMediaSource(source: VideoSource): ResolvedVideoSource = withContext(Dispatchers.IO) {
         val dlPageUrl = source.downloadPageUrl
         require(dlPageUrl.isNotBlank()) { "Download page URL is blank." }
 
@@ -226,12 +227,14 @@ class HentaiCopParser(
             .header("Referer", if (source.refererHeader.isNotBlank()) source.refererHeader else "https://hentaicop.com/")
             .build()
 
+        var responseUrl = dlPageUrl
         val responseHtml = client.newCall(request).execute().use { resp ->
             if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} saat membuka halaman unduh")
+            responseUrl = resp.request.url.toString()
             resp.body?.string() ?: throw IOException("Respons halaman unduh kosong")
         }
 
-        val doc = Jsoup.parse(responseHtml, dlPageUrl)
+        val doc = Jsoup.parse(responseHtml, responseUrl)
 
         // Step 2: Extract go link
         val goLinkElem = doc.selectFirst("a[data-hcu-go]")
@@ -239,7 +242,11 @@ class HentaiCopParser(
             val matcher = Pattern.compile("href=[\"']([^\"']*\\?go=[^\"']*)[\"']").matcher(responseHtml)
             if (matcher.find()) {
                 val found = matcher.group(1) ?: ""
-                if (found.startsWith("http")) found else "https://hentaicop.com$found"
+                try {
+                    URI(responseUrl).resolve(found).toString()
+                } catch (_: Exception) {
+                    if (found.startsWith("http")) found else "https://hentaicop.com$found"
+                }
             } else {
                 ""
             }
@@ -247,7 +254,7 @@ class HentaiCopParser(
 
         require(goUrl.isNotBlank()) { "Tautan unduh (parameter 'go') tidak ditemukan di halaman." }
 
-        // Step 3: Fetch go link with followRedirects disabled on a custom OkHttpClient call
+        // Step 3: Fetch go link with followRedirects disabled
         val noRedirectClient = client.newBuilder()
             .followRedirects(false)
             .followSslRedirects(false)
@@ -259,17 +266,36 @@ class HentaiCopParser(
             .header("Referer", dlPageUrl)
             .build()
 
-        noRedirectClient.newCall(goRequest).execute().use { goResp ->
+        val mediaUrl = noRedirectClient.newCall(goRequest).execute().use { goResp ->
             val location = goResp.header("Location")
             if (!location.isNullOrBlank()) {
-                return@withContext location
+                try {
+                    URI(goUrl).resolve(location).toString()
+                } catch (_: Exception) {
+                    location
+                }
             } else if (goResp.isSuccessful) {
-                // If redirect was followed or direct response, return final URL
-                return@withContext goResp.request.url.toString()
+                goResp.request.url.toString()
             } else {
                 throw IOException("Gagal mendapatkan lokasi media (HTTP ${goResp.code})")
             }
         }
+
+        require(mediaUrl.isNotBlank() && mediaUrl != dlPageUrl && !mediaUrl.contains(".html")) {
+            "URL media yang diselesaikan tidak valid atau merujuk ke halaman HTML: $mediaUrl"
+        }
+
+        ResolvedVideoSource(
+            mediaUrl = mediaUrl,
+            referer = dlPageUrl,
+            userAgent = USER_AGENT,
+            expectedSizeBytes = source.quality.fileSizeBytes,
+            selectedQuality = source.quality
+        )
+    }
+
+    suspend fun resolveDirectMediaUrl(source: VideoSource): String = withContext(Dispatchers.IO) {
+        resolveDirectMediaSource(source).mediaUrl
     }
 
     private fun fetchHtml(url: String): String {
