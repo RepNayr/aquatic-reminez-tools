@@ -38,7 +38,7 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
     private lateinit var btnSave: Button
 
     private var player: ExoPlayer? = null
-    private val parser = HentaiCopParser()
+    private val parser by lazy { HentaiCopParser(requireContext()) }
 
     private var selectedServerId: String = ""
     private var selectedQualityLabel: String = ""

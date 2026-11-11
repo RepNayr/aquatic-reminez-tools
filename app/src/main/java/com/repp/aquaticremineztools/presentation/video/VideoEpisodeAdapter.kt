@@ -38,12 +38,15 @@ class VideoEpisodeAdapter(
     inner class EpisodeViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val ivThumbnail: ImageView = itemView.findViewById(R.id.ivEpisodeThumbnail)
         private val tvPlaceholder: TextView = itemView.findViewById(R.id.tvThumbnailPlaceholder)
+        private val tvEpisodeNumber: TextView = itemView.findViewById(R.id.tvEpisodeNumber)
         private val tvTitle: TextView = itemView.findViewById(R.id.tvEpisodeTitle)
         private val tvDuration: TextView = itemView.findViewById(R.id.tvEpisodeDuration)
         private val tvStatus: TextView = itemView.findViewById(R.id.tvEpisodeConfigStatus)
         private val btnDownload: Button = itemView.findViewById(R.id.btnDownloadEpisode)
 
         fun bind(episode: VideoEpisode) {
+            tvEpisodeNumber.text = "EPISODE ${episode.order}"
+            tvEpisodeNumber.setTextColor(0xFF292722.toInt())
             tvTitle.text = episode.title
 
             if (episode.durationFormatted.isNotBlank()) {

@@ -42,12 +42,13 @@ class VideoDownloadWorker(
     private val resultDao = db.videoResultDao()
 
     private val okHttpClient = OkHttpClient.Builder()
+        .cookieJar(com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar(context))
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
         .followRedirects(true)
         .build()
-    private val parser = HentaiCopParser(okHttpClient)
+    private val parser = HentaiCopParser(context, okHttpClient)
 
     companion object {
         private const val UNIQUE_WORK_NAME = "video_download_fifo_worker"

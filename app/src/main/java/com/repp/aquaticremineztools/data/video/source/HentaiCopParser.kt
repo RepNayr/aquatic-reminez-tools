@@ -16,7 +16,13 @@ import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 
 class HentaiCopParser(
+    context: android.content.Context? = null,
     private val client: OkHttpClient = OkHttpClient.Builder()
+        .apply {
+            if (context != null) {
+                cookieJar(com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar(context))
+            }
+        }
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)

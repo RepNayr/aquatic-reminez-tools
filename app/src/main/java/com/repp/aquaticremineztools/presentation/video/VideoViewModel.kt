@@ -25,7 +25,7 @@ sealed class AnalyzeVideoState {
 class VideoViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = VideoRepository(application)
-    private val parser = HentaiCopParser()
+    private val parser = HentaiCopParser(application)
 
     val activeDownloads: LiveData<List<VideoDownloadEntity>> = repository.activeDownloads
     val videoResults: LiveData<List<VideoResultEntity>> = repository.videoResults
