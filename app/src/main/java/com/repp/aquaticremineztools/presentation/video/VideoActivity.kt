@@ -72,6 +72,7 @@ class VideoActivity : AppCompatActivity() {
 
     private var currentActiveDownloads: List<VideoDownloadEntity> = emptyList()
     private var pendingSaveResult: VideoResultEntity? = null
+    private var currentSeriesCoverUrl: String = ""
 
     private val saveVideoLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == RESULT_OK && result.data?.data != null) {
@@ -186,6 +187,7 @@ class VideoActivity : AppCompatActivity() {
                     btnAnalyze.isEnabled = true
 
                     val series = state.series
+                    currentSeriesCoverUrl = series.coverUrl
                     cardVideoPreview.visibility = View.VISIBLE
                     tvSeriesTitle.text = series.title
                     tvSeriesDescription.text = series.description
@@ -286,6 +288,7 @@ class VideoActivity : AppCompatActivity() {
         val savedConfig = viewModel.getSavedConfig(episode.id)
         val sheet = EpisodeConfigBottomSheet.newInstance(
             episode = episode,
+            seriesCoverUrl = currentSeriesCoverUrl,
             initialServerId = savedConfig?.first,
             initialQualityLabel = savedConfig?.second,
             onSaveConfig = { serverId, qualityLabel ->

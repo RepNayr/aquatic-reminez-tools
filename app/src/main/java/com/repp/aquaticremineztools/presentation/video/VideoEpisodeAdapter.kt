@@ -59,11 +59,20 @@ class VideoEpisodeAdapter(
                 tvDuration.visibility = View.GONE
             }
 
-            val thumbToLoad = if (episode.thumbnailUrl.isNotBlank()) episode.thumbnailUrl else seriesCoverUrl
+            val parserHelper = com.repp.aquaticremineztools.data.video.source.HentaiCopParser
+            val rawThumb = episode.thumbnailUrl
+            val thumbToLoad = if (rawThumb.isNotBlank() && !parserHelper.isFaviconOrLogoUrl(rawThumb)) {
+                rawThumb
+            } else if (seriesCoverUrl.isNotBlank() && !parserHelper.isFaviconOrLogoUrl(seriesCoverUrl)) {
+                seriesCoverUrl
+            } else {
+                ""
+            }
+
             if (thumbToLoad.isNotBlank()) {
                 ivThumbnail.load(thumbToLoad) {
                     crossfade(true)
-                    addHeader("User-Agent", com.repp.aquaticremineztools.data.video.source.HentaiCopParser.USER_AGENT)
+                    addHeader("User-Agent", parserHelper.USER_AGENT)
                     addHeader("Referer", "https://hentaicop.com/")
                 }
                 tvPlaceholder.visibility = View.GONE

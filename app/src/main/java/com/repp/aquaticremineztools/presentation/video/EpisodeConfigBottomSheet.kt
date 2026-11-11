@@ -25,6 +25,7 @@ import kotlinx.coroutines.launch
 class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
 
     private var episode: VideoEpisode? = null
+    private var seriesCoverUrl: String = ""
     private var initialServerId: String? = null
     private var initialQualityLabel: String? = null
     private var onSaveConfig: ((serverId: String, qualityLabel: String) -> Unit)? = null
@@ -47,12 +48,14 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
     companion object {
         fun newInstance(
             episode: VideoEpisode,
+            seriesCoverUrl: String = "",
             initialServerId: String?,
             initialQualityLabel: String?,
             onSaveConfig: (serverId: String, qualityLabel: String) -> Unit
         ): EpisodeConfigBottomSheet {
             return EpisodeConfigBottomSheet().apply {
                 this.episode = episode
+                this.seriesCoverUrl = seriesCoverUrl
                 this.initialServerId = initialServerId
                 this.initialQualityLabel = initialQualityLabel
                 this.onSaveConfig = onSaveConfig
@@ -91,10 +94,18 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
         val currentEp = episode ?: return
         tvSheetTitle.text = currentEp.title
 
-        if (currentEp.thumbnailUrl.isNotBlank()) {
+        val posterToLoad = if (currentEp.thumbnailUrl.isNotBlank() && !HentaiCopParser.isFaviconOrLogoUrl(currentEp.thumbnailUrl)) {
+            currentEp.thumbnailUrl
+        } else if (seriesCoverUrl.isNotBlank() && !HentaiCopParser.isFaviconOrLogoUrl(seriesCoverUrl)) {
+            seriesCoverUrl
+        } else {
+            ""
+        }
+
+        if (posterToLoad.isNotBlank()) {
             coil.Coil.imageLoader(requireContext()).enqueue(
                 coil.request.ImageRequest.Builder(requireContext())
-                    .data(currentEp.thumbnailUrl)
+                    .data(posterToLoad)
                     .target(ivPlayerPoster)
                     .crossfade(true)
                     .addHeader("User-Agent", HentaiCopParser.USER_AGENT)

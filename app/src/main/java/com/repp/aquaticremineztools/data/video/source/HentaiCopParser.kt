@@ -36,6 +36,17 @@ class HentaiCopParser(
 
         private val DURATION_PATTERN = Pattern.compile("(\\d{1,2}:\\d{2})")
 
+        fun isFaviconOrLogoUrl(url: String): Boolean {
+            val lower = url.lowercase().trim()
+            if (lower.isEmpty()) return true
+            return lower.contains("fav.") ||
+                    lower.contains("fav-") ||
+                    lower.contains("favicon") ||
+                    lower.contains("fav.webp") ||
+                    lower.contains("logo") ||
+                    lower.contains("avatar")
+        }
+
         fun isAllowedSeriesUrl(url: String): Boolean {
             return try {
                 val clean = canonicalizeUrl(url)
@@ -149,10 +160,12 @@ class HentaiCopParser(
             ?: doc.selectFirst("meta[property='og:title']")?.attr("content")?.replace("- Hentaicop", "")?.trim()
             ?: "Episode"
 
-        val thumbnailUrl = doc.selectFirst("div.hcu-thumb img")?.absUrl("src")?.ifBlank {
+        val extractedThumb = doc.selectFirst("div.hcu-thumb img")?.absUrl("src")?.ifBlank {
             doc.selectFirst("div.hcu-thumb img")?.attr("src")
         } ?: doc.selectFirst("meta[property='og:image']")?.attr("content")
         ?: ""
+
+        val thumbnailUrl = if (isFaviconOrLogoUrl(extractedThumb)) "" else extractedThumb
 
         var durationFormatted = ""
         val chips = doc.select("ul.hcu-chips li")
