@@ -233,7 +233,7 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
                         }
                     }
                     override fun onPlaybackStateChanged(state: Int) {
-                        if (state == androidx.media3.common.Player.STATE_READY && playWhenReady) {
+                        if (state == androidx.media3.common.Player.STATE_READY) {
                             ivPlayerPoster.visibility = View.GONE
                         }
                     }

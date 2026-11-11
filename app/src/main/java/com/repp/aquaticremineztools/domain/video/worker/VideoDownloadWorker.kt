@@ -459,17 +459,32 @@ class VideoDownloadWorker(
                     batchIndices.map { index ->
                         async(Dispatchers.IO) {
                             val segUrl = segmentUrls[index]
-                            val segReq = Request.Builder()
-                                .url(segUrl)
-                                .header("User-Agent", HentaiCopParser.USER_AGENT)
-                                .header("Referer", "https://hentaicop.com/")
-                                .build()
+                            var bytes = byteArrayOf()
+                            var success = false
+                            for (attempt in 1..3) {
+                                try {
+                                    val segReq = Request.Builder()
+                                        .url(segUrl)
+                                        .header("User-Agent", HentaiCopParser.USER_AGENT)
+                                        .header("Referer", "https://hentaicop.com/")
+                                        .build()
 
-                            okHttpClient.newCall(segReq).execute().use { segResp ->
-                                if (!segResp.isSuccessful) throw IOException("HTTP ${segResp.code} segmen ${index + 1}")
-                                val body = segResp.body ?: throw IOException("Segmen ${index + 1} kosong")
-                                body.bytes()
+                                    okHttpClient.newCall(segReq).execute().use { segResp ->
+                                        if (segResp.isSuccessful) {
+                                            val body = segResp.body ?: throw IOException("Segmen kosong")
+                                            bytes = body.bytes()
+                                            success = true
+                                            return@use
+                                        }
+                                    }
+                                } catch (_: Exception) {}
+                                if (success) break
+                                kotlinx.coroutines.delay(500L * attempt)
                             }
+                            if (!success) {
+                                throw IOException("Gagal mengunduh segmen ${index + 1} setelah 3 percobaan.")
+                            }
+                            bytes
                         }
                     }
                 }
