@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#F3EFE6"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <!-- Top Drag Handle & Title -->
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="14dp"
+        android:background="#C9C1B5" />
+
+    <TextView
+        android:id="@+id/tvSheetEpisodeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:maxLines="2"
+        android:text="Episode Configuration"
+        android:textColor="#292722"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/times_new_roman_regular"
+        android:text="Configure server &amp; resolution or preview episode playback"
+        android:textColor="#746D62"
+        android:textSize="13sp" />
+
+    <!-- Mini Video Player Frame -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_marginTop="16dp"
+        android:background="#000000">
+
+        <androidx.media3.ui.PlayerView
+            android:id="@+id/playerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:resize_mode="fit"
+            app:show_buffering="when_playing"
+            app:use_controller="true" />
+
+        <ProgressBar
+            android:id="@+id/pbPlayerLoading"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="#FFFDF8"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!-- Server Selection Header -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="SELECT SERVER"
+        android:textColor="#292722"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <RadioGroup
+        android:id="@+id/rgServerSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical" />
+
+    <!-- Resolution Selection Header & Warning -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="SELECT RESOLUTION"
+        android:textColor="#292722"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvResolutionWarning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="⚠️ 720p resolution is not available for this server. Please manually choose an alternative resolution."
+        android:textColor="#D32F2F"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+    <RadioGroup
+        android:id="@+id/rgResolutionSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical" />
+
+    <!-- Action Button: SAVE SETTINGS -->
+    <Button
+        android:id="@+id/btnSaveConfig"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_manga_button_dark"
+        android:backgroundTint="@null"
+        app:backgroundTint="@null"
+        android:fontFamily="@font/times_new_roman_bold"
+        android:text="SAVE SETTINGS"
+        android:textColor="#FFFDF8"
+        android:textSize="14sp"
+        android:textStyle="bold" />
+
+</LinearLayout>

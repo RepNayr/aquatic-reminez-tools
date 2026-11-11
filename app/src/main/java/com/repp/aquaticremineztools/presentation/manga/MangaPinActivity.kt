@@ -57,10 +57,10 @@ class MangaPinActivity : AppCompatActivity() {
             isCreatingPin = !MangaPinManager.hasPin(this)
             if (isCreatingPin) {
                 tvPinTitle.text = "CREATE 6-DIGIT PIN"
-                tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
+                tvPinSubtitle.text = "Set a 6-digit PIN for Private Downloader access"
             } else {
                 tvPinTitle.text = "ENTER SECURITY PIN"
-                tvPinSubtitle.text = "Enter 6-digit PIN to access Private Manga Downloader"
+                tvPinSubtitle.text = "Enter 6-digit PIN to access Private Downloader"
             }
             updateLockoutState()
         } catch (e: SecurityException) {
@@ -185,18 +185,18 @@ class MangaPinActivity : AppCompatActivity() {
                         if (pin == tempFirstPin) {
                             MangaPinManager.savePin(this@MangaPinActivity, pin)
                             Toast.makeText(this@MangaPinActivity, "PIN successfully created", Toast.LENGTH_SHORT).show()
-                            openMangaDownloader()
+                            openDownloaderHub()
                         } else {
                             tempFirstPin = null
                             tvPinTitle.text = "CREATE 6-DIGIT PIN"
-                            tvPinSubtitle.text = "Set a 6-digit PIN for Private Manga Downloader access"
+                            tvPinSubtitle.text = "Set a 6-digit PIN for Private Downloader access"
                             showError("PINs do not match. Try again.")
                         }
                     }
                 } else {
                     val isCorrect = MangaPinManager.verifyPin(this@MangaPinActivity, pin)
                     if (isCorrect) {
-                        openMangaDownloader()
+                        openDownloaderHub()
                     } else {
                         if (MangaPinManager.isLockedOut(this@MangaPinActivity)) {
                             updateLockoutState()
@@ -234,8 +234,8 @@ class MangaPinActivity : AppCompatActivity() {
         tvPinError.visibility = View.VISIBLE
     }
 
-    private fun openMangaDownloader() {
-        val intent = Intent(this, MangaActivity::class.java)
+    private fun openDownloaderHub() {
+        val intent = Intent(this, com.repp.aquaticremineztools.presentation.video.PrivateDownloaderHubActivity::class.java)
         startActivity(intent)
         finish()
     }
