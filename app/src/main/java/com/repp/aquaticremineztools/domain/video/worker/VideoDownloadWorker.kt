@@ -21,6 +21,8 @@ import com.repp.aquaticremineztools.data.video.model.VideoSource
 import com.repp.aquaticremineztools.data.video.source.HentaiCopParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.OkHttpClient
@@ -438,50 +440,72 @@ class VideoDownloadWorker(
         destFile.delete()
 
         var currentBytes = 0L
-        val startTime = System.currentTimeMillis()
+        var lastWindowTime = System.currentTimeMillis()
+        var lastWindowBytes = 0L
+        var currentSpeedBps = 0L
 
-        FileOutputStream(destFile, true).use { output ->
-            segmentUrls.forEachIndexed { index, segUrl ->
+        val batchSize = 3
+        val fileOutputStream = FileOutputStream(destFile, true)
+
+        try {
+            for (i in segmentUrls.indices step batchSize) {
                 val checkStatus = dao.getById(item.id)
                 if (isStopped || checkStatus?.status == VideoDownloadEntity.STATUS_CANCELLED) {
                     return
                 }
 
-                val segReq = Request.Builder()
-                    .url(segUrl)
-                    .header("User-Agent", HentaiCopParser.USER_AGENT)
-                    .header("Referer", "https://hentaicop.com/")
-                    .build()
+                val batchIndices = i until minOf(i + batchSize, totalSegments)
+                val batchDeferreds = coroutineScope {
+                    batchIndices.map { index ->
+                        async(Dispatchers.IO) {
+                            val segUrl = segmentUrls[index]
+                            val segReq = Request.Builder()
+                                .url(segUrl)
+                                .header("User-Agent", HentaiCopParser.USER_AGENT)
+                                .header("Referer", "https://hentaicop.com/")
+                                .build()
 
-                okHttpClient.newCall(segReq).execute().use { segResp ->
-                    if (!segResp.isSuccessful) throw IOException("HTTP ${segResp.code} saat mengunduh segmen ${index + 1}")
-                    val body = segResp.body ?: throw IOException("Segmen ${index + 1} kosong")
-                    val inputStream = body.byteStream()
-                    val buffer = ByteArray(32768)
-                    var read: Int
-                    while (inputStream.read(buffer).also { read = it } != -1) {
-                        output.write(buffer, 0, read)
-                        currentBytes += read
+                            okHttpClient.newCall(segReq).execute().use { segResp ->
+                                if (!segResp.isSuccessful) throw IOException("HTTP ${segResp.code} segmen ${index + 1}")
+                                val body = segResp.body ?: throw IOException("Segmen ${index + 1} kosong")
+                                body.bytes()
+                            }
+                        }
                     }
                 }
 
-                val percent = ((index + 1) * 100) / totalSegments
-                val elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0
-                val speedBps = if (elapsedSec > 0) (currentBytes / elapsedSec).toLong() else 0L
+                for (j in batchDeferreds.indices) {
+                    val segBytes = batchDeferreds[j].await()
+                    fileOutputStream.write(segBytes)
+                    currentBytes += segBytes.size
 
-                dao.updateProgressIfDownloading(
-                    id = item.id,
-                    bytes = currentBytes,
-                    totalBytes = if (item.totalBytes > 0) item.totalBytes else currentBytes,
-                    speed = speedBps,
-                    percent = percent
-                )
+                    val completedIndex = i + j + 1
+                    val now = System.currentTimeMillis()
+                    val windowElapsed = now - lastWindowTime
+                    if (windowElapsed >= 500L) {
+                        currentSpeedBps = ((currentBytes - lastWindowBytes) * 1000L) / windowElapsed
+                        lastWindowTime = now
+                        lastWindowBytes = currentBytes
+                    }
 
-                showForegroundNotification(
-                    "Downloading ${item.episodeTitle}",
-                    "$percent% (${index + 1}/$totalSegments segmen)"
-                )
+                    val percent = (completedIndex * 100) / totalSegments
+
+                    dao.updateProgressIfDownloading(
+                        id = item.id,
+                        bytes = currentBytes,
+                        totalBytes = if (item.totalBytes > 0) item.totalBytes else currentBytes,
+                        speed = currentSpeedBps,
+                        percent = percent
+                    )
+
+                    showForegroundNotification(
+                        "Downloading ${item.episodeTitle}",
+                        "$percent% ($completedIndex/$totalSegments segmen)"
+                    )
+                }
             }
+        } finally {
+            fileOutputStream.close()
         }
     }
 

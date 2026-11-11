@@ -1,23 +1,26 @@
-# Walkthrough — Fixes for Episode Ordering, Fast Preview Pre-resolution, Thumbnails & Download Pipe
+# Walkthrough — HentaiCop Video Downloader & Preview Hardening
 
 ## Overview
-We have resolved all 3 issues reported in the latest feedback:
+We have successfully resolved the root cause of the download failures and player/thumbnail issues:
 
-1. **Urutan Episode & Label Episode**:
-   - Diperbaiki pada `HentaiCopParser.kt`: Sekarang membaca atribut `data-num` dan `<span class="ht-eplist__num">` asli dari website HentaiCop. Episode 1 dan Episode 2 sekarang persis sesuai dengan urutan dan penomoran asli web HentaiCop.
-   - Diperbaiki label episode hitam di atas judul (`EPISODE 1`, `EPISODE 2`) pada `item_video_episode.xml` & `VideoEpisodeAdapter.kt`.
+1. **Penyebab Utama Download Failed & Solusi Unescaping `go` Link**:
+   - Tautan `go` pada HTML HentaiCop ter-escape sebagai `href="...&#038;go=..."`. Tanpa Unescape `&#038;` menjadi `&`, OkHttp mengirim parameter query sebagai `q=720&#038;go=...` sehingga server HentaiCop mengabaikan parameter `go` dan mengembalikan halaman HTML unduh alih-alih `302 Found` ke lokasi media video.
+   - Diperbaiki di `HentaiCopParser.kt` dengan melakukan unescape `replace("&#038;", "&")` pada `goUrl` dan URL lokasi redirect.
 
-2. **Thumbnail Cuplikan & Pemuatan Cepat Mini Player (Pre-resolution)**:
-   - **Pemuatan Instan**: Di `VideoViewModel.kt`, ketika tombol "ANALYZE SERIES" ditekan, aplikasi secara otomatis melakukan pra-resolusi (`resolveDirectMediaSource`) untuk semua episode di latar belakang. Saat pengguna membuka Bottom Sheet, URL media dan header sudah siap di memori sehingga mini player dapat diputar secara instan tanpa perlu menunggu loading lama.
-   - **Thumbnail Gambar**: Menambahkan header HTTP (`User-Agent` & `Referer: https://hentaicop.com/`) pada permintaan `Coil` di `VideoEpisodeAdapter.kt` sehingga thumbnail episode berhasil dimuat.
+2. **Dukungan HLS `.m3u8` Segment Downloader**:
+   - HentaiCop menyajikan video dalam format HLS playlist (`.m3u8`, contoh: `https://9385b44eef82e4b1ce998.site/hls/hc/_hepi/.../index-v1-a1.m3u8?md5=...`).
+   - Diperbaiki di `VideoDownloadWorker.kt`: Menambahkan `downloadHlsPlaylistMedia` untuk mengunduh segmen TS/fMP4 secara berurutan dan menggabungkannya menjadi file video MP4 yang utuh.
 
-3. **Perbaikan Download Failed ("Respons server bukan file video") & Badge Tag**:
-   - Di `HentaiCopParser.kt`, ditambahkan warm-up request ke referer halaman episode sebelum membuka `/unduh/...`, sehingga cookie sesi HentaiCop terisi dengan benar di `CrotPediaCookieJar`.
-   - Di `VideoDownloadAdapter.kt`, badge tag pada daftar popup diubah dari `MANGA · PDF` menjadi `VIDEO · MP4`.
+3. **Urutan & Nomor Episode Asli HentaiCop**:
+   - `HentaiCopParser.kt` membaca `data-num` dan `<span class="ht-eplist__num">` asli dari HTML HentaiCop sehingga urutan `EPISODE 1` dan `EPISODE 2` di aplikasi persis sama dengan halaman web aslinya.
+
+4. **Thumbnail Kartu Episode & Pre-resolution Cepat**:
+   - `VideoEpisodeAdapter.kt` menambahkan header HTTP (`User-Agent` & `Referer: https://hentaicop.com/`) pada `Coil` dan otomatis *fallback* ke `series.coverUrl` jika thumbnail episode kosong/gagal.
+   - `VideoViewModel.kt` melakukan pra-resolusi tautan media video secara otomatis saat `ANALYZE SERIES` selesai sehingga Bottom Sheet memuat player mini secara instan.
 
 ---
 
 ## Verifikasi
 - **Unit Tests**: 79 unit tests lulus (`./gradlew app:testDebugUnitTest`).
 - **Build**: Assemble debug sukses (`./gradlew app:assembleDebug`).
-- **Git Push**: Perubahan telah di-commit dan di-push ke branch `fix/manga-downloader-hardening`.
+- **Git Push**: Perubahan di-push ke branch `fix/manga-downloader-hardening`.

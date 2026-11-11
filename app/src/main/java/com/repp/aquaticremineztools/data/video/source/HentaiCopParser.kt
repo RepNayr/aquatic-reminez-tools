@@ -149,9 +149,10 @@ class HentaiCopParser(
             ?: doc.selectFirst("meta[property='og:title']")?.attr("content")?.replace("- Hentaicop", "")?.trim()
             ?: "Episode"
 
-        val thumbnailUrl = doc.selectFirst("div.hcu-thumb img")?.attr("src")
-            ?: doc.selectFirst("meta[property='og:image']")?.attr("content")
-            ?: ""
+        val thumbnailUrl = doc.selectFirst("div.hcu-thumb img")?.absUrl("src")?.ifBlank {
+            doc.selectFirst("div.hcu-thumb img")?.attr("src")
+        } ?: doc.selectFirst("meta[property='og:image']")?.attr("content")
+        ?: ""
 
         var durationFormatted = ""
         val chips = doc.select("ul.hcu-chips li")

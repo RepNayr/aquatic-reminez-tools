@@ -31,6 +31,7 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
 
     private lateinit var tvSheetTitle: TextView
     private lateinit var playerView: PlayerView
+    private lateinit var ivPlayerPoster: android.widget.ImageView
     private lateinit var pbPlayerLoading: ProgressBar
     private lateinit var rgServers: RadioGroup
     private lateinit var rgResolutions: RadioGroup
@@ -78,6 +79,7 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
     private fun bindViews(view: View) {
         tvSheetTitle = view.findViewById(R.id.tvSheetEpisodeTitle)
         playerView = view.findViewById(R.id.playerView)
+        ivPlayerPoster = view.findViewById(R.id.ivPlayerPoster)
         pbPlayerLoading = view.findViewById(R.id.pbPlayerLoading)
         rgServers = view.findViewById(R.id.rgServerSelection)
         rgResolutions = view.findViewById(R.id.rgResolutionSelection)
@@ -88,6 +90,18 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
     private fun setupUI() {
         val currentEp = episode ?: return
         tvSheetTitle.text = currentEp.title
+
+        if (currentEp.thumbnailUrl.isNotBlank()) {
+            coil.Coil.imageLoader(requireContext()).enqueue(
+                coil.request.ImageRequest.Builder(requireContext())
+                    .data(currentEp.thumbnailUrl)
+                    .target(ivPlayerPoster)
+                    .crossfade(true)
+                    .addHeader("User-Agent", HentaiCopParser.USER_AGENT)
+                    .addHeader("Referer", "https://hentaicop.com/")
+                    .build()
+            )
+        }
 
         val sources = currentEp.availableSources
         if (sources.isEmpty()) {
@@ -201,6 +215,18 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
         if (player == null) {
             player = ExoPlayer.Builder(ctx).build().apply {
                 playWhenReady = false // Autoplay disabled per requirements
+                addListener(object : androidx.media3.common.Player.Listener {
+                    override fun onIsPlayingChanged(isPlaying: Boolean) {
+                        if (isPlaying) {
+                            ivPlayerPoster.visibility = View.GONE
+                        }
+                    }
+                    override fun onPlaybackStateChanged(state: Int) {
+                        if (state == androidx.media3.common.Player.STATE_READY && playWhenReady) {
+                            ivPlayerPoster.visibility = View.GONE
+                        }
+                    }
+                })
             }
             playerView.player = player
         } else {
@@ -219,7 +245,7 @@ class EpisodeConfigBottomSheet : BottomSheetDialogFragment() {
                 val dataSourceFactory = androidx.media3.datasource.DefaultHttpDataSource.Factory()
                     .setDefaultRequestProperties(mapOf("User-Agent" to resolved.userAgent, "Referer" to resolved.referer))
 
-                val mediaSource = androidx.media3.exoplayer.source.ProgressiveMediaSource.Factory(dataSourceFactory)
+                val mediaSource = androidx.media3.exoplayer.source.DefaultMediaSourceFactory(dataSourceFactory)
                     .createMediaSource(MediaItem.fromUri(resolved.mediaUrl))
 
                 player?.setMediaSource(mediaSource)

@@ -51,6 +51,14 @@
             app:show_buffering="when_playing"
             app:use_controller="true" />
 
+        <ImageView
+            android:id="@+id/ivPlayerPoster"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:clickable="false"
+            android:focusable="false" />
+
         <ProgressBar
             android:id="@+id/pbPlayerLoading"
             android:layout_width="36dp"
