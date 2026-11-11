@@ -1,15 +1,23 @@
 package com.repp.aquaticremineztools.domain.video
 
 import android.content.Context
-import android.media.MediaExtractor
-import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.transformer.Composition
+import androidx.media3.transformer.ExportException
+import androidx.media3.transformer.ExportResult
+import androidx.media3.transformer.Transformer
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 object VideoCompressor {
 
     suspend fun compressVideo(
@@ -25,56 +33,94 @@ object VideoCompressor {
 
         val videosDir = File(context.filesDir, "videos").apply { mkdirs() }
         val outputFile = File(videosDir, outputFileName)
+        if (outputFile.exists()) {
+            outputFile.delete()
+        }
 
         val retriever = MediaMetadataRetriever()
-        try {
+        val durationMs = try {
             retriever.setDataSource(sourceFile.absolutePath)
-        } catch (e: Exception) {
-            throw IOException("Failed to read video metadata: ${e.message}", e)
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+        } catch (_: Exception) {
+            0L
+        } finally {
+            try { retriever.release() } catch (_: Exception) {}
         }
 
-        val durationStr = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)
-        val durationMs = durationStr?.toLongOrNull() ?: 0L
         val durationSec = (durationMs / 1000L).coerceAtLeast(1L)
+        val audioBitrate = 64_000L
+        val targetBitrate = (((targetSizeBytes * 8L) / durationSec) - audioBitrate).coerceIn(200_005L, 5_000_000L)
 
-        // Calculate target bitrate from target size and duration
-        val targetBitrate = ((targetSizeBytes * 8) / durationSec).coerceAtLeast(250_000L) // Min 250 kbps
+        onProgress(5)
 
-        onProgress(10)
+        val mediaItem = MediaItem.fromUri(Uri.fromFile(sourceFile))
 
-        // Perform file copy / remux / compression pass
-        val sourceSizeBytes = sourceFile.length()
-        if (targetSizeBytes >= sourceSizeBytes) {
-            // Target is equal or larger than original; copy source safely
-            sourceFile.copyTo(outputFile, overwrite = true)
-            onProgress(100)
-            return@withContext outputFile
-        }
+        suspendCancellableCoroutine { continuation ->
+            var transformer: Transformer? = null
+            try {
+                transformer = Transformer.Builder(context)
+                    .setVideoMimeType(MimeTypes.VIDEO_H264)
+                    .setAudioMimeType(MimeTypes.AUDIO_AAC)
+                    .addListener(object : Transformer.Listener {
+                        override fun onCompleted(composition: Composition, exportResult: ExportResult) {
+                            if (outputFile.exists() && outputFile.length() > 0L) {
+                                onProgress(100)
+                                if (continuation.isActive) continuation.resume(Unit)
+                            } else {
+                                if (continuation.isActive) continuation.resumeWithException(IOException("File hasil transcode kosong."))
+                            }
+                        }
 
-        // Standard compression stream / remux pass
-        val buffer = ByteArray(65536)
-        var copiedBytes = 0L
-        val totalSourceBytes = sourceFile.length()
+                        override fun onError(
+                            composition: Composition,
+                            exportResult: ExportResult,
+                            exportException: ExportException
+                        ) {
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(IOException("Transcoding gagal: ${exportException.message}", exportException))
+                            }
+                        }
+                    })
+                    .build()
 
-        sourceFile.inputStream().use { input ->
-            outputFile.outputStream().use { output ->
-                var bytesRead: Int
-                while (input.read(buffer).also { bytesRead = it } != -1) {
-                    output.write(buffer, 0, bytesRead)
-                    copiedBytes += bytesRead
-                    val percent = (10 + (copiedBytes * 80 / totalSourceBytes)).toInt().coerceIn(10, 90)
-                    onProgress(percent)
+                transformer.start(mediaItem, outputFile.absolutePath)
+
+                continuation.invokeOnCancellation {
+                    try {
+                        transformer?.cancel()
+                    } catch (_: Exception) {}
+                    if (outputFile.exists()) {
+                        outputFile.delete()
+                    }
+                }
+            } catch (e: Exception) {
+                if (outputFile.exists()) {
+                    outputFile.delete()
+                }
+                if (continuation.isActive) {
+                    continuation.resumeWithException(IOException("Inisialisasi Transformer gagal: ${e.message}", e))
                 }
             }
         }
 
-        retriever.release()
-
         if (!outputFile.exists() || outputFile.length() == 0L) {
-            throw IOException("Compressed video file generation failed.")
+            throw IOException("File video terkompresi tidak ditemukan.")
         }
 
-        onProgress(100)
+        val validatorRetriever = MediaMetadataRetriever()
+        try {
+            validatorRetriever.setDataSource(outputFile.absolutePath)
+            val outDuration = validatorRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+            if (outDuration <= 0L) {
+                throw IOException("File terkompresi tidak memiliki durasi valid.")
+            }
+        } catch (e: Exception) {
+            if (outputFile.exists()) outputFile.delete()
+            throw IOException("Validasi file terkompresi gagal: ${e.message}", e)
+        } finally {
+            try { validatorRetriever.release() } catch (_: Exception) {}
+        }
+
         return@withContext outputFile
     }
 }

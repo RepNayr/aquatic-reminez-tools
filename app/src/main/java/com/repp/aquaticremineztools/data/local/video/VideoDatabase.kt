@@ -22,7 +22,6 @@ abstract class VideoDatabase : RoomDatabase() {
                     VideoDatabase::class.java,
                     "aquatic_video_db"
                 )
-                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance
