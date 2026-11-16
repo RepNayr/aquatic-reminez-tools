@@ -227,7 +227,7 @@ object VideoCompressor {
         onProgress(5)
 
         val client = okhttp3.OkHttpClient.Builder()
-            .cookieJar(com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar(context))
+            .cookieJar(com.repp.aquaticremineztools.data.video.network.HentaiCopCookieJar(context))
             .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
             .build()

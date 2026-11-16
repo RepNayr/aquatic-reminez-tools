@@ -21,7 +21,6 @@ import com.repp.aquaticremineztools.data.video.model.VideoSource
 import com.repp.aquaticremineztools.data.video.source.HentaiCopParser
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -34,6 +33,8 @@ import java.io.RandomAccessFile
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 
+import com.repp.aquaticremineztools.data.video.network.HentaiCopCookieJar
+
 class VideoDownloadWorker(
     context: Context,
     params: WorkerParameters
@@ -44,7 +45,7 @@ class VideoDownloadWorker(
     private val resultDao = db.videoResultDao()
 
     private val okHttpClient = OkHttpClient.Builder()
-        .cookieJar(com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar(context))
+        .cookieJar(HentaiCopCookieJar(context))
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
@@ -298,7 +299,7 @@ class VideoDownloadWorker(
     ) {
         val mediaUrl = resolvedSource.mediaUrl
         if (mediaUrl.contains(".m3u8") || mediaUrl.contains("/hls/")) {
-            downloadHlsPlaylistMedia(item, mediaUrl, destFile)
+            downloadHlsPlaylistMedia(item, resolvedSource, destFile)
             return
         }
 
@@ -306,10 +307,13 @@ class VideoDownloadWorker(
 
         dao.updateStage(item.id, VideoDownloadEntity.STAGE_OPENING_MEDIA_REQUEST)
 
+        val userAgent = resolvedSource.userAgent.ifBlank { HentaiCopParser.USER_AGENT }
+        val referer = resolvedSource.referer.ifBlank { item.episodeUrl }
+
         val reqBuilder = Request.Builder()
             .url(mediaUrl)
-            .header("User-Agent", resolvedSource.userAgent.ifBlank { HentaiCopParser.USER_AGENT })
-            .header("Referer", resolvedSource.referer.ifBlank { item.episodeUrl })
+            .header("User-Agent", userAgent)
+            .header("Referer", referer)
 
         if (existingLength > 0L) {
             reqBuilder.header("Range", "bytes=$existingLength-")
@@ -321,17 +325,31 @@ class VideoDownloadWorker(
 
         call.execute().use { response ->
             dao.updateStage(item.id, VideoDownloadEntity.STAGE_VALIDATING_HTTP_RESPONSE)
+            if (response.code == 401) {
+                throw IOException("[HTTP_UNAUTHORIZED] Server menolak akses (HTTP 401 Unauthorized)")
+            }
+            if (response.code == 403) {
+                throw IOException("[HTTP_FORBIDDEN] Server menolak akses (HTTP 403 Forbidden)")
+            }
+            if (response.code == 404) {
+                throw IOException("[HTTP_NOT_FOUND] File video tidak ditemukan pada server (HTTP 404 Not Found)")
+            }
             if (!response.isSuccessful && response.code != 206) {
-                throw IOException("HTTP ${response.code} pada file video")
+                throw IOException("[HTTP_${response.code}] Server mengembalikan status HTTP ${response.code} saat mengunduh video")
             }
 
             val contentType = response.header("Content-Type")?.lowercase() ?: ""
-            if (contentType.contains("text/html") || contentType.contains("application/json")) {
+            val host = response.request.url.host
+            if (contentType.contains("text/html")) {
                 val bodySnippet = response.body?.string()?.take(200) ?: ""
-                throw IOException("Respons server bukan file video valid (Content-Type: $contentType). Info: $bodySnippet")
+                throw IOException("[HTML_RESPONSE_INSTEAD_OF_MEDIA] Respons server bukan file video valid (Content-Type: $contentType, Host: $host). Snippet: $bodySnippet")
+            }
+            if (contentType.contains("application/json")) {
+                val bodySnippet = response.body?.string()?.take(200) ?: ""
+                throw IOException("[JSON_RESPONSE_INSTEAD_OF_MEDIA] Respons server berupa JSON (Content-Type: $contentType). Snippet: $bodySnippet")
             }
 
-            val body = response.body ?: throw IOException("Body respons video kosong")
+            val body = response.body ?: throw IOException("[EMPTY_MEDIA_RESPONSE] Body respons video kosong")
             val isPartialContent = response.code == 206
 
             if (!isPartialContent && existingLength > 0L) {
@@ -387,20 +405,23 @@ class VideoDownloadWorker(
 
     private suspend fun downloadHlsPlaylistMedia(
         item: VideoDownloadEntity,
-        playlistUrl: String,
+        resolvedSource: com.repp.aquaticremineztools.data.video.model.ResolvedVideoSource,
         destFile: File
     ) {
         dao.updateStage(item.id, VideoDownloadEntity.STAGE_STREAMING_STARTED)
         showForegroundNotification("Downloading HLS ${item.episodeTitle}", "Processing HLS stream (.m3u8)...")
 
+        val userAgent = resolvedSource.userAgent.ifBlank { HentaiCopParser.USER_AGENT }
+        val referer = resolvedSource.referer.ifBlank { item.episodeUrl }
+
         val headers = mapOf(
-            "User-Agent" to HentaiCopParser.USER_AGENT,
-            "Referer" to item.episodeUrl
+            "User-Agent" to userAgent,
+            "Referer" to referer
         )
 
         com.repp.aquaticremineztools.domain.video.VideoCompressor.exportHlsToMp4(
             context = applicationContext,
-            playlistUrl = playlistUrl,
+            playlistUrl = resolvedSource.mediaUrl,
             outputFile = destFile,
             headers = headers,
             onProgress = { percent: Int ->

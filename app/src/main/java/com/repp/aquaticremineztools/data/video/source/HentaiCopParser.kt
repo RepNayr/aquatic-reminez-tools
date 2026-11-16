@@ -5,6 +5,7 @@ import com.repp.aquaticremineztools.data.video.model.VideoEpisode
 import com.repp.aquaticremineztools.data.video.model.VideoQuality
 import com.repp.aquaticremineztools.data.video.model.VideoSeries
 import com.repp.aquaticremineztools.data.video.model.VideoSource
+import com.repp.aquaticremineztools.data.video.network.HentaiCopCookieJar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -18,11 +19,7 @@ import java.util.regex.Pattern
 class HentaiCopParser(
     context: android.content.Context? = null,
     private val client: OkHttpClient = OkHttpClient.Builder()
-        .apply {
-            if (context != null) {
-                cookieJar(com.repp.aquaticremineztools.data.manga.source.CrotPediaCookieJar(context))
-            }
-        }
+        .cookieJar(HentaiCopCookieJar(context))
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .retryOnConnectionFailure(true)
@@ -70,6 +67,70 @@ class HentaiCopParser(
             } else {
                 trimmed
             }
+        }
+
+        fun resolveAndCleanUrl(baseUrl: String, relativeOrAbsolute: String): String {
+            if (relativeOrAbsolute.isBlank()) return ""
+            val cleaned = relativeOrAbsolute.trim()
+                .replace("&#038;", "&")
+                .replace("&amp;", "&")
+
+            return try {
+                if (cleaned.startsWith("http://") || cleaned.startsWith("https://")) {
+                    cleaned
+                } else if (baseUrl.isNotBlank()) {
+                    URI(baseUrl).resolve(cleaned).toString()
+                } else {
+                    cleaned
+                }
+            } catch (_: Exception) {
+                cleaned
+            }
+        }
+
+        fun isValidMediaUrl(candidateUrl: String, dlPageUrl: String, refererUrl: String = ""): Boolean {
+            if (candidateUrl.isBlank()) return false
+
+            if (candidateUrl.equals(dlPageUrl, ignoreCase = true)) return false
+            if (refererUrl.isNotBlank() && candidateUrl.equals(refererUrl, ignoreCase = true)) return false
+
+            val uri = try {
+                URI(candidateUrl)
+            } catch (_: Exception) {
+                return false
+            }
+
+            val scheme = uri.scheme?.lowercase() ?: return false
+            if (scheme != "http" && scheme != "https") return false
+
+            val host = uri.host?.lowercase()
+            if (host.isNullOrBlank()) return false
+
+            // Exclude known ad/tracker/popup domains
+            if (host.contains("doubleclick") ||
+                host.contains("adsterra") ||
+                host.contains("exoclick") ||
+                host.contains("popads") ||
+                host.contains("syndication") ||
+                host.contains("google-analytics") ||
+                host.contains("popunder")
+            ) {
+                return false
+            }
+
+            val pathLower = (uri.path ?: "").lowercase()
+
+            // Disallow HTML/PHP pages or landing pages without media indication
+            if (pathLower.endsWith(".html") ||
+                pathLower.endsWith(".htm") ||
+                pathLower.endsWith(".php") ||
+                pathLower.contains("/series/") ||
+                pathLower.contains("/landing/")
+            ) {
+                return false
+            }
+
+            return true
         }
     }
 
@@ -247,7 +308,7 @@ class HentaiCopParser(
 
     suspend fun resolveDirectMediaSource(source: VideoSource): ResolvedVideoSource = withContext(Dispatchers.IO) {
         val dlPageUrl = source.downloadPageUrl
-        require(dlPageUrl.isNotBlank()) { "Download page URL is blank." }
+        require(dlPageUrl.isNotBlank()) { "[MEDIA_URL_NOT_FOUND] Download page URL is blank." }
 
         // Session warm-up: visit episode referer page first to populate session cookies
         val refererUrl = if (source.refererHeader.isNotBlank()) source.refererHeader else "https://hentaicop.com/"
@@ -269,118 +330,112 @@ class HentaiCopParser(
             .build()
 
         var responseUrl = dlPageUrl
-        val responseHtml = client.newCall(request).execute().use { resp ->
-            if (!resp.isSuccessful) throw IOException("HTTP ${resp.code} saat membuka halaman unduh")
-            responseUrl = resp.request.url.toString()
-            resp.body?.string() ?: throw IOException("Respons halaman unduh kosong")
+        val responseHtml = try {
+            client.newCall(request).execute().use { resp ->
+                if (resp.code == 401) throw IOException("[HTTP_UNAUTHORIZED] HTTP 401 Unauthorized saat membuka halaman unduh")
+                if (resp.code == 403) throw IOException("[HTTP_FORBIDDEN] HTTP 403 Forbidden saat membuka halaman unduh")
+                if (resp.code == 404) throw IOException("[HTTP_NOT_FOUND] HTTP 404 Not Found saat membuka halaman unduh")
+                if (!resp.isSuccessful) throw IOException("[HTTP_${resp.code}] HTTP ${resp.code} saat membuka halaman unduh")
+                responseUrl = resp.request.url.toString()
+                resp.body?.string() ?: throw IOException("[EMPTY_MEDIA_RESPONSE] Respons halaman unduh kosong")
+            }
+        } catch (e: IOException) {
+            if (e.message?.startsWith("[") == true) throw e
+            throw IOException("[NETWORK_ERROR] Gagal menghubungi server halaman unduh: ${e.message}", e)
         }
 
         val doc = Jsoup.parse(responseHtml, responseUrl)
 
-        // Step 2: Extract go link
-        val goLinkElem = doc.selectFirst("a[data-hcu-go]")
-        val rawGoUrl = goLinkElem?.absUrl("href") ?: run {
-            val matcher = Pattern.compile("href=[\"']([^\"']*\\?go=[^\"']*)[\"']").matcher(responseHtml)
-            if (matcher.find()) {
-                val found = matcher.group(1) ?: ""
-                try {
-                    URI(responseUrl).resolve(found).toString()
-                } catch (_: Exception) {
-                    if (found.startsWith("http")) found else "https://hentaicop.com$found"
-                }
-            } else {
-                ""
-            }
+        // Step 2: Extract candidate media URL directly from dlPageUrl HTML if available
+        var candidateMediaUrl = ""
+
+        val directVid = (doc.selectFirst("video source[src], video[src]")?.attr("src")
+            ?: doc.selectFirst("iframe[src]")?.attr("src")
+            ?: "").trim()
+
+        if (directVid.isNotBlank()) {
+            candidateMediaUrl = resolveAndCleanUrl(responseUrl, directVid)
         }
 
-        val goUrl = rawGoUrl.replace("&#038;", "&").replace("&amp;", "&")
-
-        val mediaUrl = if (goUrl.isBlank()) {
-            val directVid = doc.selectFirst("video source, video")?.attr("src")?.ifBlank {
-                doc.selectFirst("iframe")?.attr("src")
-            } ?: ""
-            if (directVid.isNotBlank()) {
-                try {
-                    URI(responseUrl).resolve(directVid).toString()
-                } catch (_: Exception) {
-                    directVid
-                }
-            } else {
-                dlPageUrl
-            }
-        } else {
-            // Step 3: Fetch go link with followRedirects disabled
-            val noRedirectClient = client.newBuilder()
-                .followRedirects(false)
-                .followSslRedirects(false)
-                .build()
-
-            val goRequest = Request.Builder()
-                .url(goUrl)
-                .header("User-Agent", USER_AGENT)
-                .header("Referer", dlPageUrl)
-                .build()
-
-            noRedirectClient.newCall(goRequest).execute().use { goResp ->
-                val location = goResp.header("Location")
-                if (!location.isNullOrBlank()) {
-                    val cleanLoc = location.replace("&#038;", "&").replace("&amp;", "&")
-                    try {
-                        URI(goUrl).resolve(cleanLoc).toString()
-                    } catch (_: Exception) {
-                        cleanLoc
-                    }
-                } else if (goResp.isSuccessful) {
-                    val contentType = goResp.header("Content-Type")?.lowercase() ?: ""
-                    val bodyStr = goResp.body?.string() ?: ""
-                    if (contentType.contains("text/html")) {
-                        val goDoc = Jsoup.parse(bodyStr, goResp.request.url.toString())
-                        val extractedVid = goDoc.selectFirst("video source, video")?.attr("src")?.ifBlank {
-                            goDoc.selectFirst("iframe")?.attr("src")
-                        } ?: run {
-                            val mp4Matcher = Pattern.compile("https?://[^\"']+\\.(?:mp4|ts|m3u8|m4v)[^\"']*").matcher(bodyStr)
-                            if (mp4Matcher.find()) mp4Matcher.group(0) else null
-                        } ?: ""
-                        if (extractedVid.isNotBlank()) {
-                            try {
-                                URI(goResp.request.url.toString()).resolve(extractedVid).toString()
-                            } catch (_: Exception) {
-                                extractedVid
-                            }
-                        } else {
-                            dlPageUrl
-                        }
-                    } else if (contentType.contains("application/json")) {
-                        val jsonUrlMatcher = Pattern.compile("https?://[^\"']+\\.(?:mp4|ts|m3u8|m4v)[^\"']*").matcher(bodyStr)
-                        if (jsonUrlMatcher.find()) {
-                            jsonUrlMatcher.group(0) ?: dlPageUrl
-                        } else {
-                            dlPageUrl
-                        }
-                    } else {
-                        val finalUrl = goResp.request.url.toString()
-                        if (finalUrl == goUrl) {
-                            dlPageUrl
-                        } else {
-                            finalUrl
-                        }
-                    }
+        // Step 3: Extract go link if no direct media URL yet
+        if (!isValidMediaUrl(candidateMediaUrl, dlPageUrl, refererUrl)) {
+            val goLinkElem = doc.selectFirst("a[data-hcu-go]")
+            val rawGoUrl = goLinkElem?.absUrl("href") ?: run {
+                val matcher = Pattern.compile("href=[\"']([^\"']*\\?go=[^\"']*)[\"']").matcher(responseHtml)
+                if (matcher.find()) {
+                    val found = matcher.group(1) ?: ""
+                    resolveAndCleanUrl(responseUrl, found)
                 } else {
-                    dlPageUrl
+                    ""
                 }
+            }
+
+            val goUrl = resolveAndCleanUrl(responseUrl, rawGoUrl)
+
+            if (goUrl.isNotBlank() && goUrl != dlPageUrl) {
+                // Step 4: Fetch go link with followRedirects disabled
+                val noRedirectClient = client.newBuilder()
+                    .followRedirects(false)
+                    .followSslRedirects(false)
+                    .build()
+
+                val goRequest = Request.Builder()
+                    .url(goUrl)
+                    .header("User-Agent", USER_AGENT)
+                    .header("Referer", dlPageUrl)
+                    .build()
+
+                try {
+                    noRedirectClient.newCall(goRequest).execute().use { goResp ->
+                        val location = goResp.header("Location")
+                        if (!location.isNullOrBlank()) {
+                            candidateMediaUrl = resolveAndCleanUrl(goUrl, location)
+                        } else if (goResp.isSuccessful) {
+                            val contentType = goResp.header("Content-Type")?.lowercase() ?: ""
+                            val bodyStr = goResp.body?.string() ?: ""
+                            if (contentType.contains("text/html")) {
+                                val goDoc = Jsoup.parse(bodyStr, goResp.request.url.toString())
+                                val extractedVid = (goDoc.selectFirst("video source[src], video[src]")?.attr("src")
+                                    ?: goDoc.selectFirst("iframe[src]")?.attr("src")
+                                    ?: run {
+                                        val mp4Matcher = Pattern.compile("https?://[^\"'\\s]+\\.(?:mp4|ts|m3u8|m4v)[^\"'\\s]*").matcher(bodyStr)
+                                        if (mp4Matcher.find()) mp4Matcher.group(0) else null
+                                    } ?: "").trim()
+                                if (extractedVid.isNotBlank()) {
+                                    candidateMediaUrl = resolveAndCleanUrl(goResp.request.url.toString(), extractedVid)
+                                }
+                            } else if (contentType.contains("application/json")) {
+                                val jsonUrlMatcher = Pattern.compile("https?://[^\"'\\s]+\\.(?:mp4|ts|m3u8|m4v)[^\"'\\s]*").matcher(bodyStr)
+                                if (jsonUrlMatcher.find()) {
+                                    candidateMediaUrl = resolveAndCleanUrl(goResp.request.url.toString(), jsonUrlMatcher.group(0) ?: "")
+                                }
+                            } else if (contentType.contains("video/") || contentType.contains("application/x-mpegurl") || contentType.contains("application/vnd.apple.mpegurl")) {
+                                candidateMediaUrl = goResp.request.url.toString()
+                            }
+                        }
+                    }
+                } catch (_: Exception) {}
             }
         }
 
-        require(mediaUrl.isNotBlank() && !mediaUrl.contains(".html")) {
-            "URL media yang diselesaikan tidak valid atau merujuk ke halaman HTML: $mediaUrl"
+        // Final strict media URL validation
+        if (!isValidMediaUrl(candidateMediaUrl, dlPageUrl, refererUrl)) {
+            throw IOException("[MEDIA_URL_NOT_FOUND] Tidak dapat mengekstrak URL media video yang valid dari halaman unduh ($dlPageUrl).")
+        }
+
+        val mimeType = when {
+            candidateMediaUrl.contains(".m3u8") -> "application/x-mpegurl"
+            candidateMediaUrl.contains(".ts") -> "video/mp2t"
+            else -> "video/mp4"
         }
 
         ResolvedVideoSource(
-            mediaUrl = mediaUrl,
+            mediaUrl = candidateMediaUrl,
             referer = dlPageUrl,
             userAgent = USER_AGENT,
             expectedSizeBytes = source.quality.fileSizeBytes,
-            selectedQuality = source.quality
+            selectedQuality = source.quality,
+            mimeType = mimeType
         )
     }
 
@@ -397,10 +452,13 @@ class HentaiCopParser(
             .build()
 
         client.newCall(request).execute().use { response ->
+            if (response.code == 401) throw IOException("[HTTP_UNAUTHORIZED] HTTP 401 Unauthorized")
+            if (response.code == 403) throw IOException("[HTTP_FORBIDDEN] HTTP 403 Forbidden")
+            if (response.code == 404) throw IOException("[HTTP_NOT_FOUND] HTTP 404 Not Found")
             if (!response.isSuccessful) {
-                throw IOException("Gagal mengakses URL (HTTP ${response.code})")
+                throw IOException("[HTTP_${response.code}] Gagal mengakses URL (HTTP ${response.code})")
             }
-            return response.body?.string() ?: throw IOException("Respons HTML kosong")
+            return response.body?.string() ?: throw IOException("[EMPTY_MEDIA_RESPONSE] Respons HTML kosong")
         }
     }
 
