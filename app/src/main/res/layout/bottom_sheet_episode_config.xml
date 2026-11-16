@@ -32,41 +32,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="4dp"
         android:fontFamily="@font/times_new_roman_regular"
-        android:text="Configure server &amp; resolution or preview episode playback"
+        android:text="Configure server &amp; resolution for download"
         android:textColor="#746D62"
         android:textSize="13sp" />
-
-    <!-- Mini Video Player Frame -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="16dp"
-        android:background="#000000">
-
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/playerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:resize_mode="fit"
-            app:show_buffering="when_playing"
-            app:use_controller="true" />
-
-        <ImageView
-            android:id="@+id/ivPlayerPoster"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:clickable="false"
-            android:focusable="false" />
-
-        <ProgressBar
-            android:id="@+id/pbPlayerLoading"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_gravity="center"
-            android:indeterminateTint="#FFFDF8"
-            android:visibility="gone" />
-    </FrameLayout>
 
     <!-- Server Selection Header -->
     <TextView
@@ -114,20 +82,5 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:orientation="vertical" />
-
-    <!-- Action Button: SAVE SETTINGS -->
-    <Button
-        android:id="@+id/btnSaveConfig"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/bg_manga_button_dark"
-        android:backgroundTint="@null"
-        app:backgroundTint="@null"
-        android:fontFamily="@font/times_new_roman_bold"
-        android:text="SAVE SETTINGS"
-        android:textColor="#FFFDF8"
-        android:textSize="14sp"
-        android:textStyle="bold" />
 
 </LinearLayout>

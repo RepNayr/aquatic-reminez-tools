@@ -63,6 +63,9 @@ interface VideoDownloadDao {
         warningMessage: String? = null
     ): Int
 
+    @Query("UPDATE video_downloads SET stage = :stage WHERE id = :id")
+    suspend fun updateStage(id: Long, stage: String): Int
+
     @Query("UPDATE video_downloads SET status = 'FAILED', errorMessage = :message WHERE id = :id AND status = 'DOWNLOADING'")
     suspend fun markFailedIfDownloading(id: Long, message: String): Int
 

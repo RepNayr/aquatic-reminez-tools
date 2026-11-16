@@ -144,18 +144,22 @@ class VideoDownloadWorker(
             refererHeader = item.episodeUrl
         )
 
-        val directMediaUrl = try {
-            parser.resolveDirectMediaUrl(source)
+        val resolvedSource = try {
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_RESOLVING_DOWNLOAD_PAGE)
+            parser.resolveDirectMediaSource(source)
         } catch (e: Exception) {
             throw IOException("Gagal mendapatkan link media video: ${e.message}", e)
         }
 
+        dao.updateStage(item.id, VideoDownloadEntity.STAGE_MEDIA_URL_RESOLVED)
+
         val videosDir = File(applicationContext.filesDir, "videos").apply { mkdirs() }
-        val tempFile = File(videosDir, "video_temp_${item.id}.tmp")
-        val finalFile = File(videosDir, item.outputFileName)
+        val tempTsFile = File(videosDir, "video_temp_${item.id}.ts")
 
         try {
-            downloadStreamingMedia(item, directMediaUrl, tempFile)
+            downloadStreamingMedia(item, resolvedSource, tempTsFile)
+
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_STREAMING_COMPLETED)
 
             val checkFinal = dao.getById(item.id)
             if (isStopped || checkFinal?.status == VideoDownloadEntity.STATUS_CANCELLED) {
@@ -165,28 +169,41 @@ class VideoDownloadWorker(
                 return
             }
 
-            if (!tempFile.exists() || tempFile.length() == 0L) {
-                throw IOException("Hasil unduhan video kosong atau tidak ditemukan.")
+            if (!tempTsFile.exists() || tempTsFile.length() == 0L) {
+                throw IOException("Hasil unduhan video stream kosong atau tidak ditemukan.")
             }
 
-            if (finalFile.exists()) {
-                finalFile.delete()
-            }
-            if (!tempFile.renameTo(finalFile)) {
-                // Fallback copy if rename fails
-                tempFile.copyTo(finalFile, overwrite = true)
-                tempFile.delete()
-            }
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_CONVERTING_VIDEO)
+            showForegroundNotification("Converting Video", item.episodeTitle)
 
-            val finalSizeBytes = finalFile.length()
-            validateDownloadedVideoFile(finalFile, item.totalBytes)
+            val convertedFile = com.repp.aquaticremineztools.domain.video.VideoCompressor.convertTsToMp4(
+                context = applicationContext,
+                sourceFile = tempTsFile,
+                outputFileName = item.outputFileName,
+                onProgress = { percent ->
+                    kotlinx.coroutines.runBlocking {
+                        dao.updateProgressIfDownloading(
+                            id = item.id,
+                            bytes = tempTsFile.length(),
+                            totalBytes = item.totalBytes.coerceAtLeast(tempTsFile.length()),
+                            speed = 0L,
+                            percent = percent
+                        )
+                    }
+                }
+            )
 
+            val finalSizeBytes = convertedFile.length()
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_MEDIA_VALIDATION)
+            validateDownloadedVideoFile(convertedFile, item.totalBytes)
+
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_RESULT_SAVED)
             // Insert into VideoResultEntity
             val resultEntity = VideoResultEntity(
                 seriesTitle = item.seriesTitle,
                 episodeTitle = item.episodeTitle,
                 episodeUrl = item.episodeUrl,
-                videoPath = finalFile.absolutePath,
+                videoPath = convertedFile.absolutePath,
                 fileFormat = "MP4",
                 resolutionLabel = item.qualityLabel,
                 sizeBytes = finalSizeBytes,
@@ -202,11 +219,11 @@ class VideoDownloadWorker(
                 finalStatus = VideoDownloadEntity.STATUS_COMPLETED,
                 bytes = finalSizeBytes,
                 totalBytes = finalSizeBytes,
-                videoPath = finalFile.absolutePath
+                videoPath = convertedFile.absolutePath
             )
         } finally {
-            if (tempFile.exists()) {
-                tempFile.delete()
+            if (tempTsFile.exists()) {
+                tempTsFile.delete()
             }
         }
     }
@@ -276,9 +293,10 @@ class VideoDownloadWorker(
 
     private suspend fun downloadStreamingMedia(
         item: VideoDownloadEntity,
-        mediaUrl: String,
+        resolvedSource: com.repp.aquaticremineztools.data.video.model.ResolvedVideoSource,
         destFile: File
     ) {
+        val mediaUrl = resolvedSource.mediaUrl
         if (mediaUrl.contains(".m3u8") || mediaUrl.contains("/hls/")) {
             downloadHlsPlaylistMedia(item, mediaUrl, destFile)
             return
@@ -286,10 +304,12 @@ class VideoDownloadWorker(
 
         var existingLength = if (destFile.exists()) destFile.length() else 0L
 
+        dao.updateStage(item.id, VideoDownloadEntity.STAGE_OPENING_MEDIA_REQUEST)
+
         val reqBuilder = Request.Builder()
             .url(mediaUrl)
-            .header("User-Agent", HentaiCopParser.USER_AGENT)
-            .header("Referer", "https://hentaicop.com/")
+            .header("User-Agent", resolvedSource.userAgent.ifBlank { HentaiCopParser.USER_AGENT })
+            .header("Referer", resolvedSource.referer.ifBlank { item.episodeUrl })
 
         if (existingLength > 0L) {
             reqBuilder.header("Range", "bytes=$existingLength-")
@@ -300,13 +320,15 @@ class VideoDownloadWorker(
         activeCalls[item.id] = call
 
         call.execute().use { response ->
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_VALIDATING_HTTP_RESPONSE)
             if (!response.isSuccessful && response.code != 206) {
                 throw IOException("HTTP ${response.code} pada file video")
             }
 
             val contentType = response.header("Content-Type")?.lowercase() ?: ""
             if (contentType.contains("text/html") || contentType.contains("application/json")) {
-                throw IOException("Respons server bukan file video valid (Content-Type: $contentType)")
+                val bodySnippet = response.body?.string()?.take(200) ?: ""
+                throw IOException("Respons server bukan file video valid (Content-Type: $contentType). Info: $bodySnippet")
             }
 
             val body = response.body ?: throw IOException("Body respons video kosong")
@@ -317,6 +339,8 @@ class VideoDownloadWorker(
                 existingLength = 0L
                 destFile.delete()
             }
+
+            dao.updateStage(item.id, VideoDownloadEntity.STAGE_STREAMING_STARTED)
 
             val contentLength = body.contentLength()
             val totalBytes = if (contentLength > 0) (existingLength + contentLength) else item.totalBytes
@@ -361,12 +385,36 @@ class VideoDownloadWorker(
         }
     }
 
-    private fun downloadHlsPlaylistMedia(
+    private suspend fun downloadHlsPlaylistMedia(
         item: VideoDownloadEntity,
         playlistUrl: String,
         destFile: File
     ) {
-        throw IOException("Format HLS (.m3u8) tidak didukung untuk unduhan file MP4 statis.")
+        dao.updateStage(item.id, VideoDownloadEntity.STAGE_STREAMING_STARTED)
+        showForegroundNotification("Downloading HLS ${item.episodeTitle}", "Processing HLS stream (.m3u8)...")
+
+        val headers = mapOf(
+            "User-Agent" to HentaiCopParser.USER_AGENT,
+            "Referer" to item.episodeUrl
+        )
+
+        com.repp.aquaticremineztools.domain.video.VideoCompressor.exportHlsToMp4(
+            context = applicationContext,
+            playlistUrl = playlistUrl,
+            outputFile = destFile,
+            headers = headers,
+            onProgress = { percent: Int ->
+                kotlinx.coroutines.runBlocking {
+                    dao.updateProgressIfDownloading(
+                        id = item.id,
+                        bytes = (item.totalBytes * percent) / 100,
+                        totalBytes = item.totalBytes.coerceAtLeast(1L),
+                        speed = 0L,
+                        percent = percent
+                    )
+                }
+            }
+        )
     }
 
     private suspend fun showForegroundNotification(title: String, content: String) {

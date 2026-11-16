@@ -1,0 +1,3 @@
+- `[x]` Task 1: Update VideoCompressor.kt exportHlsToMp4() to accept Context, use CrotPediaCookieJar(context), and validate .m3u8 content type / response.
+- `[x]` Task 2: Update VideoDownloadWorker.kt to pass applicationContext to VideoCompressor.exportHlsToMp4().
+- `[x]` Task 3: Run unit tests and verify build & test execution.
