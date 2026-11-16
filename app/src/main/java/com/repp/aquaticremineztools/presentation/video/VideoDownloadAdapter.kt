@@ -13,7 +13,8 @@ import java.util.Locale
 
 class VideoDownloadAdapter(
     private val onCancelClick: (VideoDownloadEntity) -> Unit,
-    private val onRetryClick: (VideoDownloadEntity) -> Unit
+    private val onRetryClick: (VideoDownloadEntity) -> Unit,
+    private val onErrorClick: (VideoDownloadEntity) -> Unit
 ) : RecyclerView.Adapter<VideoDownloadAdapter.ViewHolder>() {
 
     private val items = mutableListOf<VideoDownloadEntity>()
@@ -31,7 +32,7 @@ class VideoDownloadAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val item = items[position]
-        holder.bind(item, onCancelClick, onRetryClick)
+        holder.bind(item, onCancelClick, onRetryClick, onErrorClick)
     }
 
     override fun getItemCount(): Int = items.size
@@ -47,7 +48,8 @@ class VideoDownloadAdapter(
         fun bind(
             item: VideoDownloadEntity,
             onCancelClick: (VideoDownloadEntity) -> Unit,
-            onRetryClick: (VideoDownloadEntity) -> Unit
+            onRetryClick: (VideoDownloadEntity) -> Unit,
+            onErrorClick: (VideoDownloadEntity) -> Unit
         ) {
             tvBadge?.text = if (item.stage == VideoDownloadEntity.STAGE_COMPRESSING_VIDEO) "VIDEO · COMPRESS" else "VIDEO · MP4"
             tvTitle.text = "${item.episodeTitle} · ${item.qualityLabel}"
@@ -75,6 +77,7 @@ class VideoDownloadAdapter(
                     if (item.totalBytes > 0) {
                         progressBar.progress = item.progressPercent
                     }
+                    itemView.setOnClickListener(null)
                 }
                 VideoDownloadEntity.STATUS_QUEUED -> {
                     btnCancel.visibility = View.VISIBLE
@@ -82,18 +85,21 @@ class VideoDownloadAdapter(
                     progressBar.isIndeterminate = true
                     tvSubtitle.text = if (isCompressing) "Queued for compression..." else "Queued in FIFO line..."
                     tvPercent.text = "QUEUED"
+                    itemView.setOnClickListener(null)
                 }
                 VideoDownloadEntity.STATUS_FAILED -> {
                     btnCancel.visibility = View.VISIBLE
                     progressBar.visibility = View.GONE
-                    tvSubtitle.text = item.errorMessage ?: "Download failed"
+                    tvSubtitle.text = item.errorMessage ?: "Download failed (Tap for details)"
                     tvPercent.text = "FAILED"
+                    itemView.setOnClickListener { onErrorClick(item) }
                 }
                 VideoDownloadEntity.STATUS_CANCELLED -> {
                     btnCancel.visibility = View.VISIBLE
                     progressBar.visibility = View.GONE
                     tvSubtitle.text = "Cancelled"
                     tvPercent.text = "CANCELLED"
+                    itemView.setOnClickListener(null)
                 }
             }
 

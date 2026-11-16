@@ -414,6 +414,9 @@ class VideoActivity : AppCompatActivity() {
             },
             onRetryClick = { itemToRetry ->
                 viewModel.cancelDownload(itemToRetry.id)
+            },
+            onErrorClick = { failedItem ->
+                showDownloadErrorDialog(failedItem)
             }
         )
         rvPopupList.layoutManager = LinearLayoutManager(this)
@@ -497,6 +500,19 @@ class VideoActivity : AppCompatActivity() {
         val yPos = (location[1] - popupHeight - 16).coerceAtLeast(16)
 
         window.update(xPos, yPos, popupWidth, popupHeight)
+    }
+
+    private fun showDownloadErrorDialog(item: VideoDownloadEntity) {
+        AlertDialog.Builder(this)
+            .setTitle("Detail Error Download")
+            .setMessage("Gagal mengunduh '${item.episodeTitle}' (${item.qualityLabel}):\n\n${item.errorMessage ?: "Tidak ada pesan error."}")
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Salin Error") { _, _ ->
+                val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Video Download Error", item.errorMessage))
+                Toast.makeText(this, "Pesan error disalin ke clipboard.", Toast.LENGTH_SHORT).show()
+            }
+            .show()
     }
 
     override fun onStop() {
